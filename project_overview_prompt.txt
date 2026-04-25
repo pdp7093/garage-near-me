@@ -1,0 +1,57 @@
+# Project Overview: GarageNearMe
+
+**Context:**
+I am building a web-based platform called "GarageNearMe". I need you to act as an expert Technical Content Writer and Business Analyst. Using the complete project details provided below, please help me create [Insert your requirement here, e.g., a comprehensive Software Requirements Specification (SRS) document / a 10-slide Pitch Deck PPT / a detailed Project Report for my college submission].
+
+---
+
+## 1. What is "GarageNearMe"?
+"GarageNearMe" is a hyper-local, location-based web application designed to connect vehicle owners (cars and two-wheelers) with trusted, verified local garages and independent mechanics. It acts as an aggregator platform where users can discover nearby service centers, compare prices, read reviews, and book services. Crucially, it features a real-time **Emergency SOS system** that alerts nearby mechanics instantly when a user faces an unexpected vehicle breakdown on the road.
+
+The platform has two primary interfaces:
+1. **Customer Portal:** For vehicle owners to search, book, track, and pay for services.
+2. **Mechanic/Garage Portal:** For service providers to accept bookings, respond to SOS requests, and manage their service catalogs.
+
+## 2. The Real-Life Problem it Solves
+Currently, the unorganized vehicle repair sector faces several major issues:
+* **Emergency Helplessness:** When a vehicle breaks down on a highway or an unfamiliar road, finding a nearby, open, and available mechanic is incredibly stressful and time-consuming.
+* **Lack of Transparency:** Customers often face hidden charges, inflated pricing, and lack of trust regarding the quality of spare parts used by local mechanics.
+* **Visibility for Local Mechanics:** Skilled independent mechanics and small garages struggle to get visibility and compete with larger, branded service centers.
+* **Inconvenience:** Booking a service manually requires phone calls, physical visits, and haggling. There is no central digital record of a vehicle's service history for the average user.
+
+## 3. Why is this Project Required? (The Need)
+With the increasing number of vehicles on the road, the demand for accessible, reliable, and transparent repair services is at an all-time high. 
+* **For Customers:** It provides peace of mind. Whether it's a scheduled AC repair or a midnight flat tyre, help is just a tap away. It brings the convenience of food-delivery apps (like Zomato/Swiggy) to the auto-repair industry.
+* **For Service Providers:** It digitally empowers local mechanics, providing them with a steady stream of customers, a platform to build their reputation through ratings, and tools to manage their business digitally.
+
+## 4. Key Features & Workflows
+
+### A. The Dual Flow System (Core USP)
+1. **Normal Booking Flow:** 
+   * The user searches for a specific service (e.g., General Service, Denting & Painting).
+   * The platform lists nearby garages. The user views details, compares ratings/prices, and books a scheduled time slot.
+2. **SOS Emergency Flow:** 
+   * High-urgency flow for breakdowns. The user taps a prominent red "SOS Emergency" button.
+   * The system captures the live GPS location and sends a blast notification (radar ping) to all mechanics within a specific radius. 
+   * The first mechanic to accept the request gets the job, and the user can track the mechanic's arrival live on a map.
+
+### B. Customer Side Features
+* **Location-Based Search:** Find garages within a 5km/10km radius using map integration.
+* **Detailed Garage Profiles:** View services offered, pricing, business hours, and user reviews.
+* **Vehicle Management:** Users can save their cars/bikes (Model, Registration Number) in their profile for quick bookings.
+* **Customer Dashboard:** Manage active bookings, view past service history, and update profile details.
+* **Digital Payments:** Integrated options to pay online via UPI, Credit/Debit cards, or choose "Pay at Garage".
+
+### C. Mechanic/Garage Side Features (Partner Portal)
+* **Lead Generation:** Receive booking requests and SOS alerts in real-time.
+* **Service Catalog Management:** Add/edit the services they offer and set base pricing.
+* **Availability Toggle:** Ability to switch their status to "Online/Available for SOS" or "Offline".
+* **Earnings Dashboard:** Track daily/weekly earnings, completed jobs, and customer ratings.
+
+## 5. Technology Stack & Design Approach
+* **Design Philosophy:** Premium, modern, and highly responsive. Uses clean UI/UX principles with a mobile-first approach, featuring glassmorphism, dynamic micro-animations, and a cohesive color palette (Primary Orange, Clean Whites, and Dark accents).
+* **Frontend:** HTML5, Vanilla CSS (Custom styling + CSS Variables), and Bootstrap 5 (utilizing grid and utility classes for rapid, responsive layout).
+* **Interactivity:** Vanilla JavaScript for DOM manipulation, modal handling, and OTP verification flows.
+
+---
+**Instruction for the AI:** Based on the above project context, please generate the required document/presentation structure, keeping the tone professional, innovative, and focused on the value proposition of digitizing the unorganized auto-repair sector.

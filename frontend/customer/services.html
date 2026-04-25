@@ -62,14 +62,39 @@
     <div class="container py-5 flex-grow-1">
         <div class="row g-4 g-lg-5">
             
+            <!-- SOS Emergency Feature (Highlighted at the Top) -->
+            <div class="col-12">
+                <div class="card border border-danger shadow-sm rounded-4 overflow-hidden" style="background:#FEF2F2;">
+                    <div class="row g-0">
+                        <div class="col-md-5 d-none d-md-block">
+                            <div class="h-100 w-100 bg-secondary" style="min-height:200px; background-image:url('https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?auto=format&fit=crop&q=80&w=800'); background-size:cover; background-position:center;"></div>
+                        </div>
+                        <div class="col-md-7 d-flex align-items-center">
+                            <div class="card-body p-4 p-md-5">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px; height:48px; background:#DC2626;">
+                                        <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                                    </div>
+                                    <h3 class="fw-bold mb-0 text-danger" style="font-family:var(--font-head);">Emergency SOS Breakdown</h3>
+                                </div>
+                                <p class="text-danger mb-4" style="line-height:1.6; opacity:0.9; font-size:16px;">Immediate roadside assistance for Cars & Bikes. Flat tyre, dead battery, or major breakdown on the highway — our radar alerts nearby mechanics instantly. First to accept gets dispatched.</p>
+                                <a href="sos-tracking.html" class="btn btn-danger rounded-pill px-5 py-3 fw-bold d-inline-flex align-items-center gap-2 shadow" style="font-size:16px;">
+                                    Request SOS Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Service 1 -->
             <div class="col-md-6 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden transition-all" onmouseover="this.classList.add('shadow-lg')" onmouseout="this.classList.remove('shadow-lg')">
                     <!-- Image header -->
                     <div class="bg-secondary" style="height:180px; background-image:url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&q=80&w=600'); background-size:cover; background-position:center;"></div>
                     <div class="card-body p-4 d-flex flex-column">
-                        <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">General Service</h4>
-                        <p class="text-muted small mb-4" style="line-height:1.6;">Regular maintenance including oil changes, filter replacements, fluid checks, and comprehensive 30-point vehicle inspections.</p>
+                        <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">General Service (Car & Bike)</h4>
+                        <p class="text-muted small mb-4" style="line-height:1.6;">Regular maintenance for both two-wheelers and four-wheelers including oil changes, filter replacements, fluid checks, and comprehensive inspections.</p>
                         <a href="search-results.html" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
                     </div>
                 </div>
@@ -107,8 +132,8 @@
                     <!-- Image header -->
                     <div class="bg-secondary" style="height:180px; background-image:url('https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=600'); background-size:cover; background-position:center;"></div>
                     <div class="card-body p-4 d-flex flex-column">
-                        <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Car Wash & Detailing</h4>
-                        <p class="text-muted small mb-4" style="line-height:1.6;">Deep interior cleaning, exterior foam wash, engine bay cleaning, and premium polishing for a showroom finish.</p>
+                        <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Wash & Detailing</h4>
+                        <p class="text-muted small mb-4" style="line-height:1.6;">Premium foam wash, interior cleaning, and polishing for both cars and bikes to give your vehicle a showroom finish.</p>
                         <a href="search-results.html" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
                     </div>
                 </div>
@@ -127,20 +152,6 @@
                 </div>
             </div>
 
-            <!-- Service 6 -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card border border-danger shadow-sm rounded-4 h-100 overflow-hidden" style="background:#FEF2F2;">
-                    <!-- Image header -->
-                    <div class="bg-secondary" style="height:180px; background-image:url('https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?auto=format&fit=crop&q=80&w=600'); background-size:cover; background-position:center;"></div>
-                    <div class="card-body p-4 d-flex flex-column">
-                        <h4 class="fw-bold mb-2 text-danger" style="font-family:var(--font-head);">SOS Breakdown</h4>
-                        <p class="text-danger small mb-4" style="line-height:1.6; opacity:0.8;">Immediate roadside assistance. Flat tyre, dead battery, or major breakdown — help is just a tap away.</p>
-                        <a href="sos-tracking.html" class="btn btn-danger mt-auto rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-2">
-                            <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                            Request SOS
-                        </a>
-                    </div>
-                </div>
             </div>
 
         </div>
