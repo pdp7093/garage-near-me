@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us — GarageNearMe</title>
+    <link rel="stylesheet" href="../css/bootstrap.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
+</head>
+
+<body style="background:var(--color-bg); min-height:100vh; display: flex; flex-direction: column;">
+
+    <!-- ═══ NAVBAR ═══ -->
+    <nav class="gnm-nav sticky-top">
+        <div class="gnm-nav-inner">
+            <a href="index.html" class="gnm-logo text-decoration-none">
+                <div class="gnm-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
+                        <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+                    </svg>
+                </div>
+                <span class="gnm-logo-text">GarageNearMe</span>
+            </a>
+
+            <div class="gnm-nav-center d-none d-lg-flex">
+                <a href="index.html" class="gnm-nav-link">Home</a>
+                <a href="search-results.html" class="gnm-nav-link">Garages</a>
+                <a href="services.html" class="gnm-nav-link">Services</a>
+                <a href="about.html" class="gnm-nav-link active">About</a>
+            </div>
+
+            <div class="gnm-nav-right">
+                <a href="login.html" class="gnm-btn-login d-none d-md-flex">Login</a>
+                <button class="gnm-hamburger d-lg-none" id="menuBtn" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+        <div class="gnm-mobile-menu" id="mobileMenu">
+            <a href="index.html">Home</a>
+            <a href="search-results.html">Garages</a>
+            <a href="services.html">Services</a>
+            <a href="about.html" class="active">About</a>
+            <a href="login.html" class="gnm-mobile-login">Login</a>
+        </div>
+    </nav>
+
+    <!-- ═══ ABOUT HERO ═══ -->
+    <div class="position-relative overflow-hidden" style="background:var(--color-primary); padding:100px 0 80px;">
+        <div class="glow-1" style="position:absolute; width:600px; height:600px; background:rgba(255,255,255,0.05); border-radius:50%; top:-200px; left:-100px; pointer-events:none;"></div>
+        <div class="container position-relative z-1">
+            <div class="row align-items-center">
+                <div class="col-lg-7 mb-5 mb-lg-0">
+                    <div class="badge bg-white text-primary rounded-pill px-3 py-2 mb-3 shadow-sm fw-bold" style="font-size:12px; color:var(--color-primary) !important;">Our Mission</div>
+                    <h1 class="display-4 fw-bold text-white mb-4" style="font-family:var(--font-head); line-height:1.2;">
+                        Revolutionizing <span style="color:#FFF3E0;">Vehicle Care</span> across the country.
+                    </h1>
+                    <p class="text-white-50 mb-0" style="font-size:18px; line-height:1.6; max-width:550px;">
+                        GarageNearMe was born from a simple idea: finding a reliable mechanic shouldn't be stressful. We connect vehicle owners with trusted, verified local garages instantly.
+                    </p>
+                </div>
+                <div class="col-lg-5">
+                    <div class="position-relative w-100 rounded-5 shadow-lg overflow-hidden border" style="height:400px;">
+                        <img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&q=80&w=800" class="w-100 h-100 object-fit-cover" alt="Mechanic Team">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ STATS SECTION ═══ -->
+    <div class="bg-white py-5 border-bottom">
+        <div class="container py-4">
+            <div class="row g-4 text-center">
+                <div class="col-6 col-md-3">
+                    <h2 class="display-5 fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-primary);">10k+</h2>
+                    <p class="text-muted fw-medium mb-0">Happy Customers</p>
+                </div>
+                <div class="col-6 col-md-3">
+                    <h2 class="display-5 fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-primary);">500+</h2>
+                    <p class="text-muted fw-medium mb-0">Verified Garages</p>
+                </div>
+                <div class="col-6 col-md-3">
+                    <h2 class="display-5 fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-primary);">15+</h2>
+                    <p class="text-muted fw-medium mb-0">Cities Present</p>
+                </div>
+                <div class="col-6 col-md-3">
+                    <h2 class="display-5 fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-primary);">&lt;15m</h2>
+                    <p class="text-muted fw-medium mb-0">SOS Response Time</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ WHY CHOOSE US ═══ -->
+    <div class="py-5" style="background:var(--color-bg);">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold mb-3" style="font-family:var(--font-head); color:var(--color-text);">Why Choose GarageNearMe?</h2>
+                <p class="text-muted mx-auto" style="max-width:600px;">We bring transparency, convenience, and trust back into vehicle repair. Here is how we stand out from traditional garage hunting.</p>
+            </div>
+            
+            <div class="row g-4 g-lg-5">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-all" onmouseover="this.classList.add('shadow-lg')" onmouseout="this.classList.remove('shadow-lg')">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-4" style="width:60px; height:60px; color:var(--color-primary);">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="30" height="30"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                        </div>
+                        <h5 class="fw-bold mb-3" style="font-family:var(--font-head);">100% Verified Partners</h5>
+                        <p class="text-muted small mb-0 line-height-lg">Every garage on our platform undergoes a strict 50-point quality check. We ensure they have the right tools, original parts, and experienced mechanics.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-all" onmouseover="this.classList.add('shadow-lg')" onmouseout="this.classList.remove('shadow-lg')">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-4" style="width:60px; height:60px; color:var(--color-primary);">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="30" height="30"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                        </div>
+                        <h5 class="fw-bold mb-3" style="font-family:var(--font-head);">Transparent Pricing</h5>
+                        <p class="text-muted small mb-0 line-height-lg">No hidden costs or last-minute surprises. Get upfront estimates before you book, and pay securely via digital methods once the job is done.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-all" onmouseover="this.classList.add('shadow-lg')" onmouseout="this.classList.remove('shadow-lg')">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-4" style="width:60px; height:60px; color:#DC2626;">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="30" height="30"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        </div>
+                        <h5 class="fw-bold mb-3" style="font-family:var(--font-head);">Instant SOS Support</h5>
+                        <p class="text-muted small mb-0 line-height-lg">Stuck on a highway? Our SOS feature alerts the nearest available mechanics in real-time, drastically reducing wait times during emergencies.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="gnm-footer mt-auto">
+        <div class="gnm-footer-top">
+            <div class="gnm-footer-brand">
+                <a href="index.html" class="gnm-logo">
+                    <div class="gnm-logo-icon">
+                        <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+                            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+                        </svg>
+                    </div>
+                    <span class="gnm-logo-text">GarageNearMe</span>
+                </a>
+                <p class="gnm-footer-tagline">Your trusted vehicle repair partner — anytime, anywhere in the city.</p>
+            </div>
+
+            <div class="gnm-footer-col">
+                <div class="gnm-footer-heading">Platform</div>
+                <a href="search-results.html" class="gnm-footer-link">Find Garages</a>
+                <a href="sos-tracking.html" class="gnm-footer-link">Emergency SOS</a>
+                <a href="services.html" class="gnm-footer-link">Services</a>
+                <a href="about.html" class="gnm-footer-link">About Us</a>
+            </div>
+
+            <div class="gnm-footer-col">
+                <div class="gnm-footer-heading">For Garages</div>
+                <a href="register.html" class="gnm-footer-link">Register Garage</a>
+                <a href="login.html" class="gnm-footer-link">Mechanic Login</a>
+            </div>
+
+            <div class="gnm-footer-col">
+                <div class="gnm-footer-heading">Contact</div>
+                <p class="gnm-footer-link">support@garagenearme.in</p>
+                <p class="gnm-footer-link">+91 98765 43210</p>
+                <p class="gnm-footer-link">New Delhi, India</p>
+            </div>
+        </div>
+        <div class="gnm-footer-bottom">
+            <span>&copy; 2026 GarageNearMe. All rights reserved.</span>
+            <div class="gnm-footer-legal">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Use</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+
+</html>

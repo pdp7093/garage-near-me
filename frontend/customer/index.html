@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GarageNearMe — Find Nearby Garages Instantly</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+
+  <!-- ═══ NAVBAR ═══ -->
+  <nav class="gnm-nav">
+    <div class="gnm-nav-inner">
+
+      <a href="index.html" class="gnm-logo">
+        <div class="gnm-logo-icon">
+          <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
+            <path
+              d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+          </svg>
+        </div>
+        <span class="gnm-logo-text">GarageNearMe</span>
+      </a>
+
+      <div class="gnm-nav-center">
+        <a href="index.html" class="gnm-nav-link active">Home</a>
+        <a href="search-results.html" class="gnm-nav-link">Garages</a>
+        <a href="services.html" class="gnm-nav-link">Services</a>
+        <a href="about.html" class="gnm-nav-link">About</a>
+      </div>
+
+      <div class="gnm-nav-right">
+        <div class="gnm-location">
+          <svg viewBox="0 0 24 24" fill="#FF6B35" width="13" height="13">
+            <path
+              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+          </svg>
+          <span>Ahmedabad</span>
+        </div>
+        <a href="login.html" class="gnm-btn-login">Login</a>
+        <button class="gnm-hamburger" id="menuBtn" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+
+    </div>
+    <div class="gnm-mobile-menu" id="mobileMenu">
+      <a href="index.html">Home</a>
+      <a href="search-results.html">Garages</a>
+      <a href="services.html">Services</a>
+      <a href="about.html">About</a>
+      <a href="login.html" class="gnm-mobile-login">Login</a>
+    </div>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="py-5 position-relative overflow-hidden" style="background:var(--color-bg);">
+    <!-- Glow effects -->
+    <div class="glow-1" style="position:absolute; width:400px; height:400px; background:rgba(255,107,53,0.05); border-radius:50%; top:-100px; right:-50px; pointer-events:none;"></div>
+    
+    <div class="container py-4 py-lg-5">
+      <div class="row align-items-center g-5">
+        <!-- Left: Text + Search -->
+        <div class="col-lg-6 z-1">
+          <div class="d-inline-flex align-items-center bg-white border rounded-pill px-3 py-2 mb-4 shadow-sm">
+            <span class="d-block rounded-circle me-2" style="width:8px; height:8px; background:var(--color-success);"></span>
+            <span style="font-size:13px; font-weight:600; color:var(--color-text);">48 verified garages active near you</span>
+          </div>
+
+          <h1 class="display-4 fw-bold mb-3" style="font-family:var(--font-head); color:var(--color-text); line-height:1.2;">
+            Find a Trusted Garage<br>
+            <span style="color:var(--color-primary);">Near You — Instantly</span>
+          </h1>
+
+          <p class="text-muted mb-4" style="font-size:16px; line-height:1.6; max-width:450px;">
+            Instant booking, live mechanic tracking &amp; emergency SOS.<br>
+            Verified garages within 5 km, always.
+          </p>
+
+          <div class="bg-white p-2 rounded-pill shadow border d-flex align-items-center mb-5" style="max-width:480px;">
+            <svg viewBox="0 0 24 24" fill="var(--color-primary)" width="20" height="20" class="ms-3 me-2 flex-shrink-0">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+            </svg>
+            <input type="text" id="locationInput" class="form-control border-0 shadow-none bg-transparent" placeholder="Enter your area or use GPS..." style="font-size:15px;">
+            <button class="btn rounded-circle me-2 d-flex align-items-center justify-content-center" style="width:36px; height:36px; background:rgba(255,107,53,0.1);" title="Use my location">
+              <svg viewBox="0 0 24 24" fill="var(--color-primary)" width="16" height="16"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+            </button>
+            <button class="btn text-white rounded-pill px-4 fw-medium" style="background:var(--color-primary);" onclick="window.location.href='search-results.html'">Search</button>
+          </div>
+
+          <div class="d-flex align-items-center gap-4">
+            <div>
+              <h4 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">200+</h4>
+              <span class="text-muted small">Verified Garages</span>
+            </div>
+            <div style="width:1px; height:30px; background:var(--color-border);"></div>
+            <div>
+              <h4 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">4.8 <span style="color:#F59E0B;">★</span></h4>
+              <span class="text-muted small">Average Rating</span>
+            </div>
+            <div style="width:1px; height:30px; background:var(--color-border);"></div>
+            <div>
+              <h4 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">&lt;15m</h4>
+              <span class="text-muted small">Avg. Response</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Simple Visual Image -->
+        <div class="col-lg-6 z-1">
+            <div class="position-relative w-100 rounded-5 shadow-lg overflow-hidden border" style="height:480px;">
+                <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800" class="w-100 h-100 object-fit-cover" alt="Mechanic working on car">
+                <!-- Overlay Card -->
+                <div class="position-absolute bottom-0 start-0 m-4 bg-white rounded-4 p-3 shadow-lg d-flex align-items-center gap-3 border" style="max-width:280px;">
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold" style="width:48px; height:48px; color:var(--color-primary); font-size:18px;">SA</div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size:14px; font-family:var(--font-head);">Sharma Auto Garage</div>
+                        <div class="text-muted" style="font-size:12px;">0.8 km away • <span class="text-success fw-semibold">Open now</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SOS STRIP ═══ -->
+  <section class="py-4 border-top border-bottom" style="background-color: #FEF2F2;">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-8 d-flex align-items-center gap-3 mb-3 mb-md-0">
+          <div class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px; height:48px;">
+            <svg viewBox="0 0 24 24" fill="#DC2626" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1" style="color:#DC2626; font-family:var(--font-head);">Emergency Breakdown?</h5>
+            <p class="mb-0" style="color:#991B1B; font-size:14px;">Tap SOS — nearby mechanics notified instantly. First to accept gets the job.</p>
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end text-start">
+          <button class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" style="background:#DC2626; border:none;" onclick="window.location.href='sos-tracking.html'">
+            <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            SOS Emergency
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ HOW IT WORKS ═══ -->
+  <section class="py-5 bg-white" id="services">
+    <div class="container py-5">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">How It Works</h2>
+        <p class="text-muted">Get your vehicle repaired in 4 simple steps</p>
+      </div>
+
+      <div class="row g-4 text-center">
+        <!-- Step 1 -->
+        <div class="col-md-3">
+          <div class="position-relative">
+             <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px; height:80px;">
+                <svg viewBox="0 0 24 24" fill="var(--color-primary)" width="32" height="32"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+             </div>
+             <div class="position-absolute top-0 start-50 translate-middle-x rounded-pill bg-white border fw-bold shadow-sm" style="margin-top:-10px; font-size:12px; padding:2px 10px; color:var(--color-primary);">01</div>
+          </div>
+          <h5 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Share Location</h5>
+          <p class="text-muted small">Allow GPS or type your address. We find verified garages within 5 km instantly.</p>
+        </div>
+        <!-- Step 2 -->
+        <div class="col-md-3">
+          <div class="position-relative">
+             <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px; height:80px;">
+                <svg viewBox="0 0 24 24" fill="var(--color-primary)" width="32" height="32"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+             </div>
+             <div class="position-absolute top-0 start-50 translate-middle-x rounded-pill bg-white border fw-bold shadow-sm" style="margin-top:-10px; font-size:12px; padding:2px 10px; color:var(--color-primary);">02</div>
+          </div>
+          <h5 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Choose Garage</h5>
+          <p class="text-muted small">Compare ratings, distance &amp; services. Pick the best fit for your vehicle.</p>
+        </div>
+        <!-- Step 3 -->
+        <div class="col-md-3">
+          <div class="position-relative">
+             <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px; height:80px;">
+                <svg viewBox="0 0 24 24" fill="var(--color-primary)" width="32" height="32"><path d="M21 6.5l-4-4-9.5 9.5-2.5 7 7-2.5L21 6.5zm-14.5 9L4 19l3.5-2.5L4 13l3.5 3.5zM15 4l5 5-1.5 1.5L14 5.5 15 4z"/></svg>
+             </div>
+             <div class="position-absolute top-0 start-50 translate-middle-x rounded-pill bg-white border fw-bold shadow-sm" style="margin-top:-10px; font-size:12px; padding:2px 10px; color:var(--color-primary);">03</div>
+          </div>
+          <h5 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Book &amp; Track</h5>
+          <p class="text-muted small">Confirm your booking and track the mechanic live on the map until they arrive.</p>
+        </div>
+        <!-- Step 4 -->
+        <div class="col-md-3">
+          <div class="position-relative">
+             <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px; height:80px;">
+                <svg viewBox="0 0 24 24" fill="var(--color-primary)" width="32" height="32"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+             </div>
+             <div class="position-absolute top-0 start-50 translate-middle-x rounded-pill bg-white border fw-bold shadow-sm" style="margin-top:-10px; font-size:12px; padding:2px 10px; color:var(--color-primary);">04</div>
+          </div>
+          <h5 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Pay &amp; Review</h5>
+          <p class="text-muted small">Pay digitally via UPI, card or wallet. Rate your experience to help others.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="gnm-footer" id="about">
+    <div class="gnm-footer-top">
+
+      <div class="gnm-footer-brand">
+        <a href="index.html" class="gnm-logo">
+          <div class="gnm-logo-icon">
+            <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+              <path
+                d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+            </svg>
+          </div>
+          <span class="gnm-logo-text">GarageNearMe</span>
+        </a>
+        <p class="gnm-footer-tagline">Your trusted vehicle repair partner — anytime, anywhere in the city.</p>
+      </div>
+
+      <div class="gnm-footer-col">
+        <div class="gnm-footer-heading">Platform</div>
+        <a href="search-results.html" class="gnm-footer-link">Find Garages</a>
+        <a href="sos-tracking.html" class="gnm-footer-link">Emergency SOS</a>
+        <a href="services.html" class="gnm-footer-link">How It Works</a>
+        <a href="#" class="gnm-footer-link">Pricing</a>
+      </div>
+
+      <div class="gnm-footer-col">
+        <div class="gnm-footer-heading">For Garages</div>
+        <a href="#" class="gnm-footer-link">Register Garage</a>
+        <a href="login.html" class="gnm-footer-link">Mechanic Login</a>
+        <a href="#" class="gnm-footer-link">Dashboard</a>
+        <a href="#" class="gnm-footer-link">Support</a>
+      </div>
+
+      <div class="gnm-footer-col">
+        <div class="gnm-footer-heading">Contact</div>
+        <p class="gnm-footer-link">support@garagenearme.in</p>
+        <p class="gnm-footer-link">+91 98765 43210</p>
+        <p class="gnm-footer-link">Ahmedabad, Gujarat — India</p>
+      </div>
+
+    </div>
+    <div class="gnm-footer-bottom">
+      <span>&copy; 2026 GarageNearMe. All rights reserved.</span>
+      <div class="gnm-footer-legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/bootstrap.js"></script>
+  <script src="../js/script.js"></script>
+</body>
+
+</html>
