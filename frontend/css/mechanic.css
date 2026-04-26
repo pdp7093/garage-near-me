@@ -1,0 +1,273 @@
+/* 
+  Mechanic Portal Specific Styles
+  Uses variables from style.css
+*/
+
+:root {
+  --mechanic-sidebar-width: 260px;
+  --mechanic-sidebar-bg: #111827; /* Dark theme for sidebar */
+  --mechanic-sidebar-text: #9CA3AF;
+  --mechanic-sidebar-hover: #F9FAFB;
+  --mechanic-sidebar-active: #FF6B35;
+}
+
+/* Auth Split Screen (Login/Register) */
+.auth-split-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+}
+
+.auth-split-left {
+  flex: 1;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #E85D26 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative background shapes for the auth left side */
+.auth-split-left::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 0;
+}
+
+.auth-split-left::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  z-index: 0;
+}
+
+.auth-split-left-content {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+}
+
+.auth-split-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: white;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 450px;
+}
+
+/* Form Tabs */
+.auth-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: 2rem;
+}
+
+.auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.3s ease;
+}
+
+.auth-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Form Styles */
+.form-floating > label {
+  color: var(--color-text-muted);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: var(--color-primary);
+  opacity: 0.8;
+}
+
+.form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25);
+}
+
+/* Responsive auth */
+@media (max-width: 991.98px) {
+  .auth-split-wrapper {
+    flex-direction: column;
+  }
+  .auth-split-left {
+    flex: none;
+    padding: 3rem 2rem;
+    min-height: 30vh;
+  }
+}
+
+/* ═══ DASHBOARD LAYOUT ═══ */
+.mechanic-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+}
+
+/* Sidebar */
+.mechanic-sidebar {
+  width: var(--mechanic-sidebar-width);
+  background-color: var(--mechanic-sidebar-bg);
+  color: var(--mechanic-sidebar-text);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  z-index: 1040;
+}
+
+.sidebar-header {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.sidebar-nav {
+  padding: 1.5rem 0;
+  flex: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  color: var(--mechanic-sidebar-text);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-link svg {
+  margin-right: 12px;
+  fill: currentColor;
+  opacity: 0.7;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+  color: var(--mechanic-sidebar-hover);
+  background: rgba(255,255,255,0.02);
+}
+
+.sidebar-link.active {
+  border-left-color: var(--mechanic-sidebar-active);
+  color: var(--mechanic-sidebar-hover);
+}
+.sidebar-link.active svg {
+  fill: var(--mechanic-sidebar-active);
+  opacity: 1;
+}
+
+/* Main Content */
+.mechanic-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.mechanic-topbar {
+  height: 70px;
+  background-color: white;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.mechanic-content {
+  padding: 2rem;
+  flex: 1;
+}
+
+/* SOS Toggle Switch */
+.sos-toggle-wrapper {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.form-switch.sos-switch .form-check-input {
+  width: 3.5rem;
+  height: 1.75rem;
+  cursor: pointer;
+}
+
+.form-switch.sos-switch .form-check-input:checked {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+/* Stat Cards */
+.stat-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  height: 100%;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Dashboard */
+@media (max-width: 991.98px) {
+  .mechanic-sidebar {
+    position: fixed;
+    height: 100vh;
+    transform: translateX(-100%);
+  }
+  .mechanic-sidebar.show {
+    transform: translateX(0);
+  }
+  .mechanic-topbar {
+    padding: 0 1rem;
+  }
+  .mechanic-content {
+    padding: 1rem;
+  }
+}

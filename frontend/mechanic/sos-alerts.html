@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emergency SOS Alerts - GarageNearMe</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
+    rel="stylesheet" />
+  <style>
+    body {
+      /* Subtle red tint for emergency context */
+      background-color: #FEF2F2;
+    }
+
+    .mechanic-layout {
+      background-color: transparent;
+    }
+
+    .sos-card {
+      border: 2px solid #EF4444;
+      background: white;
+      transition: all 0.2s ease;
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15);
+    }
+
+    .sos-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px rgba(239, 68, 68, 0.2);
+    }
+
+    .pulse-dot {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+
+    .radar-bg {
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      border: 1px solid rgba(239, 68, 68, 0.1);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .radar-bg::before {
+      content: '';
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      right: 10%;
+      bottom: 10%;
+      border-radius: 50%;
+      border: 1px solid rgba(239, 68, 68, 0.1);
+    }
+
+    .radar-bg::after {
+      content: '';
+      position: absolute;
+      top: 20%;
+      left: 20%;
+      right: 20%;
+      bottom: 20%;
+      border-radius: 50%;
+      border: 1px solid rgba(239, 68, 68, 0.1);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="mechanic-layout">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="mechanic-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="dashboard.html" class="d-flex align-items-center text-white text-decoration-none gap-2">
+          <div class="rounded bg-white d-flex align-items-center justify-content-center"
+            style="width: 28px; height: 28px; color: var(--color-primary);">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path
+                d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+            </svg>
+          </div>
+          <span class="fw-bold" style="font-family: var(--font-head); font-size: 1.1rem;">GarageNearMe</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+          </svg>
+          Dashboard
+        </a>
+        <a href="sos-alerts.html" class="sidebar-link text-danger active" style="border-left-color: #EF4444;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+          </svg>
+          Emergency SOS <span class="badge bg-danger ms-auto rounded-pill pulse-dot">1</span>
+        </a>
+        <a href="requests.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path
+              d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+          </svg>
+          Bookings <span class="badge bg-primary ms-auto rounded-pill">1</span>
+        </a>
+        <a href="services.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path
+              d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
+          </svg>
+          Services
+        </a>
+        <a href="profile.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          </svg>
+          Profile
+        </a>
+      </nav>
+
+      <div class="mt-auto pb-4">
+        <a href="index.html" class="sidebar-link" style="color: #EF4444;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#EF4444">
+            <path
+              d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+          </svg>
+          Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
+      style="z-index: 1030;"></div>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="mechanic-main position-relative overflow-hidden">
+      <!-- Background Radar Effect -->
+      <div class="radar-bg"></div>
+
+      <!-- Topbar -->
+      <header class="mechanic-topbar bg-white">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn d-lg-none p-0 border-0 shadow-none text-dark" id="sidebarToggle">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+            </svg>
+          </button>
+          <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle bg-danger pulse-dot d-none d-md-block" style="width: 12px; height: 12px;"></div>
+            <h5 class="mb-0 fw-bold text-danger" style="font-family: var(--font-head);">Active SOS Radar</h5>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center gap-2 border-start ps-3 ms-1">
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold"
+              style="width: 36px; height: 36px; color: var(--color-primary); font-size: 14px;">
+              SA
+            </div>
+            <div class="d-none d-md-block">
+              <div class="fw-bold" style="font-size: 14px; line-height: 1.2;">Sharma Auto</div>
+              <div class="text-muted" style="font-size: 12px;">Available for SOS</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="mechanic-content position-relative z-1">
+
+        <div class="text-center mb-5">
+          <h2 class="fw-bold text-danger mb-2" style="font-family: var(--font-head);">1 Emergency Request Nearby</h2>
+          <p class="text-muted">Accept fast! First mechanic to accept gets the job.</p>
+        </div>
+
+        <!-- Request Cards Grid -->
+        <div class="row justify-content-center">
+
+          <!-- SOS Request Card (High Priority) -->
+          <div class="col-12 col-md-10 col-lg-8">
+            <div class="rounded-4 p-4 sos-card position-relative">
+
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded-circle bg-danger pulse-dot" style="width: 12px; height: 12px;"></div>
+                  <span class="text-danger fw-bold text-uppercase tracking-wider">Breakdown Alert</span>
+                </div>
+                <span class="badge bg-danger">02:45 Mins Ago</span>
+              </div>
+
+              <div class="row align-items-center mb-4">
+                <div class="col-sm-8 mb-3 mb-sm-0">
+                  <h4 class="fw-bold mb-1">Rahul Verma</h4>
+                  <div class="text-muted mb-2 d-flex align-items-center gap-2">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                      <path
+                        d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
+                    </svg>
+                    Honda City (White) • GJ01 AB 1234
+                  </div>
+                  <div class="d-flex align-items-center gap-2 text-dark fw-bold fs-5">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#EF4444">
+                      <path
+                        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                    </svg>
+                    S.G. Highway (Near YMCA Club)
+                  </div>
+                </div>
+                <div class="col-sm-4 text-sm-end text-start">
+                  <div
+                    class="bg-danger bg-opacity-10 d-inline-block rounded-4 p-3 text-center border border-danger border-opacity-25">
+                    <div class="fw-bold" style="font-size: 1.8rem; color: #EF4444; line-height: 1;">2.4</div>
+                    <div class="text-danger fw-medium" style="font-size: 12px; text-transform: uppercase;">km away</div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="p-3 bg-danger bg-opacity-10 rounded-3 mb-4 border border-danger border-opacity-25 text-danger fw-medium">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" class="me-2 mb-1">
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+                "Car engine stopped suddenly in middle of road. Need urgent help!"
+              </div>
+
+              <div class="d-flex flex-column flex-sm-row gap-3">
+                <a href="sos-detail.html" class="btn btn-danger flex-grow-1 fw-bold rounded-pill py-3 shadow fs-5 text-decoration-none text-center">
+                  ACCEPT SOS
+                </a>
+                <button class="btn btn-outline-secondary rounded-pill px-4 py-3 fw-bold">Decline</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Recent SOS History Table -->
+        <div class="bg-white rounded-4 border p-4 shadow-sm mt-5 position-relative z-2">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0 text-dark" style="font-family: var(--font-head);">Recent SOS History</h5>
+            <a href="sos-history.html" class="btn btn-sm btn-outline-danger rounded-pill px-3">View Full History</a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="text-muted small">
+                <tr>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Customer & Vehicle</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Location</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Date & Time</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Status</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Earning</th>
+                </tr>
+              </thead>
+              <tbody class="border-top-0 bg-white">
+                <!-- Completed SOS -->
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">Vikas Singh</div>
+                    <div class="text-muted small">Maruti Swift • Flat Tyre</div>
+                  </td>
+                  <td>
+                    <div class="text-dark">Prahlad Nagar</div>
+                  </td>
+                  <td>
+                    <div class="text-dark small">Today, 10:30 AM</div>
+                  </td>
+                  <td>
+                    <span
+                      class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1">Completed</span>
+                  </td>
+                  <td class="text-end fw-bold text-success">
+                    ₹450
+                  </td>
+                </tr>
+
+                <!-- Ignored/Missed SOS -->
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">Anjali Desai</div>
+                    <div class="text-muted small">Activa 6G • Battery Dead</div>
+                  </td>
+                  <td>
+                    <div class="text-dark">Satellite Road</div>
+                  </td>
+                  <td>
+                    <div class="text-dark small">Yesterday, 08:15 PM</div>
+                  </td>
+                  <td>
+                    <span
+                      class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1">Missed</span>
+                  </td>
+                  <td class="text-end fw-bold text-muted">
+                    --
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="../js/bootstrap.js"></script>
+  <script>
+    // Sidebar Toggle
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    function toggleSidebar() {
+      sidebar.classList.toggle('show');
+      sidebarOverlay.classList.toggle('d-none');
+    }
+
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', toggleSidebar);
+  </script>
+</body>
+
+</html>

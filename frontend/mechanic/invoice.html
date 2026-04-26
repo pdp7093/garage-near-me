@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Final Bill #GNM-1042 - GarageNearMe</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
+    rel="stylesheet" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .invoice-card {
+      border-top: 6px solid var(--color-primary);
+    }
+    .dotted-divider {
+      border-top: 2px dashed #dee2e6;
+      margin: 1.5rem 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-8 col-lg-6">
+        
+        <!-- Back Button -->
+        <a href="job-detail.html" class="btn btn-light rounded-pill mb-4 shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          Back to Job Detail
+        </a>
+
+        <!-- Invoice Card -->
+        <div class="bg-white rounded-4 shadow-sm p-4 p-md-5 invoice-card position-relative overflow-hidden">
+          
+          <!-- Header -->
+          <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+              <h3 class="fw-bold mb-1" style="font-family: var(--font-head);">Final Invoice</h3>
+              <div class="text-muted small">Job ID: #GNM-1042</div>
+              <div class="text-muted small">Date: 26 Apr 2026</div>
+            </div>
+            <div class="text-end">
+              <h5 class="fw-bold mb-0 text-dark">Sharma Auto</h5>
+              <div class="text-muted small">S.G. Highway, Ahmedabad</div>
+            </div>
+          </div>
+
+          <!-- Customer Info -->
+          <div class="bg-light rounded-3 p-3 mb-4 border">
+            <h6 class="fw-bold text-muted mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 1px;">Billed To</h6>
+            <h6 class="fw-bold mb-1">Rahul Verma</h6>
+            <div class="text-muted small">Honda City (White) • GJ01 AB 1234</div>
+            <div class="text-muted small mt-1">Service: General Maintenance</div>
+          </div>
+
+          <!-- Items Table -->
+          <div class="table-responsive mb-2">
+            <table class="table table-borderless mb-0">
+              <thead class="text-muted small border-bottom">
+                <tr>
+                  <th scope="col" class="ps-0 fw-medium pb-2">Description</th>
+                  <th scope="col" class="fw-medium pb-2 text-center">Qty</th>
+                  <th scope="col" class="pe-0 fw-medium pb-2 text-end">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="ps-0 py-3">
+                    <div class="fw-bold text-dark">Engine Oil Change (Synthetic)</div>
+                  </td>
+                  <td class="py-3 text-center text-muted">1</td>
+                  <td class="pe-0 py-3 text-end fw-bold">₹1,200</td>
+                </tr>
+                <tr>
+                  <td class="ps-0 py-3 border-top border-light">
+                    <div class="fw-bold text-dark">Oil Filter Replacement</div>
+                  </td>
+                  <td class="py-3 text-center text-muted border-top border-light">1</td>
+                  <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹350</td>
+                </tr>
+                <tr>
+                  <td class="ps-0 py-3 border-top border-light">
+                    <div class="fw-bold text-dark">Labour Charges</div>
+                  </td>
+                  <td class="py-3 text-center text-muted border-top border-light">-</td>
+                  <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹400</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="dotted-divider"></div>
+
+          <!-- Totals -->
+          <div class="row justify-content-end mb-4">
+            <div class="col-8 col-sm-6">
+              <div class="d-flex justify-content-between mb-2 text-muted">
+                <span>Subtotal</span>
+                <span class="fw-bold text-dark">₹1,950</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2 text-muted">
+                <span>Taxes (18% GST)</span>
+                <span class="fw-bold text-dark">₹351</span>
+              </div>
+              <div class="d-flex justify-content-between mt-3 pt-3 border-top align-items-center">
+                <span class="fw-bold text-dark fs-5">Total Due</span>
+                <span class="fw-bold fs-4" style="color: var(--color-primary);">₹2,301</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Actions -->
+          <div class="d-flex flex-column flex-sm-row gap-3">
+            <a href="dashboard.html" class="btn btn-success flex-grow-1 fw-bold rounded-pill py-3 shadow-sm d-flex justify-content-center align-items-center gap-2 text-decoration-none">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Mark as Paid (Cash/UPI)
+            </a>
+            <a href="dashboard.html" class="btn btn-outline-primary rounded-pill px-4 py-3 fw-bold d-flex justify-content-center align-items-center gap-2 text-decoration-none">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+              Send Link
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/bootstrap.js"></script>
+</body>
+
+</html>

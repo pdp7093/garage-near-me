@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mechanic Partner Portal - GarageNearMe</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+
+  <div class="auth-split-wrapper">
+    <!-- Left Side: Branding & Value Prop -->
+    <div class="auth-split-left">
+      <div class="auth-split-left-content">
+        <a href="../customer/index.html" class="gnm-logo mb-5 d-inline-flex" style="text-decoration: none;">
+          <div class="gnm-logo-icon bg-white shadow-sm" style="color: var(--color-primary);">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <path
+                d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+            </svg>
+          </div>
+          <span class="gnm-logo-text text-white">GarageNearMe</span>
+        </a>
+
+        <h1 class="display-4 fw-bold mb-4" style="font-family: var(--font-head); line-height: 1.2;">
+          Grow Your Garage Business Digitally.
+        </h1>
+        <p class="fs-5 mb-5" style="opacity: 0.9;">
+          Join thousands of mechanics getting more customers, handling SOS breakdowns, and boosting their earnings.
+        </p>
+
+        <div class="d-flex flex-column gap-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-1">More Customers</h5>
+              <p class="mb-0" style="opacity: 0.8; font-size: 14px;">Get discovered by local vehicle owners instantly.</p>
+            </div>
+          </div>
+          
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-1">Emergency SOS Leads</h5>
+              <p class="mb-0" style="opacity: 0.8; font-size: 14px;">Receive high-paying breakdown alerts directly.</p>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-1">Track Earnings</h5>
+              <p class="mb-0" style="opacity: 0.8; font-size: 14px;">Manage your daily revenue and payouts easily.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Forms -->
+    <div class="auth-split-right">
+      <div class="auth-card">
+        
+        <!-- Auth Tabs -->
+        <div class="auth-tabs" id="authTabs">
+          <div class="auth-tab active" data-target="loginForm">Log In</div>
+          <div class="auth-tab" data-target="registerForm">Register Garage</div>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form-container" onsubmit="handleLogin(event)">
+          <div class="text-center mb-4">
+            <h3 class="fw-bold" style="font-family: var(--font-head);">Welcome Back</h3>
+            <p class="text-muted small">Enter your credentials to access your dashboard.</p>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="tel" class="form-control" id="loginMobile" placeholder="Mobile Number" required>
+            <label for="loginMobile">Mobile Number</label>
+          </div>
+
+          <div class="form-floating mb-4">
+            <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+            <label for="loginPassword">Password</label>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="rememberMe">
+              <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
+            </div>
+            <a href="#" class="small text-decoration-none" style="color: var(--color-primary);">Forgot Password?</a>
+          </div>
+
+                <button type="button" onclick="window.location.href='dashboard.html'" class="btn w-100 text-white rounded-pill py-3 fw-bold fs-5 shadow-sm" style="background: var(--color-primary);">
+                  Get OTP
+                </button>
+        </form>
+
+        <!-- Register Form (Hidden initially) -->
+        <form id="registerForm" class="auth-form-container d-none" onsubmit="handleRegister(event)">
+          <div class="text-center mb-4">
+            <h3 class="fw-bold" style="font-family: var(--font-head);">Partner With Us</h3>
+            <p class="text-muted small">Create your garage profile in 2 minutes.</p>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6 form-floating">
+              <input type="text" class="form-control" id="regFirstName" placeholder="First Name" required>
+              <label for="regFirstName" class="ms-1">First Name</label>
+            </div>
+            <div class="col-md-6 form-floating">
+              <input type="text" class="form-control" id="regLastName" placeholder="Last Name" required>
+              <label for="regLastName" class="ms-1">Last Name</label>
+            </div>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="regGarageName" placeholder="Garage/Business Name" required>
+            <label for="regGarageName">Garage / Business Name</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="tel" class="form-control" id="regMobile" placeholder="Mobile Number" required>
+            <label for="regMobile">Mobile Number</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <select class="form-select" id="regType" aria-label="Garage Type">
+              <option selected disabled value="">Select Type</option>
+              <option value="1">Four Wheeler (Car) Specialist</option>
+              <option value="2">Two Wheeler (Bike/Scooter) Specialist</option>
+              <option value="3">Both (Cars & Bikes)</option>
+              <option value="4">Mobile Mechanic (No physical shop)</option>
+            </select>
+            <label for="regType">Garage Type</label>
+          </div>
+
+          <button type="submit" class="btn w-100 text-white fw-bold py-2 shadow-sm rounded-pill mb-3" style="background: var(--color-primary);">
+            Create Partner Account
+          </button>
+
+          <p class="text-center text-muted small mb-0">
+            By registering, you agree to our <a href="#" class="text-decoration-none" style="color: var(--color-primary);">Terms of Service</a> &amp; Privacy Policy.
+          </p>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/bootstrap.js"></script>
+  <script>
+    // Tab Switching Logic
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.auth-tab');
+      const forms = document.querySelectorAll('.auth-form-container');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active from all tabs and forms
+          tabs.forEach(t => t.classList.remove('active'));
+          forms.forEach(f => f.classList.add('d-none'));
+
+          // Add active to clicked tab and its target form
+          tab.classList.add('active');
+          const targetId = tab.getAttribute('data-target');
+          document.getElementById(targetId).classList.remove('d-none');
+        });
+      });
+    });
+
+    // Handle form submissions (mock navigation)
+    function handleLogin(e) {
+      e.preventDefault();
+      // In a real app, validate credentials here
+      window.location.href = 'dashboard.html';
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      // In a real app, send OTP, verify, then save profile
+      alert('Registration successful! Redirecting to dashboard...');
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+
+</html>

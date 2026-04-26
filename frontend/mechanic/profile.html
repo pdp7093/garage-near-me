@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garage Profile - GarageNearMe</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* Profile specific overrides */
+    .profile-nav-link {
+      color: var(--color-text-muted);
+      font-weight: 500;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .profile-nav-link:hover {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .profile-nav-link.active {
+      background: rgba(255, 107, 53, 0.1);
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .profile-photo-upload {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #f8f9fa;
+      border: 2px dashed #dee2e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    .profile-photo-upload:hover {
+      border-color: var(--color-primary);
+      background: rgba(255, 107, 53, 0.05);
+    }
+
+    .profile-photo-upload input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="mechanic-layout">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="mechanic-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="dashboard.html" class="d-flex align-items-center text-white text-decoration-none gap-2">
+          <div class="rounded bg-white d-flex align-items-center justify-content-center"
+            style="width: 28px; height: 28px; color: var(--color-primary);">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path
+                d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+            </svg>
+          </div>
+          <span class="fw-bold" style="font-family: var(--font-head); font-size: 1.1rem;">GarageNearMe</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+          </svg>
+          Dashboard
+        </a>
+        <a href="sos-alerts.html" class="sidebar-link text-danger">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+          </svg>
+          Emergency SOS <span class="badge bg-danger ms-auto rounded-pill pulse-dot">1</span>
+        </a>
+        <a href="requests.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path
+              d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+          </svg>
+          Bookings <span class="badge bg-primary ms-auto rounded-pill">1</span>
+        </a>
+        <a href="services.html" class="sidebar-link">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path
+              d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
+          </svg>
+          Services
+        </a>
+        <a href="profile.html" class="sidebar-link active">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          </svg>
+          Profile
+        </a>
+      </nav>
+
+      <div class="mt-auto pb-4">
+        <a href="index.html" class="sidebar-link" style="color: #EF4444;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#EF4444">
+            <path
+              d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+          </svg>
+          Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
+      style="z-index: 1030;"></div>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="mechanic-main">
+
+      <!-- Topbar -->
+      <header class="mechanic-topbar">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn d-lg-none p-0 border-0 shadow-none text-dark" id="sidebarToggle">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+            </svg>
+          </button>
+          <h5 class="mb-0 fw-bold" style="font-family: var(--font-head);">Garage Settings</h5>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn text-white rounded-pill px-4 fw-bold shadow-sm d-none d-sm-inline-block"
+            style="background: var(--color-primary);">
+            Save Changes
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="mechanic-content">
+
+        <div class="row g-4">
+          <!-- Left Col: Nav -->
+          <div class="col-lg-3">
+            <div class="bg-white rounded-4 border shadow-sm p-3">
+              <div class="d-flex flex-column gap-2" id="profileTabs">
+                <div class="profile-nav-link active" data-target="businessDetails">Business Details</div>
+                <div class="profile-nav-link" data-target="addressLocation">Address & Location</div>
+                <div class="profile-nav-link" data-target="workingHours">Working Hours</div>
+                <div class="profile-nav-link" data-target="bankingInfo">Banking & Payouts</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Col: Forms -->
+          <div class="col-lg-9">
+
+            <!-- SECTION 1: Business Details -->
+            <div class="bg-white rounded-4 border shadow-sm p-4 profile-section" id="businessDetails">
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Business Details</h5>
+
+              <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
+                <div class="profile-photo-upload">
+                  <div class="text-center text-muted">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="mb-1">
+                      <path
+                        d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+                    </svg>
+                    <div style="font-size: 11px;">Upload Logo</div>
+                  </div>
+                  <input type="file" accept="image/*">
+                </div>
+                <div>
+                  <h6 class="fw-bold">Garage Logo / Photo</h6>
+                  <p class="text-muted small mb-0">This will be displayed to customers. Jpg, Png. Max 2MB.</p>
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">Garage Name</label>
+                  <input type="text" class="form-control" value="Sharma Auto Garage">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">Owner Name</label>
+                  <input type="text" class="form-control" value="Suresh Sharma">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">Mobile Number</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light text-muted border-end-0">+91</span>
+                    <input type="tel" class="form-control border-start-0 ps-0" value="9876543210" readonly>
+                  </div>
+                  <div class="form-text" style="font-size: 11px;">Contact support to change registered mobile.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">Email Address</label>
+                  <input type="email" class="form-control" placeholder="garage@example.com">
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-medium text-muted mb-1">Garage Type</label>
+                  <select class="form-select">
+                    <option value="1" selected>Four Wheeler (Car) Specialist</option>
+                    <option value="2">Two Wheeler (Bike/Scooter) Specialist</option>
+                    <option value="3">Both (Cars & Bikes)</option>
+                    <option value="4">Mobile Mechanic</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: Address & Location -->
+            <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="addressLocation">
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Address & Location</h5>
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label small fw-medium text-muted mb-1">Shop / Building Number</label>
+                  <input type="text" class="form-control" value="Shop No. 12, ABC Complex">
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-medium text-muted mb-1">Street / Area</label>
+                  <input type="text" class="form-control" value="S.G. Highway, Near YMCA">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">City</label>
+                  <input type="text" class="form-control" value="Ahmedabad" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">Pincode</label>
+                  <input type="text" class="form-control" value="380015">
+                </div>
+                <div class="col-12 mt-4">
+                  <label class="form-label small fw-medium text-muted mb-2">GPS Location (For SOS & Search)</label>
+                  <div class="rounded-3 border overflow-hidden position-relative"
+                    style="height: 200px; background: #e9ecef;">
+                    <!-- Placeholder Map Image -->
+                    <img src="https://via.placeholder.com/800x400?text=Map+Integration+Here"
+                      class="w-100 h-100 object-fit-cover opacity-50" alt="Map">
+                    <div class="position-absolute top-50 start-50 translate-middle">
+                      <button class="btn btn-dark shadow rounded-pill d-flex align-items-center gap-2">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                          <path
+                            d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
+                        </svg>
+                        Update via GPS
+                      </button>
+                    </div>
+                  </div>
+                  <div class="form-text" style="font-size: 11px;">Accurate location ensures you get nearby SOS alerts.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: Working Hours -->
+            <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="workingHours">
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Working Hours</h5>
+
+              <div class="d-flex flex-column gap-3">
+                <!-- Day Row -->
+                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
+                  <div class="form-check form-switch mb-0" style="width: 120px;">
+                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <label class="form-check-label ms-2 fw-medium">Monday</label>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
+                    <span class="text-muted small">to</span>
+                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
+                  </div>
+                </div>
+                <!-- Day Row -->
+                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
+                  <div class="form-check form-switch mb-0" style="width: 120px;">
+                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <label class="form-check-label ms-2 fw-medium">Tuesday</label>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
+                    <span class="text-muted small">to</span>
+                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
+                  </div>
+                </div>
+                <!-- Day Row -->
+                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
+                  <div class="form-check form-switch mb-0" style="width: 120px;">
+                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <label class="form-check-label ms-2 fw-medium">Wednesday</label>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
+                    <span class="text-muted small">to</span>
+                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
+                  </div>
+                </div>
+                <!-- Day Row -->
+                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
+                  <div class="form-check form-switch mb-0" style="width: 120px;">
+                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <label class="form-check-label ms-2 fw-medium">Thursday</label>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
+                    <span class="text-muted small">to</span>
+                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
+                  </div>
+                </div>
+                <!-- Day Row -->
+                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
+                  <div class="form-check form-switch mb-0" style="width: 120px;">
+                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <label class="form-check-label ms-2 fw-medium">Friday</label>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
+                    <span class="text-muted small">to</span>
+                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
+                  </div>
+                </div>
+                <!-- Day Row -->
+                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
+                  <div class="form-check form-switch mb-0" style="width: 120px;">
+                    <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <label class="form-check-label ms-2 fw-medium">Saturday</label>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
+                    <span class="text-muted small">to</span>
+                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
+                  </div>
+                </div>
+                <!-- Day Row -->
+                <div
+                  class="d-flex align-items-center justify-content-between p-2 rounded bg-light border border-danger border-opacity-10">
+                  <div class="form-check form-switch mb-0" style="width: 120px;">
+                    <input class="form-check-input" type="checkbox" role="switch">
+                    <label class="form-check-label ms-2 fw-medium text-danger">Sunday</label>
+                  </div>
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+                    <span class="text-muted small">Closed</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 4: Banking & Payouts -->
+            <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="bankingInfo">
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Banking & Payouts</h5>
+
+              <div
+                class="alert alert-primary bg-primary bg-opacity-10 border-primary border-opacity-25 d-flex align-items-start gap-3 mb-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="var(--color-primary)" class="flex-shrink-0 mt-1">
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+                <div>
+                  <h6 class="fw-bold text-dark mb-1">Secure Payouts</h6>
+                  <p class="small text-muted mb-0">Earnings from online bookings are transferred to this account every
+                    Tuesday. Please ensure details are correct.</p>
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label small fw-medium text-muted mb-1">UPI ID (Fastest)</label>
+                  <input type="text" class="form-control" placeholder="e.g. 9876543210@ybl">
+                </div>
+
+                <div class="col-12 my-2">
+                  <div class="d-flex align-items-center gap-3">
+                    <hr class="flex-grow-1">
+                    <span class="text-muted small">OR BANK TRANSFER</span>
+                    <hr class="flex-grow-1">
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">Account Holder Name</label>
+                  <input type="text" class="form-control" placeholder="Name as per bank">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">Bank Name</label>
+                  <input type="text" class="form-control" placeholder="e.g. HDFC Bank">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">Account Number</label>
+                  <input type="password" class="form-control" placeholder="Enter Ac No.">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">IFSC Code</label>
+                  <input type="text" class="form-control text-uppercase" placeholder="e.g. HDFC0001234">
+                </div>
+              </div>
+            </div>
+
+            <!-- Mobile Only Save Button (bottom) -->
+            <button class="btn w-100 text-white rounded-pill py-2 fw-bold shadow-sm d-sm-none mt-4"
+              style="background: var(--color-primary);">
+              Save Changes
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="../js/bootstrap.js"></script>
+  <script>
+    // Sidebar Toggle
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    function toggleSidebar() {
+      sidebar.classList.toggle('show');
+      sidebarOverlay.classList.toggle('d-none');
+    }
+
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', toggleSidebar);
+
+    // Profile Settings Tab Switching
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.profile-nav-link');
+      const sections = document.querySelectorAll('.profile-section');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active classes
+          tabs.forEach(t => t.classList.remove('active'));
+          sections.forEach(s => s.classList.add('d-none'));
+
+          // Add active class
+          tab.classList.add('active');
+          const targetId = tab.getAttribute('data-target');
+          document.getElementById(targetId).classList.remove('d-none');
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
