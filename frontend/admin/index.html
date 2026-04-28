@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login - GarageNearMe</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="admin-auth-wrapper">
+    <!-- Left Branding Side -->
+    <div class="admin-auth-left">
+      <div class="position-relative z-1">
+        <a href="../customer/index.html" class="text-white text-decoration-none d-flex align-items-center gap-2 mb-5">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+          </svg>
+          <span class="fs-3 fw-bold" style="font-family: var(--font-head); letter-spacing: -0.5px;">GarageNearMe<span class="text-white-50">Admin</span></span>
+        </a>
+
+        <h1 class="display-5 fw-bold mb-4" style="font-family: var(--font-head);">Platform Control Center</h1>
+        <p class="fs-5 text-white-50 mb-5" style="max-width: 400px;">
+          Secure access to manage users, mechanic partners, track live SOS requests, and monitor overall platform metrics.
+        </p>
+
+        <div class="d-flex align-items-center gap-4 mt-auto pt-5">
+          <div class="d-flex align-items-center gap-2">
+            <div class="bg-white bg-opacity-25 rounded-circle p-2">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            </div>
+            <span class="fw-medium text-white-50">256-bit Secure Login</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Login Side -->
+    <div class="admin-auth-right">
+      <div class="admin-login-box">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold mb-2" style="font-family: var(--font-head);">Welcome Back, Admin</h2>
+          <p class="text-muted">Enter your credentials to access the control panel</p>
+        </div>
+
+        <form onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+          <div class="mb-4">
+            <label class="form-label fw-medium text-dark small">Admin Email / ID</label>
+            <div class="position-relative">
+              <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </span>
+              <input type="text" class="form-control admin-input ps-5" placeholder="admin@garagenearme.com" value="admin@garagenearme.com" required>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fw-medium text-dark small mb-0">Password</label>
+            </div>
+            <div class="position-relative">
+              <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              </span>
+              <input type="password" class="form-control admin-input ps-5" placeholder="••••••••" value="password123" required>
+            </div>
+          </div>
+
+          <div class="mb-5 d-flex justify-content-between align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+              <label class="form-check-label text-muted small" for="rememberMe">Remember me</label>
+            </div>
+            <a href="#" class="text-decoration-none small fw-medium" style="color: var(--admin-primary);">Forgot Password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-admin-primary w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm">
+            Login to Dashboard
+          </button>
+        </form>
+        
+        <div class="text-center mt-5 text-muted small">
+          &copy; <script>document.write(new Date().getFullYear())</script> GarageNearMe. All rights reserved.<br>
+          <span class="opacity-50">Internal System - Unauthorized access prohibited</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/bootstrap.bundle.js"></script>
+</body>
+
+</html>

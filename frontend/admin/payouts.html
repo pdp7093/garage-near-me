@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financials & Payouts - Admin | GarageNearMe</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="admin-layout">
+    
+    <!-- ═══ ADMIN SIDEBAR ═══ -->
+    <aside class="admin-sidebar" id="sidebar">
+      <div class="admin-sidebar-header">
+        <a href="dashboard.html" class="text-white text-decoration-none d-flex align-items-center gap-2">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+          </svg>
+          <span class="fs-5 fw-bold" style="font-family: var(--font-head); letter-spacing: -0.5px;">GNM<span class="text-white-50">Admin</span></span>
+        </a>
+      </div>
+
+      <div class="admin-sidebar-menu">
+        <div class="admin-nav-title">Overview</div>
+        <div class="admin-nav-item">
+          <a href="dashboard.html" class="admin-nav-link">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            Dashboard
+          </a>
+        </div>
+
+        <div class="admin-nav-title">Management</div>
+        <div class="admin-nav-item">
+          <a href="garages.html" class="admin-nav-link">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+            Garages & Partners
+          </a>
+        </div>
+        <div class="admin-nav-item">
+          <a href="customers.html" class="admin-nav-link">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            Customers
+          </a>
+        </div>
+        <div class="admin-nav-item">
+          <a href="bookings.html" class="admin-nav-link">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+            All Bookings
+          </a>
+        </div>
+
+        <div class="admin-nav-title">Operations</div>
+        <div class="admin-nav-item">
+          <a href="sos-monitor.html" class="admin-nav-link text-danger">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            Live SOS Monitor
+          </a>
+        </div>
+        <div class="admin-nav-item">
+          <a href="payouts.html" class="admin-nav-link active">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v-2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            Financials & Payouts
+          </a>
+        </div>
+      </div>
+
+      <div class="p-3 mt-auto">
+        <a href="index.html" class="btn btn-outline-light w-100 rounded-pill d-flex align-items-center justify-content-center gap-2" style="border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          Logout Admin
+        </a>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="admin-content">
+      
+      <!-- Topbar -->
+      <header class="admin-topbar">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn d-lg-none p-0 border-0 shadow-none text-dark" id="sidebarToggle">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+          </button>
+          <h4 class="mb-0 fw-bold" style="font-family: var(--font-head);">Financials & Payouts</h4>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-family: var(--font-head);">
+            SA
+          </div>
+        </div>
+      </header>
+
+      <!-- Stats Row -->
+      <div class="row g-4 mb-4">
+        <!-- Revenue Stat -->
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card bg-primary text-white border-0 h-100">
+            <div class="admin-stat-icon" style="background: rgba(255,255,255,0.2); color: white;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            </div>
+            <div>
+              <div class="small fw-medium text-uppercase tracking-wider text-white-50">Total Platform Revenue</div>
+              <h3 class="fw-bold mb-0 text-white">₹4,25,000</h3>
+              <div class="small fw-medium mt-1 text-white-50">Based on 10% Platform Fee</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Payouts Stat -->
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card border-warning border-opacity-50 h-100">
+            <div class="admin-stat-icon" style="background: #FEF3C7; color: #D97706;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M21,18v1c0,1.1-0.9,2-2,2H5c-1.11,0-2-0.9-2-2V5c0-1.1,0.89-2,2-2h14c1.1,0,2,0.9,2,2v1h-9c-1.11,0-2,0.9-2,2v8c0,1.1,0.89,2,2,2 H21z M12,16h10V8H12V16z M16,13.5c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S16.83,13.5,16,13.5z"/></svg>
+            </div>
+            <div>
+              <div class="text-muted small fw-medium text-uppercase tracking-wider">Pending Payouts</div>
+              <h3 class="fw-bold mb-0 text-dark">₹1,84,500</h3>
+              <div class="text-warning small fw-medium mt-1">To 42 Garages</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disbursed Stat -->
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card h-100">
+            <div class="admin-stat-icon" style="background: #DCFCE7; color: #166534;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            </div>
+            <div>
+              <div class="text-muted small fw-medium text-uppercase tracking-wider">Total Disbursed</div>
+              <h3 class="fw-bold mb-0">₹38,20,000</h3>
+              <div class="text-success small fw-medium mt-1">All time to partners</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Header & Actions -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        
+        <!-- Filters/Tabs -->
+        <ul class="nav nav-pills gap-2" id="payoutTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill fw-medium px-4" id="pending-tab" data-bs-toggle="pill" data-bs-target="#pending" type="button" role="tab">Pending Settelments</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-medium px-4" id="completed-tab" data-bs-toggle="pill" data-bs-target="#completed" type="button" role="tab">Completed Payouts</button>
+          </li>
+        </ul>
+
+        <!-- Action -->
+        <button class="btn btn-admin-primary rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 8V6H5v2h14zm0 4v-2H5v2h14zm0 4v-2H5v2h14zM5 20h14v-2H5v2zM3 4v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2z"/></svg>
+          Export CSV
+        </button>
+      </div>
+
+      <!-- Main Table Card -->
+      <div class="bg-white rounded-4 border shadow-sm overflow-hidden mb-4">
+        <div class="tab-content" id="payoutTabsContent">
+          
+          <!-- PENDING PAYOUTS -->
+          <div class="tab-pane fade show active" id="pending" role="tabpanel">
+            <div class="p-3 border-bottom bg-light">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAll">
+                <label class="form-check-label fw-bold small text-dark" for="selectAll">Select All for Bulk Payout</label>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-table text-nowrap">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;"></th>
+                    <th>Garage Name</th>
+                    <th>Period</th>
+                    <th>Total Earned</th>
+                    <th>Platform Fee (10%)</th>
+                    <th>Net Payable</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Item 1 -->
+                  <tr>
+                    <td>
+                      <div class="form-check">
+                        <input class="form-check-input row-checkbox" type="checkbox">
+                      </div>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-dark">Sharma Auto Works</div>
+                      <div class="text-muted small">A/C: *******8901</div>
+                    </td>
+                    <td>
+                      <div class="fw-medium text-dark">Oct 15 - Oct 21</div>
+                      <div class="text-muted small">18 Jobs</div>
+                    </td>
+                    <td>
+                      <div class="fw-medium text-dark">₹24,500</div>
+                    </td>
+                    <td>
+                      <div class="fw-medium text-danger">-₹2,450</div>
+                    </td>
+                    <td>
+                      <div class="fw-bold fs-5 text-success">₹22,050</div>
+                    </td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-admin-primary rounded-pill px-3 fw-bold">Pay Now</button>
+                    </td>
+                  </tr>
+
+                  <!-- Item 2 -->
+                  <tr>
+                    <td>
+                      <div class="form-check">
+                        <input class="form-check-input row-checkbox" type="checkbox">
+                      </div>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-dark">Quick Fix Motors</div>
+                      <div class="text-muted small">A/C: *******4421</div>
+                    </td>
+                    <td>
+                      <div class="fw-medium text-dark">Oct 15 - Oct 21</div>
+                      <div class="text-muted small">5 Jobs</div>
+                    </td>
+                    <td>
+                      <div class="fw-medium text-dark">₹8,200</div>
+                    </td>
+                    <td>
+                      <div class="fw-medium text-danger">-₹820</div>
+                    </td>
+                    <td>
+                      <div class="fw-bold fs-5 text-success">₹7,380</div>
+                    </td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-admin-primary rounded-pill px-3 fw-bold">Pay Now</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="p-3 border-top bg-light d-flex justify-content-between align-items-center">
+              <div>
+                <span class="text-muted small">Selected: </span>
+                <span class="fw-bold text-dark" id="selectedCount">0</span>
+                <span class="text-muted small ms-2">Total Amount: </span>
+                <span class="fw-bold text-success fs-5">₹0</span>
+              </div>
+              <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" disabled>Process Bulk Payout</button>
+            </div>
+          </div>
+
+          <!-- COMPLETED PAYOUTS -->
+          <div class="tab-pane fade" id="completed" role="tabpanel">
+            <div class="table-responsive">
+              <table class="admin-table text-nowrap">
+                <thead>
+                  <tr>
+                    <th>Reference ID</th>
+                    <th>Garage Name</th>
+                    <th>Period</th>
+                    <th>Amount Paid</th>
+                    <th>Date Paid</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Item 1 -->
+                  <tr>
+                    <td>
+                      <div class="fw-bold text-dark">#TRX-99812A</div>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-dark">Royal Enfield Specialists</div>
+                    </td>
+                    <td>
+                      <div class="fw-medium text-dark">Oct 08 - Oct 14</div>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-dark">₹14,500</div>
+                    </td>
+                    <td>
+                      <div class="text-muted small">Oct 16, 2023 • 10:30 AM</div>
+                    </td>
+                    <td>
+                      <span class="badge badge-admin-success rounded-pill px-3 py-1">Settled</span>
+                    </td>
+                  </tr>
+                   <!-- Item 2 -->
+                   <tr>
+                    <td>
+                      <div class="fw-bold text-dark">#TRX-99811B</div>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-dark">Sharma Auto Works</div>
+                    </td>
+                    <td>
+                      <div class="fw-medium text-dark">Oct 08 - Oct 14</div>
+                    </td>
+                    <td>
+                      <div class="fw-bold text-dark">₹28,100</div>
+                    </td>
+                    <td>
+                      <div class="text-muted small">Oct 16, 2023 • 10:32 AM</div>
+                    </td>
+                    <td>
+                      <span class="badge badge-admin-success rounded-pill px-3 py-1">Settled</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/bootstrap.bundle.js"></script>
+  <script>
+    // Sidebar Toggle Logic
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+      document.getElementById('sidebar').classList.toggle('show');
+    });
+
+    // Checkbox logic for demo
+    const selectAll = document.getElementById('selectAll');
+    if(selectAll) {
+      selectAll.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+      });
+    }
+  </script>
+</body>
+
+</html>

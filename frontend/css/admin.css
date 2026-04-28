@@ -1,0 +1,273 @@
+/* 
+  Admin Portal Specific Styles
+  Uses some variables from style.css but introduces a distinct Dark Blue theme
+*/
+
+:root {
+  --admin-primary: #1E3A8A; /* Deep Navy Blue */
+  --admin-primary-hover: #1E40AF;
+  --admin-sidebar-width: 280px;
+  --admin-sidebar-bg: #0F172A; /* Slate 900 */
+  --admin-sidebar-text: #94A3B8; /* Slate 400 */
+  --admin-sidebar-hover: #1E293B; /* Slate 800 */
+  --admin-sidebar-active: #2563EB; /* Blue 600 */
+  --admin-bg-light: #F8FAFC; /* Slate 50 */
+}
+
+body {
+  background-color: var(--admin-bg-light);
+}
+
+/* Auth Split Screen (Admin Login) */
+.admin-auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+}
+
+.admin-auth-left {
+  flex: 1;
+  background: linear-gradient(135deg, var(--admin-sidebar-bg) 0%, var(--admin-primary) 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-auth-left::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+  animation: rotate 60s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.admin-auth-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  padding: 2rem;
+}
+
+.admin-login-box {
+  width: 100%;
+  max-width: 450px;
+}
+
+/* Custom Admin Inputs */
+.admin-input {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  transition: all 0.2s;
+}
+
+.admin-input:focus {
+  background-color: white;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+  outline: none;
+}
+
+.btn-admin-primary {
+  background-color: var(--admin-primary);
+  color: white;
+  border: none;
+}
+
+.btn-admin-primary:hover {
+  background-color: var(--admin-primary-hover);
+  color: white;
+}
+
+@media (max-width: 991.98px) {
+  .admin-auth-wrapper {
+    flex-direction: column;
+  }
+  .admin-auth-left {
+    flex: none;
+    padding: 3rem 2rem;
+    min-height: 30vh;
+  }
+}
+
+/* Admin Dashboard Layout */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--admin-bg-light);
+}
+
+/* Admin Sidebar */
+.admin-sidebar {
+  width: var(--admin-sidebar-width);
+  background-color: var(--admin-sidebar-bg);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1040;
+  transition: transform 0.3s ease;
+}
+
+.admin-sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-sidebar-menu {
+  padding: 1rem 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.admin-nav-item {
+  padding: 0 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  color: var(--admin-sidebar-text);
+  text-decoration: none;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.admin-nav-link:hover {
+  background-color: var(--admin-sidebar-hover);
+  color: white;
+}
+
+.admin-nav-link.active {
+  background-color: var(--admin-sidebar-active);
+  color: white;
+}
+
+.admin-nav-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 1.5rem 1rem 0.5rem 2rem;
+  font-weight: 600;
+}
+
+/* Admin Content Area */
+.admin-content {
+  flex: 1;
+  margin-left: var(--admin-sidebar-width);
+  padding: 2rem;
+  min-width: 0;
+}
+
+.admin-topbar {
+  background: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #E2E8F0;
+  margin: -2rem -2rem 2rem -2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+/* Admin Cards */
+.admin-stat-card {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.admin-stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Admin Tables */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table th {
+  background: #F8FAFC;
+  color: #64748B;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E2E8F0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-table td {
+  padding: 1.25rem;
+  border-bottom: 1px solid #E2E8F0;
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Status Badges */
+.badge-admin-success { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+.badge-admin-warning { background: #FEF9C3; color: #854D0E; border: 1px solid #FEF08A; }
+.badge-admin-danger { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+.badge-admin-info { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+  .admin-sidebar.show {
+    transform: translateX(0);
+  }
+  .admin-content {
+    margin-left: 0;
+  }
+}
