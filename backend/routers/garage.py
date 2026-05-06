@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
@@ -11,29 +10,12 @@ from database import get_db
 
 router = APIRouter()
 
-# ──────────────────────────────────────────
-# PASSWORD & JWT SETUP
-# ──────────────────────────────────────────
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/garage/login")
-
-SECRET_KEY             = os.getenv("SECRET_KEY", "supersecretkey_gnm_12345")
-ALGORITHM              = os.getenv("ALGORITHM", "HS256")
+SECRET_KEY                  = os.getenv("SECRET_KEY", "supersecretkey_gnm_12345")
+ALGORITHM                   = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+# garage_auth.py se token aata hai — same tokenUrl
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/garage-auth/verify-otp")
 
 
 # ──────────────────────────────────────────
@@ -44,10 +26,6 @@ def get_current_garage(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ) -> models.Garage:
-    """
-    Protected routes ke liye — JWT token se garage nikalta hai.
-    Frontend Authorization: Bearer <token> header bhejega.
-    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired token",
@@ -56,7 +34,7 @@ def get_current_garage(
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         garage_id: int = payload.get("user_id")
-        role: str = payload.get("role")
+        role: str      = payload.get("role")
         if garage_id is None or role != "garage":
             raise credentials_exception
     except JWTError:
@@ -68,92 +46,6 @@ def get_current_garage(
     return garage
 
 
-# ──────────────────────────────────────────
-# 1. REGISTER
-# POST /api/garage/register
-# ──────────────────────────────────────────
-
-@router.post("/register", response_model=schemas.GarageResponse, status_code=status.HTTP_201_CREATED)
-def register_garage(garage_data: schemas.GarageCreate, db: Session = Depends(get_db)):
-    """
-    Naya garage register karo.
-    Phone aur email unique hona chahiye.
-    """
-    # Phone check
-    if db.query(models.Garage).filter(models.Garage.phone == garage_data.phone).first():
-        raise HTTPException(status_code=400, detail="Phone number already registered")
-
-    # Email check (agar diya ho)
-    if garage_data.email:
-        if db.query(models.Garage).filter(models.Garage.email == garage_data.email).first():
-            raise HTTPException(status_code=400, detail="Email already registered")
-
-    # Garage banao
-    new_garage = models.Garage(
-        name            = garage_data.name,
-        owner_name      = garage_data.owner_name,
-        phone           = garage_data.phone,
-        email           = garage_data.email,
-        hashed_password = get_password_hash(garage_data.password),
-        garage_type     = garage_data.garage_type,
-    )
-    db.add(new_garage)
-    db.commit()
-    db.refresh(new_garage)
-
-    # Default working hours banao (Mon-Sat open, Sun closed)
-    days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-    for day in days:
-        wh = models.GarageWorkingHours(
-            garage_id  = new_garage.id,
-            day_of_week = day,
-            is_open    = day != "sunday",   # Sunday default band
-            open_time  = datetime.strptime("09:00", "%H:%M").time(),
-            close_time = datetime.strptime("20:00", "%H:%M").time(),
-        )
-        db.add(wh)
-
-    # Empty location row banao
-    location = models.GarageLocation(garage_id=new_garage.id)
-    db.add(location)
-
-    db.commit()
-    db.refresh(new_garage)
-    return new_garage
-
-
-# ──────────────────────────────────────────
-# 2. LOGIN
-# POST /api/garage/login
-# ──────────────────────────────────────────
-
-@router.post("/login", response_model=schemas.Token)
-def login_garage(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
-    """
-    Phone + password se login karo, JWT token milega.
-    """
-    garage = db.query(models.Garage).filter(models.Garage.phone == login_data.phone).first()
-
-    if not garage or not verify_password(login_data.password, garage.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid phone number or password"
-        )
-
-    if not garage.is_active:
-        raise HTTPException(status_code=403, detail="Your account has been deactivated")
-
-    token = create_access_token(
-        data={"sub": garage.phone, "user_id": garage.id, "role": "garage"},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    return {"access_token": token, "token_type": "bearer"}
-
-
-# ──────────────────────────────────────────
-# 3. GET MY PROFILE
-# GET /api/garage/me
-# ──────────────────────────────────────────
 
 @router.get("/me", response_model=schemas.GarageResponse)
 def get_my_profile(current_garage: models.Garage = Depends(get_current_garage)):
@@ -347,3 +239,37 @@ def delete_service(
     db.delete(service)
     db.commit()
     return None
+
+# ──────────────────────────────────────────
+# 10. PUBLIC SEARCH GARAGES
+# GET /api/garage/search
+# ──────────────────────────────────────────
+
+@router.get("/search", response_model=list[schemas.GaragePublicResponse])
+def search_garages(
+    city: str = "Ahmedabad",
+    vehicle_type: str = None, # four_wheeler | two_wheeler | both
+    is_sos: bool = False,
+    db: Session = Depends(get_db)
+):
+    """
+    Customer search page ke liye API.
+    Only verified and active garages return honge.
+    """
+    query = db.query(models.Garage).filter(
+        models.Garage.is_active == True,
+        models.Garage.is_verified == True
+    )
+
+    if vehicle_type:
+        query = query.filter(
+            (models.Garage.garage_type == vehicle_type) | 
+            (models.Garage.garage_type == "both")
+        )
+
+    if is_sos:
+        query = query.filter(models.Garage.is_sos_available == True)
+
+    query = query.join(models.GarageLocation).filter(models.GarageLocation.city.ilike(f"%{city}%"))
+
+    return query.all()

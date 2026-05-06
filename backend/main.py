@@ -1,25 +1,30 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import engine, Base
-from routers import auth, garage
+from database import engine, Base, ensure_schema_updates
+from routers import auth, garage, booking, vehicles, garage_requests, garage_auth
 
-# Saari tables create karo (agar exist nahi karti)
 Base.metadata.create_all(bind=engine)
+ensure_schema_updates()
 
 app = FastAPI(title="GarageNearMe API")
 
-# CORS — frontend se backend communicate kar sake
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Production mein frontend domain daalna
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Routers
-app.include_router(auth.router,   prefix="/api/auth",   tags=["Customer Auth"])
-app.include_router(garage.router, prefix="/api/garage", tags=["Garage"])
+# Customer
+app.include_router(auth.router,             prefix="/api/auth",             tags=["Customer Auth"])
+app.include_router(booking.router,          prefix="/api/bookings",         tags=["Bookings"])
+app.include_router(vehicles.router,         prefix="/api/vehicles",         tags=["Vehicles"])
+
+# Garage
+app.include_router(garage_requests.router,  prefix="/api/garage-requests",  tags=["Garage Onboarding"])
+app.include_router(garage_auth.router,      prefix="/api/garage-auth",      tags=["Garage Auth (OTP)"])
+app.include_router(garage.router,           prefix="/api/garage",           tags=["Garage Profile"])
 
 @app.get("/")
 def read_root():

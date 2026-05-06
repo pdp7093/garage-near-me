@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import os
-from jose import jwt
+from jose import jwt, JWTError
+from fastapi.security import OAuth2PasswordBearer
 
 import models, schemas
 from database import get_db
@@ -72,3 +73,62 @@ def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+# ──────────────────────────────────────────
+# GET CURRENT CUSTOMER — /api/auth/me
+# ──────────────────────────────────────────
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+@router.get("/me", response_model=schemas.CustomerResponse)
+def get_me(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    """
+    Token se apna profile fetch karo.
+    Dashboard, sidebar user info ke liye use hoga.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    customer = db.query(models.Customer).filter(models.Customer.id == user_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    return customer
+
+
+# ──────────────────────────────────────────
+# UPDATE PROFILE — /api/auth/me
+# ──────────────────────────────────────────
+
+@router.patch("/me", response_model=schemas.CustomerResponse)
+def update_me(
+    update_data: schemas.CustomerUpdate,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    """Profile update karo — naam ya email."""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("user_id")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    customer = db.query(models.Customer).filter(models.Customer.id == user_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    for field, value in update_data.model_dump(exclude_unset=True).items():
+        setattr(customer, field, value)
+
+    db.commit()
+    db.refresh(customer)
+    return customer

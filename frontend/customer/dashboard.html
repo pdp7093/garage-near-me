@@ -19,10 +19,12 @@
             margin-bottom: 8px;
             transition: all 0.2s ease;
         }
+
         .dashboard-nav .nav-link:hover {
-            background-color: rgba(0,0,0,0.03);
+            background-color: rgba(0, 0, 0, 0.03);
             color: var(--color-text);
         }
+
         .dashboard-nav .nav-link.active {
             background-color: rgba(255, 107, 53, 0.1);
             color: var(--color-primary);
@@ -39,22 +41,24 @@
             <a href="index.html" class="gnm-logo text-decoration-none">
                 <div class="gnm-logo-icon">
                     <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                        <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+                        <path
+                            d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
                     </svg>
                 </div>
                 <span class="gnm-logo-text">GarageNearMe</span>
             </a>
-            
+
             <div class="d-none d-md-flex align-items-center gap-3">
                 <a href="search-results.html" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
                 <!-- User Avatar -->
                 <div class="dropdown">
-                    <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown">
+                    <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer"
+                        style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown">
                         JD
                     </div>
                 </div>
             </div>
-            
+
             <button class="gnm-hamburger d-md-none" id="menuBtn" aria-label="Toggle menu">
                 <span></span><span></span><span></span>
             </button>
@@ -64,17 +68,19 @@
     <!-- ═══ MAIN CONTENT ═══ -->
     <div class="container py-4 py-md-5 flex-grow-1">
         <div class="row g-4 g-lg-5">
-            
+
             <!-- ── LEFT SIDEBAR (Navigation) ── -->
             <div class="col-lg-3">
                 <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:100px;">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center gap-3 mb-4">
-                            <div class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0" style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);">
+                            <div class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0"
+                                style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);">
                                 JD
                             </div>
                             <div>
-                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">John Doe</h6>
+                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
+                                    John Doe</h6>
                                 <p class="text-muted small mb-0">+91 98765 43210</p>
                             </div>
                         </div>
@@ -83,23 +89,37 @@
 
                         <nav class="nav flex-column dashboard-nav">
                             <a class="nav-link active d-flex align-items-center gap-3" href="dashboard.html">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                                </svg>
                                 Dashboard Overview
                             </a>
                             <a class="nav-link d-flex align-items-center gap-3" href="my-bookings.html">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                    <path
+                                        d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
+                                </svg>
                                 My Bookings
                             </a>
                             <a class="nav-link d-flex align-items-center gap-3" href="my-vehicles.html">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                    <path
+                                        d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
+                                </svg>
                                 My Vehicles
                             </a>
                             <a class="nav-link d-flex align-items-center gap-3" href="profile.html">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                    <path
+                                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                </svg>
                                 Profile Settings
                             </a>
                             <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login.html">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                    <path
+                                        d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                                </svg>
                                 Logout
                             </a>
                         </nav>
@@ -109,48 +129,15 @@
 
             <!-- ── RIGHT CONTENT (Dashboard Data) ── -->
             <div class="col-lg-9">
-                
-                <h3 class="fw-bold mb-4" style="font-family:var(--font-head); color:var(--color-text);">Welcome back, John!</h3>
 
-                <!-- Active Booking Card -->
-                <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-5">
-                    <div class="card-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center gap-2 fw-medium">
-                            <span class="spinner-grow spinner-grow-sm text-light" role="status"></span>
-                            Active Service
-                        </div>
-                        <span class="badge bg-white text-primary rounded-pill px-3 py-1">In Progress</span>
-                    </div>
-                    <div class="card-body p-4 p-md-5">
-                        <div class="row align-items-center g-4">
-                            <div class="col-md-7">
-                                <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">AC Repair</h5>
-                                <p class="text-muted small mb-4">Booked at Sharma Auto Garage • Today, 11:00 AM</p>
-                                
-                                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border mb-4">
-                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style="width:40px; height:40px; font-size:14px;">M</div>
-                                    <div>
-                                        <div class="fw-bold text-dark" style="font-size:14px;">Ramesh Singh (Mechanic)</div>
-                                        <div class="text-muted" style="font-size:12px;">Working on your vehicle</div>
-                                    </div>
-                                    <button class="btn btn-sm btn-outline-primary rounded-circle p-2 ms-auto">
-                                        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-                                    </button>
-                                </div>
+                <h3 class="fw-bold mb-4" style="font-family:var(--font-head); color:var(--color-text);">Welcome back,
+                    John!</h3>
 
-                                <div class="d-flex align-items-center justify-content-between text-muted small">
-                                    <span>Status: <strong class="text-dark">Diagnosing issue</strong></span>
-                                    <span>Estimated completion: <strong>01:30 PM</strong></span>
-                                </div>
-                            </div>
-                            <div class="col-md-5">
-                                <!-- Dummy Live Map / Track Image -->
-                                <div class="w-100 rounded-4 overflow-hidden border shadow-sm position-relative" style="height: 180px;">
-                                    <div class="w-100 h-100" style="background-image: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=600'); background-size: cover; background-position: center; opacity:0.8;"></div>
-                                    <button class="btn btn-light shadow-sm fw-bold position-absolute top-50 start-50 translate-middle rounded-pill px-4" style="color:var(--color-primary); font-size:13px;">View Live Map</button>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Active Booking Card — JS se fill hoga -->
+                <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-5" id="activeBookingCard">
+                    <div class="card-body p-4 text-center py-5 text-muted">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        <p class="mt-2 mb-0 small">Loading...</p>
                     </div>
                 </div>
 
@@ -158,26 +145,15 @@
                     <!-- Past Bookings -->
                     <div class="col-md-6">
                         <div class="card border-0 shadow-sm rounded-4 h-100">
-                            <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
-                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">Recent History</h6>
+                            <div
+                                class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
+                                    Recent History</h6>
                                 <a href="#" class="text-decoration-none small">View All</a>
                             </div>
-                            <div class="list-group list-group-flush">
-                                <div class="list-group-item p-4">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div class="fw-bold text-dark">Wheel Alignment</div>
-                                        <div class="text-success small fw-bold">₹799</div>
-                                    </div>
-                                    <p class="text-muted small mb-2">Speedy Wheels Care • 15 Mar 2026</p>
-                                    <span class="badge bg-light text-dark border">Completed</span>
-                                </div>
-                                <div class="list-group-item p-4">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div class="fw-bold text-dark">Emergency SOS (Jumpstart)</div>
-                                        <div class="text-success small fw-bold">₹500</div>
-                                    </div>
-                                    <p class="text-muted small mb-2">AutoFix Pro • 02 Feb 2026</p>
-                                    <span class="badge bg-light text-dark border">Completed</span>
+                            <div class="list-group list-group-flush" id="recentHistory">
+                                <div class="list-group-item p-4 text-muted small">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading...
                                 </div>
                             </div>
                         </div>
@@ -186,32 +162,19 @@
                     <!-- My Vehicles -->
                     <div class="col-md-6">
                         <div class="card border-0 shadow-sm rounded-4 h-100">
-                            <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
-                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">My Vehicles</h6>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3">+ Add New</button>
+                            <div
+                                class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
+                                    My Vehicles</h6>
+
+                                <a href="my-vehicles.html" class="btn btn-sm btn-outline-primary rounded-pill px-3">+
+                                    Add
+                                    New</a>
                             </div>
-                            <div class="card-body p-4">
-                                
-                                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border mb-3">
-                                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width:48px; height:48px; color:var(--color-primary);">
-                                        <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark" style="font-size:15px;">Red Swift Dzire</div>
-                                        <div class="text-muted" style="font-size:12px;">DL 01 AB 1234 • Petrol</div>
-                                    </div>
+                            <div class="card-body p-4" id="vehiclesMini">
+                                <div class="text-muted small">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading...
                                 </div>
-
-                                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border">
-                                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width:48px; height:48px; color:var(--color-primary);">
-                                        <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M19.44 9.03L15.41 5H11v2h3.59l2.28 2.28-1.51 1.51-1.49-1.49H11.5c-.32 0-.63.09-.9.25L8.12 7.08C7.59 6.4 6.74 6 5.82 6H3v2h2.82c.51 0 .98.22 1.28.6l2.48 2.48C9.22 11.4 9 11.83 9 12.33 9 13.99 10.34 15.33 12 15.33s3-1.34 3-3c0-.1-.01-.19-.02-.28l1.45-1.45 2.15 2.15-1.42 1.42.01.01 1.41 1.41 2.86-2.86-1.99-3.7zM12 13.33c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zM15 17h2v5h-2zM7 17h2v5H7z"/></svg>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark" style="font-size:15px;">Honda Activa 6G</div>
-                                        <div class="text-muted" style="font-size:12px;">RJ 14 XY 9876 • Petrol</div>
-                                    </div>
-                                </div>
-
                             </div>
                         </div>
                     </div>
@@ -227,6 +190,213 @@
     </footer>
 
     <script src="../js/bootstrap.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        const API_BASE = "http://127.0.0.1:8000";
+        const token = localStorage.getItem('gnm_token');
+
+        function authHeaders() {
+            return {
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        function checkAuth() {
+            if (!token) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('gnm_token');
+            localStorage.removeItem('gnm_role');
+            window.location.href = 'login.html';
+        }
+
+        async function loadUserInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/me`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load user info');
+                }
+
+                const data = await response.json();
+                const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'JD';
+
+                document.querySelectorAll('.rounded-circle').forEach(el => {
+                    if (el.textContent.trim() === 'JD') {
+                        el.textContent = initials;
+                    }
+                });
+
+                document.querySelectorAll('h6').forEach(el => {
+                    if (el.textContent.trim() === 'John Doe') {
+                        el.textContent = data.name || 'John Doe';
+                        if (el.nextElementSibling) {
+                            el.nextElementSibling.textContent = data.phone || '+91 98765 43210';
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('User info load error:', err);
+                localStorage.removeItem('gnm_token');
+                localStorage.removeItem('gnm_role');
+                window.location.href = 'login.html';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (!checkAuth()) return;
+            await loadUserInfo();
+            await loadDashboard();
+        });
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API_BASE}/api/bookings/my`, {
+                    headers: authHeaders()
+                });
+                if (res.status === 401) { logout(); return; }
+                const bookings = await res.json();
+
+                renderActiveBooking(bookings);
+                renderRecentHistory(bookings);
+
+            } catch (err) {
+                console.error("Dashboard load error:", err);
+            }
+
+            // Vehicles bhi load karo
+            try {
+                const res = await fetch(`${API_BASE}/api/vehicles/`, {
+                    headers: authHeaders()
+                });
+                const vehicles = await res.json();
+                renderVehiclesMini(vehicles);
+            } catch (err) {
+                console.error("Vehicles load error:", err);
+            }
+        }
+
+        // ── Active Booking ──
+        function renderActiveBooking(bookings) {
+            const active = bookings.find(b => activeStatuses.includes(b.status));
+            const card = document.getElementById("activeBookingCard");
+
+            if (!active) {
+                card.innerHTML = `
+                    <div class="card-body p-4 text-center text-muted py-5">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="40" height="40" class="mb-3 opacity-25"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+                        <p class="mb-3">No active bookings right now.</p>
+                        <a href="search-results.html" class="btn text-white rounded-pill px-4" style="background:var(--color-primary);">Find a Garage</a>
+                    </div>`;
+                return;
+            }
+
+            const scheduled = active.scheduled_at ? formatDate(active.scheduled_at) : "Scheduled";
+            card.innerHTML = `
+                <div class="card-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2 fw-medium">
+                        <span class="spinner-grow spinner-grow-sm text-light" role="status"></span>
+                        Active Service — #GNM-${active.id}
+                    </div>
+                    ${statusBadge(active.status)}
+                </div>
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-1" style="font-family:var(--font-head);">${active.service_type || "General Service"}</h5>
+                    <p class="text-muted small mb-3">${scheduled}</p>
+                    <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                        <span>Vehicle: <strong class="text-dark">${active.vehicle_model || active.vehicle_number || "—"}</strong></span>
+                        <span>Type: <strong class="text-dark">${active.booking_type === "sos" ? "🚨 SOS" : "Normal"}</strong></span>
+                    </div>
+                    ${active.estimated_amount ? `<div class="alert alert-warning py-2 px-3 small mb-3">💰 Estimate: <strong>₹${active.estimated_amount}</strong> — 
+                        ${active.estimate_status === "pending" ? `
+                            <button class="btn btn-sm btn-success rounded-pill px-3 ms-2" onclick="approveEstimate(${active.id}, 'approved')">Approve</button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-2 ms-1" onclick="approveEstimate(${active.id}, 'rejected')">Reject</button>
+                        ` : active.estimate_status}
+                    </div>` : ""}
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="my-bookings.html" class="btn btn-sm btn-outline-primary rounded-pill px-4">View Details</a>
+                        ${active.status === "pending" ? `<button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="cancelBooking(${active.id})">Cancel</button>` : ""}
+                    </div>
+                </div>`;
+        }
+
+        // ── Recent History ──
+        function renderRecentHistory(bookings) {
+            const past = bookings.filter(b => pastStatuses.includes(b.status)).slice(0, 3);
+            const el = document.getElementById("recentHistory");
+
+            if (!past.length) {
+                el.innerHTML = `<div class="list-group-item p-4 text-muted small">No past bookings yet.</div>`;
+                return;
+            }
+
+            el.innerHTML = past.map(b => `
+                <div class="list-group-item p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div class="fw-bold text-dark">${b.service_type || "Service"}</div>
+                        <div class="text-success small fw-bold">${b.final_amount ? "₹" + b.final_amount : "—"}</div>
+                    </div>
+                    <p class="text-muted small mb-2">${formatDate(b.created_at)}</p>
+                    ${statusBadge(b.status)}
+                </div>`).join("");
+        }
+
+        // ── Vehicles Mini ──
+        function renderVehiclesMini(vehicles) {
+            const el = document.getElementById("vehiclesMini");
+            if (!vehicles.length) {
+                el.innerHTML = `<p class="text-muted small p-3">No vehicles added. <a href="my-vehicles.html">Add one!</a></p>`;
+                return;
+            }
+            const icons = {
+                four_wheeler: `<path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/>`,
+                two_wheeler: `<path d="M19.44 9.03L15.41 5H11v2h3.59l2.28 2.28-1.51 1.51-1.49-1.49H11.5c-.32 0-.63.09-.9.25L8.12 7.08C7.59 6.4 6.74 6 5.82 6H3v2h2.82c.51 0 .98.22 1.28.6l2.48 2.48C9.22 11.4 9 11.83 9 12.33 9 13.99 10.34 15.33 12 15.33s3-1.34 3-3c0-.1-.01-.19-.02-.28l1.45-1.45 2.15 2.15-1.42 1.42.01.01 1.41 1.41 2.86-2.86-1.99-3.7z"/>`
+            };
+            el.innerHTML = vehicles.slice(0, 2).map(v => `
+                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border mb-3">
+                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width:48px;height:48px;color:var(--color-primary);">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">${icons[v.vehicle_type] || icons.four_wheeler}</svg>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size:15px;">${v.description || "Vehicle"}</div>
+                        <div class="text-muted" style="font-size:12px;">${v.vehicle_number}</div>
+                    </div>
+                </div>`).join("");
+        }
+
+        // ── Estimate Approve/Reject ──
+        async function approveEstimate(bookingId, decision) {
+            try {
+                const res = await fetch(`${API_BASE}/api/bookings/${bookingId}/approve-estimate`, {
+                    method: "PATCH",
+                    headers: authHeaders(),
+                    body: JSON.stringify({ estimate_status: decision })
+                });
+                if (res.ok) location.reload();
+                else alert("Something went wrong. Try again.");
+            } catch (err) { console.error(err); }
+        }
+
+        // ── Cancel Booking ──
+        async function cancelBooking(bookingId) {
+            if (!confirm("Are you sure you want to cancel this booking?")) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/bookings/${bookingId}`, {
+                    method: "DELETE",
+                    headers: authHeaders()
+                });
+                if (res.ok || res.status === 204) location.reload();
+                else alert("Cannot cancel this booking.");
+            } catch (err) { console.error(err); }
+        }
+    </script>
 </body>
 
 </html>

@@ -119,6 +119,20 @@
                                     placeholder="e.g. Red Swift, Black Splendor...">
                             </div>
 
+                            <!-- Pick & Drop Feature -->
+                            <div class="col-12 mt-4 border-top pt-4">
+                                <div class="form-check form-switch d-flex align-items-center gap-2 m-0 p-0">
+                                    <input class="form-check-input ms-0 mt-0" type="checkbox" role="switch" id="pickDropSwitch" style="width: 40px; height: 20px; cursor: pointer;" onchange="document.getElementById('pickupAddressContainer').style.display = this.checked ? 'block' : 'none';">
+                                    <label class="form-check-label fw-bold text-dark ms-2 cursor-pointer" for="pickDropSwitch">Request Pick & Drop Service</label>
+                                </div>
+                                <div class="text-muted small mt-2" style="margin-left: 50px;">Garage will pick up the vehicle, repair it, and drop it back. Additional charges may apply based on the estimate.</div>
+                            </div>
+
+                            <div class="col-12 mt-3" id="pickupAddressContainer" style="display: none;">
+                                <label class="form-label text-muted small fw-semibold">Pickup Address</label>
+                                <textarea class="form-control border-2 shadow-none py-2 px-3 bg-light" rows="2" placeholder="Enter your full address for pickup..."></textarea>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -233,13 +247,13 @@
 
             </div>
 
-            <!-- ── RIGHT: ORDER SUMMARY ── -->
+            <!-- ── RIGHT: BOOKING DETAILS ── -->
             <div class="col-lg-4">
                 <div class="sticky-top" style="top: 80px;">
                     <div class="card border rounded-4 shadow-sm overflow-hidden">
                         <div class="card-header bg-light border-bottom p-4">
                             <h5 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
-                                Order Summary</h5>
+                                Booking Request Details</h5>
                         </div>
                         <div class="card-body p-4">
 
@@ -256,33 +270,28 @@
                             <hr>
 
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted" style="font-size:14px;">Service Type</span>
-                                <span class="fw-medium text-dark" style="font-size:14px;">AC Repair</span>
+                                <span class="text-muted" style="font-size:14px;">Service Category</span>
+                                <span class="fw-medium text-dark" style="font-size:14px;">General / Repair</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted" style="font-size:14px;">Base Price</span>
-                                <span class="fw-medium text-dark" style="font-size:14px;">₹1,499</span>
+                                <span class="text-muted" style="font-size:14px;">Visiting Charge</span>
+                                <span class="fw-medium text-dark" style="font-size:14px;">₹150</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted" style="font-size:14px;">Platform Fee</span>
-                                <span class="fw-medium text-dark" style="font-size:14px;">₹49</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-4 text-success">
-                                <span style="font-size:14px;">Promo Code (GNM50)</span>
-                                <span class="fw-medium" style="font-size:14px;">- ₹50</span>
+                            <div class="small text-muted mb-4 mt-3 p-3 bg-light rounded" style="font-size:12px; line-height: 1.5;">
+                                <strong class="text-dark">Note:</strong> Final repair cost and pick & drop charges will be estimated after the mechanic inspects the vehicle. Visiting charge is only payable if you reject the estimate.
                             </div>
 
                             <hr>
 
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <span class="fw-bold text-dark" style="font-size:16px;">Total Amount</span>
-                                <span class="fw-bold" style="color:var(--color-primary); font-size:22px;">₹1,498</span>
+                                <span class="fw-bold text-dark" style="font-size:16px;">Estimated Total</span>
+                                <span class="fw-bold text-end" style="color:var(--color-primary); font-size:16px;">To be estimated<br><span class="text-muted fw-normal" style="font-size:12px;">after inspection</span></span>
                             </div>
 
                             <button onclick="document.getElementById('successModal').style.display='flex';"
                                 class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm"
                                 style="background:var(--color-primary); font-size:16px;">
-                                Confirm Booking
+                                Request Booking & Estimate
                             </button>
                             <p class="text-center text-muted mt-3 mb-0" style="font-size:11px;">By clicking, you agree
                                 to our Terms of Service & Privacy Policy.</p>

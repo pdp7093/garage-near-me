@@ -274,57 +274,11 @@
                     <th class="text-end">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <!-- Pending Item 1 -->
+                <tbody id="pendingRequestsTableBody">
                   <tr>
-                    <td>
-                      <div class="fw-bold text-dark fs-6">Quick Fix Motors</div>
-                      <div class="text-muted small">Two-Wheeler Repair</div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Amit Patel</div>
-                      <div class="text-muted small">+91 91234 56780</div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Navrangpura</div>
-                      <div class="text-muted small">Ahmedabad, GJ</div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Oct 24, 2023</div>
-                      <div class="text-muted small">2 days ago</div>
-                    </td>
-                    <td>
-                      <span class="badge badge-admin-warning rounded-pill px-3 py-2 fw-medium">Pending Review</span>
-                    </td>
-                    <td class="text-end">
-                      <button class="btn btn-sm btn-primary rounded-pill px-3 fw-medium me-2">Review Docs</button>
-                      <button class="btn btn-sm btn-success rounded-pill px-3 fw-medium">Approve</button>
-                    </td>
-                  </tr>
-                  <!-- Pending Item 2 -->
-                  <tr>
-                    <td>
-                      <div class="fw-bold text-dark fs-6">City Auto Care</div>
-                      <div class="text-muted small">Car Repair & Wash</div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Suresh Kumar</div>
-                      <div class="text-muted small">+91 88990 11223</div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Salt Lake</div>
-                      <div class="text-muted small">Kolkata, WB</div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Oct 25, 2023</div>
-                      <div class="text-muted small">Yesterday</div>
-                    </td>
-                    <td>
-                      <span class="badge badge-admin-danger rounded-pill px-3 py-2 fw-medium">Missing ID</span>
-                    </td>
-                    <td class="text-end">
-                      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-medium me-2">Request Docs</button>
-                      <button class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-medium">Reject</button>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                      Loading pending requests...
                     </td>
                   </tr>
                 </tbody>
@@ -349,10 +303,128 @@
 
   <script src="../js/bootstrap.bundle.js"></script>
   <script>
+    const ADMIN_KEY = 'gnm_admin_secret_2026'; // Dev secret
+
     // Sidebar Toggle Logic
     document.getElementById('sidebarToggle').addEventListener('click', function() {
       document.getElementById('sidebar').classList.toggle('show');
     });
+
+    // Fetch Pending Requests
+    async function fetchPendingRequests() {
+      const tbody = document.getElementById('pendingRequestsTableBody');
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading pending requests...</td></tr>`;
+
+      try {
+        const response = await fetch('http://localhost:8000/api/garage-requests/admin/all?status=pending', {
+          headers: {
+            'X-Admin-Key': ADMIN_KEY
+          }
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch requests');
+        const requests = await response.json();
+
+        if (requests.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">No pending garage requests at the moment.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = requests.map(req => {
+          const date = new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const garageTypeLabel = req.garage_type === 'four_wheeler' ? 'Car Specialist' : 
+                                  (req.garage_type === 'two_wheeler' ? 'Bike Specialist' : 'Car & Bike Specialist');
+          
+          return `
+            <tr>
+              <td>
+                <div class="fw-bold text-dark fs-6">${req.garage_name}</div>
+                <div class="text-muted small">${garageTypeLabel}</div>
+              </td>
+              <td>
+                <div class="fw-medium text-dark">${req.owner_name}</div>
+                <div class="text-muted small">+91 ${req.phone}</div>
+              </td>
+              <td>
+                <div class="fw-medium text-dark">${req.address || ''}</div>
+                <div class="text-muted small">${req.city}, ${req.pincode}</div>
+              </td>
+              <td>
+                <div class="fw-medium text-dark">${date}</div>
+              </td>
+              <td>
+                <span class="badge badge-admin-warning rounded-pill px-3 py-2 fw-medium">Pending Review</span>
+              </td>
+              <td class="text-end">
+                <button onclick="approveRequest(${req.id})" class="btn btn-sm btn-success rounded-pill px-3 fw-medium me-1">Approve</button>
+                <button onclick="rejectRequest(${req.id})" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-medium">Reject</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Error fetching data. Please ensure backend is running.</td></tr>`;
+      }
+    }
+
+    // Approve Request
+    async function approveRequest(id) {
+      if (!confirm('Are you sure you want to approve this garage?')) return;
+      
+      try {
+        const response = await fetch(`http://localhost:8000/api/garage-requests/admin/${id}/approve`, {
+          method: 'POST',
+          headers: {
+            'X-Admin-Key': ADMIN_KEY
+          }
+        });
+        
+        if (response.ok) {
+          alert('Garage approved and created successfully!');
+          fetchPendingRequests();
+        } else {
+          const err = await response.json();
+          alert('Error: ' + err.detail);
+        }
+      } catch (e) {
+        alert('Network Error');
+      }
+    }
+
+    // Reject Request
+    async function rejectRequest(id) {
+      const reason = prompt('Please provide a reason for rejection:');
+      if (reason === null) return; // Cancelled
+      
+      try {
+        const response = await fetch(`http://localhost:8000/api/garage-requests/admin/${id}/reject`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Key': ADMIN_KEY
+          },
+          body: JSON.stringify({ admin_note: reason })
+        });
+        
+        if (response.ok) {
+          alert('Garage request rejected.');
+          fetchPendingRequests();
+        } else {
+          const err = await response.json();
+          alert('Error: ' + err.detail);
+        }
+      } catch (e) {
+        alert('Network Error');
+      }
+    }
+
+    // Fetch data when Pending tab is shown
+    document.getElementById('pending-tab').addEventListener('shown.bs.tab', function (event) {
+      fetchPendingRequests();
+    });
+
+    // Optionally load immediately if we want it pre-loaded
+    // fetchPendingRequests();
   </script>
 </body>
 

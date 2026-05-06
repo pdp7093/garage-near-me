@@ -77,7 +77,7 @@
         <!-- Auth Tabs -->
         <div class="auth-tabs" id="authTabs">
           <div class="auth-tab active" data-target="loginForm">Log In</div>
-          <div class="auth-tab" data-target="registerForm">Register Garage</div>
+          <div class="auth-tab" data-target="registerForm">Apply as Partner</div>
         </div>
 
         <!-- Login Form -->
@@ -133,24 +133,47 @@
             <label for="regGarageName">Garage / Business Name</label>
           </div>
 
-          <div class="form-floating mb-3">
-            <input type="tel" class="form-control" id="regMobile" placeholder="Mobile Number" required>
-            <label for="regMobile">Mobile Number</label>
+          <div class="row g-2 mb-3">
+            <div class="col-md-6 form-floating">
+              <input type="tel" class="form-control" id="regMobile" placeholder="Mobile Number" required>
+              <label for="regMobile" class="ms-1">Mobile Number</label>
+            </div>
+            <div class="col-md-6 form-floating">
+              <input type="email" class="form-control" id="regEmail" placeholder="Email Address">
+              <label for="regEmail" class="ms-1">Email Address</label>
+            </div>
           </div>
 
           <div class="form-floating mb-3">
-            <select class="form-select" id="regType" aria-label="Garage Type">
+            <input type="text" class="form-control" id="regAddress" placeholder="Full Shop Address" required>
+            <label for="regAddress">Full Shop Address</label>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6 form-floating">
+              <input type="text" class="form-control" id="regCity" placeholder="City" value="Ahmedabad" required>
+              <label for="regCity" class="ms-1">City</label>
+            </div>
+            <div class="col-md-6 form-floating">
+              <input type="text" class="form-control" id="regPincode" placeholder="Pincode" required>
+              <label for="regPincode" class="ms-1">Pincode</label>
+            </div>
+          </div>
+
+          <div class="form-floating mb-3">
+            <select class="form-select" id="regType" aria-label="Garage Type" required>
               <option selected disabled value="">Select Type</option>
-              <option value="1">Four Wheeler (Car) Specialist</option>
-              <option value="2">Two Wheeler (Bike/Scooter) Specialist</option>
-              <option value="3">Both (Cars & Bikes)</option>
-              <option value="4">Mobile Mechanic (No physical shop)</option>
+              <option value="four_wheeler">Four Wheeler (Car) Specialist</option>
+              <option value="two_wheeler">Two Wheeler (Bike/Scooter) Specialist</option>
+              <option value="both">Both (Cars & Bikes)</option>
             </select>
             <label for="regType">Garage Type</label>
           </div>
 
-          <button type="submit" class="btn w-100 text-white fw-bold py-2 shadow-sm rounded-pill mb-3" style="background: var(--color-primary);">
-            Create Partner Account
+          <div id="regAlert" class="alert alert-success d-none small mb-3" role="alert"></div>
+
+          <button type="submit" id="regBtn" class="btn w-100 text-white fw-bold py-2 shadow-sm rounded-pill mb-3" style="background: var(--color-primary);">
+            Request to Join
           </button>
 
           <p class="text-center text-muted small mb-0">
@@ -190,11 +213,59 @@
       window.location.href = 'dashboard.html';
     }
 
-    function handleRegister(e) {
+    async function handleRegister(e) {
       e.preventDefault();
-      // In a real app, send OTP, verify, then save profile
-      alert('Registration successful! Redirecting to dashboard...');
-      window.location.href = 'dashboard.html';
+      
+      const btn = document.getElementById('regBtn');
+      const alertBox = document.getElementById('regAlert');
+      const form = document.getElementById('registerForm');
+      
+      btn.disabled = true;
+      btn.innerText = 'Submitting...';
+      alertBox.classList.add('d-none');
+      alertBox.classList.remove('alert-danger', 'alert-success');
+
+      const ownerName = document.getElementById('regFirstName').value.trim() + ' ' + document.getElementById('regLastName').value.trim();
+      const payload = {
+        owner_name: ownerName,
+        garage_name: document.getElementById('regGarageName').value.trim(),
+        phone: document.getElementById('regMobile').value.trim(),
+        email: document.getElementById('regEmail').value.trim(),
+        garage_type: document.getElementById('regType').value,
+        address: document.getElementById('regAddress').value.trim(),
+        city: document.getElementById('regCity').value.trim(),
+        pincode: document.getElementById('regPincode').value.trim()
+      };
+
+      try {
+        const response = await fetch('http://localhost:8000/api/garage-requests/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alertBox.innerText = 'Application submitted successfully! Our team will review and approve your account soon.';
+          alertBox.classList.add('alert-success');
+          alertBox.classList.remove('d-none');
+          form.reset();
+        } else {
+          alertBox.innerText = data.detail || 'Failed to submit application. Please try again.';
+          alertBox.classList.add('alert-danger');
+          alertBox.classList.remove('d-none');
+        }
+      } catch (err) {
+        alertBox.innerText = 'Network error. Please make sure the server is running.';
+        alertBox.classList.add('alert-danger');
+        alertBox.classList.remove('d-none');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Request to Join';
+      }
     }
   </script>
 </body>
