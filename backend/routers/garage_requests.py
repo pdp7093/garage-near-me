@@ -226,3 +226,43 @@ def reject_garage_request(
     db.commit()
     db.refresh(req)
     return req
+
+@router.post("/admin/{request_id}/start-review")
+def start_review(request_id:int, db:Session=Depends(get_db), x_admin_key :str =None):
+    check_admin(x_admin_key)
+
+    req = db.query(models.GarageRequest).filter(
+        models.GarageRequest.id == request_id
+    ).first()
+
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+
+    req.status = models.GarageRequestStatus.under_review
+
+    db.commit()
+
+    return {"message": "Review started successfully"}
+
+@router.post("/admin/{request_id}/schedule-visit")
+def schedule_visit(
+    request_id : int, 
+    data : schemas.GarageRequestReviewUpdate, db: Session = Depends(get_db), x_admin_key : str = None ):
+    
+    check_admin(x_admin_key)
+
+    req = db.query(models.GarageRequest).filter(
+        models.GarageRequest.id == request_id
+    ).first()
+
+    if not req:
+        raise HTTPException(status_code = 404, detail ="Request not found")
+
+    req.visit_date = date.visit_date
+    req.visit_notes = date.visit_notes
+
+    req.status = models.GarageRequestStatus.site_visit_scheduled
+
+    db.commit()
+
+    return {"message":"Site visit scheduled"}

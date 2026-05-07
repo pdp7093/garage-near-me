@@ -31,9 +31,13 @@ class EstimateStatus(str, enum.Enum):
     rejected     = "rejected"
 
 class GarageRequestStatus(str, enum.Enum):
-    pending  = "pending"   # naya request, admin ne nahi dekha
-    approved = "approved"  # admin ne approve kiya → garages table mein create
-    rejected = "rejected"  # admin ne reject kiya
+    pending = "pending"
+    under_review = "under_review"
+    site_visit_scheduled = "site_visit_scheduled"
+    documents_pending = "documents_pending"
+    verification_completed = "verification_completed"
+    approved = "approved"
+    rejected = "rejected"
 
 
 # ──────────────────────────────────────────
@@ -95,6 +99,15 @@ class GarageRequest(Base):
     city         = Column(String(100), nullable=False, default="Ahmedabad")
     pincode      = Column(String(10), nullable=True)
 
+    visit_date = Column(DateTime, nullable=True)
+    visit_notes = Column(Text, nullable=True)
+
+    verification_notes = Column(Text, nullable=True)
+
+    rejection_reason = Column(Text, nullable=True)
+
+    is_site_verified = Column(Boolean, default=False)
+    is_documents_verified = Column(Boolean, default=False)
     # Status
     status       = Column(Enum(GarageRequestStatus), default=GarageRequestStatus.pending)
 

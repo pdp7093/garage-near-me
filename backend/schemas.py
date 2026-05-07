@@ -251,7 +251,15 @@ class GaragePublicResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class GarageRequestReviewUpdate(BaseModel):
+    visit_date: datetime | None = None
+    visit_notes: str | None = None
 
+    verification_notes: str | None = None
+
+    is_site_verified: bool | None = None
+    is_documents_verified: bool | None = None
+    
 # ──────────────────────────────────────────
 # BOOKING
 # ──────────────────────────────────────────
