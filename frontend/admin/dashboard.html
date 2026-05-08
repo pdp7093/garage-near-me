@@ -115,7 +115,7 @@
             </div>
             <div>
               <div class="text-muted small fw-medium text-uppercase tracking-wider">Total Users</div>
-              <h3 class="fw-bold mb-0">12,450</h3>
+              <h3 class="fw-bold mb-0" id="totalRequests">0</h3>
               <div class="text-success small fw-medium mt-1">↑ 12% this month</div>
             </div>
           </div>
@@ -128,7 +128,7 @@
             </div>
             <div>
               <div class="text-muted small fw-medium text-uppercase tracking-wider">Active Garages</div>
-              <h3 class="fw-bold mb-0">842</h3>
+              <h3 class="fw-bold mb-0" id="totalGarages">0</h3>
               <div class="text-success small fw-medium mt-1">↑ 5 new today</div>
             </div>
           </div>
@@ -143,8 +143,8 @@
               <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
             </div>
             <div>
-              <div class="text-muted small fw-medium text-uppercase tracking-wider">Active SOS</div>
-              <h3 class="fw-bold mb-0 text-danger">14</h3>
+              <div class="text-muted small fw-medium text-uppercase tracking-wider">Pending Requests</div>
+              <h3 class="fw-bold mb-0 text-danger" id="pendingRequests">0</h3>
               <div class="text-danger small fw-medium mt-1">Needs attention</div>
             </div>
           </div>
@@ -300,6 +300,30 @@
       document.getElementById('sidebar').classList.toggle('show');
     });
   </script>
+  <script>
+  async function loadDashboardStats(){
+    try {
+      const response = await fetch(
+        'http://localhost:8000/api/garage-requests/admin/dashboard-stats/',
+        {
+          headers:{
+            "X-Admin-Key":"gnm_admin_secret_2026"
+          }
+        }
+      );
+      const data = await response.json();
+      document.getElementById('totalRequests').textContent = data.total_requests;
+      document.getElementById('pendingRequests').textContent = data.pending_requests;
+      document.getElementById('underReview').textContent = data.under_review;
+      document.getElementById('approvedRequests').textContent = data.approved;
+      document.getElementById('rejectedRequests').textContent = data.rejected;
+      document.getElementById('totalGarages').textContent = data.total_garages;
+    } catch (error) {
+      console.error("Failed to load dashboard stats:",error);
+    }
+  }
+  loadDashboardStats();
+</script>
 </body>
 
 </html>

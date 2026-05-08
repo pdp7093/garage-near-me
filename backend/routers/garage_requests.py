@@ -142,7 +142,7 @@ def approve_garage_request(
     if not req:
         raise HTTPException(status_code=404, detail="Request not found")
 
-    if req.status != models.GarageRequestStatus.pending:
+    if req.status != models.GarageRequestStatus.verification_completed:
         raise HTTPException(
             status_code=400,
             detail=f"Request is already {req.status}"
@@ -214,10 +214,10 @@ def reject_garage_request(
     if not req:
         raise HTTPException(status_code=404, detail="Request not found")
 
-    if req.status != models.GarageRequestStatus.pending:
+    if req.status == models.GarageRequestStatus.approved:
         raise HTTPException(
             status_code=400,
-            detail=f"Request is already {req.status}"
+            detail="Approved request cannot be rejected"
         )
 
     req.status     = models.GarageRequestStatus.rejected
@@ -258,11 +258,93 @@ def schedule_visit(
     if not req:
         raise HTTPException(status_code = 404, detail ="Request not found")
 
-    req.visit_date = date.visit_date
-    req.visit_notes = date.visit_notes
+    req.visit_date = data.visit_date
+    req.visit_notes = data.visit_notes
 
     req.status = models.GarageRequestStatus.site_visit_scheduled
 
     db.commit()
 
     return {"message":"Site visit scheduled"}
+
+
+@router.post("/admin/{request_id}/complete-verification")
+def complete_verification(request_id: int, data: schemas.GarageRequestReviewUpdate,
+                          db:Session=Depends(get_db), x_admin_key : str = None):
+    check_admin(x_admin_key)
+
+    req = db.query(models.GarageRequest).filter(
+        models.GarageRequest.id == request_id
+    ).first()
+
+    if not req:
+        raise HTTPException(status_code = 404, detail = "Request not found")
+    
+    req.is_site_verified =data.is_site_verified
+    req.is_documents_verified = data.is_documents_verified
+    req.verification_notes = data.verification_notes
+
+    req.status = models.GarageRequestStatus.verification_completed
+
+    db.commit()
+
+    return {
+        "message":"Verification completed successfully"
+    }
+
+    
+@router.get("/admin/{request_id}", response_model=schemas.GarageRequestResponse)
+def get_request_details(
+    request_id: int,
+    db: Session = Depends(get_db),
+    x_admin_key: str = None
+):
+    check_admin(x_admin_key)
+
+    req = db.query(models.GarageRequest).filter(
+        models.GarageRequest.id == request_id
+    ).first()
+
+    if not req:
+        raise HTTPException(
+            status_code=404,
+            detail="Request not found"
+        )
+
+    return req
+
+@router.get("/admin/dashboard-stats")
+def get_dashboard_stats(
+    db: Session = Depends(get_db),
+    x_admin_key: str = None
+):
+    check_admin(x_admin_key)
+
+    total_requests = db.query(models.GarageRequest).count()
+
+    pending_requests = db.query(models.GarageRequest).filter(
+        models.GarageRequest.status == models.GarageRequestStatus.pending
+    ).count()
+
+    under_review = db.query(models.GarageRequest).filter(
+        models.GarageRequest.status == models.GarageRequestStatus.under_review
+    ).count()
+
+    approved = db.query(models.GarageRequest).filter(
+        models.GarageRequest.status == models.GarageRequestStatus.approved
+    ).count()
+
+    rejected = db.query(models.GarageRequest).filter(
+        models.GarageRequest.status == models.GarageRequestStatus.rejected
+    ).count()
+
+    total_garages = db.query(models.Garage).count()
+
+    return {
+        "total_requests": total_requests,
+        "pending_requests": pending_requests,
+        "under_review": under_review,
+        "approved": approved,
+        "rejected": rejected,
+        "total_garages": total_garages
+    }
