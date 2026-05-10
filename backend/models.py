@@ -117,6 +117,8 @@ class GarageRequest(Base):
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
     updated_at   = Column(DateTime(timezone=True), onupdate=func.now())
 
+    documents    = relationship("GarageDocument", back_populates="request", cascade="all, delete-orphan")
+
 
 # ──────────────────────────────────────────
 # GARAGE OTP (Login ke liye)
@@ -166,6 +168,25 @@ class Garage(Base):
     banking       = relationship("GarageBanking",      back_populates="garage", uselist=False, cascade="all, delete-orphan")
     services      = relationship("GarageService",      back_populates="garage", cascade="all, delete-orphan")
     bookings      = relationship("Booking",            back_populates="garage", cascade="all, delete-orphan")
+    documents     = relationship("GarageDocument",     back_populates="garage", cascade="all, delete-orphan")
+
+
+# ──────────────────────────────────────────
+# GARAGE DOCUMENTS (Admin Uploads)
+# ──────────────────────────────────────────
+
+class GarageDocument(Base):
+    __tablename__ = "garage_documents"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    garage_id     = Column(Integer, ForeignKey("garages.id"), nullable=True)
+    request_id    = Column(Integer, ForeignKey("garage_requests.id"), nullable=True)
+    document_type = Column(String(50), nullable=False)  # aadhar, pan, shop_license
+    file_url      = Column(Text, nullable=False)
+    uploaded_at   = Column(DateTime(timezone=True), server_default=func.now())
+
+    garage        = relationship("Garage", back_populates="documents")
+    request       = relationship("GarageRequest", back_populates="documents")
 
 
 # ──────────────────────────────────────────

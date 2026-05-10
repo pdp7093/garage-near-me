@@ -7,7 +7,7 @@
   <title>Garage Profile - GarageNearMe</title>
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link rel="stylesheet" href="../css/mechanic.css?v=7baa3eb6" />
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -169,6 +169,7 @@
                 <div class="profile-nav-link" data-target="addressLocation">Address & Location</div>
                 <div class="profile-nav-link" data-target="workingHours">Working Hours</div>
                 <div class="profile-nav-link" data-target="bankingInfo">Banking & Payouts</div>
+                <div class="profile-nav-link" data-target="myDocuments">My Documents</div>
               </div>
             </div>
           </div>
@@ -415,6 +416,27 @@
               </div>
             </div>
 
+            <!-- SECTION 5: My Documents -->
+            <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="myDocuments">
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">My Documents</h5>
+              
+              <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 d-flex align-items-start gap-3 mb-4">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#D97706" class="flex-shrink-0 mt-1">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                </svg>
+                <div>
+                  <h6 class="fw-bold text-dark mb-1" style="color: #92400E !important;">Managed by Admin</h6>
+                  <p class="small text-muted mb-0">These verification documents were securely uploaded by our team during your onboarding visit. To update them, please contact partner support.</p>
+                </div>
+              </div>
+
+              <div class="row g-4" id="documentsList">
+                <div class="col-12 text-center py-5 text-muted">
+                  <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading documents...
+                </div>
+              </div>
+            </div>
+
             <!-- Mobile Only Save Button (bottom) -->
             <button class="btn w-100 text-white rounded-pill py-2 fw-bold shadow-sm d-sm-none mt-4"
               style="background: var(--color-primary);">
@@ -461,7 +483,69 @@
           document.getElementById(targetId).classList.remove('d-none');
         });
       });
+
+      // Fetch Documents
+      fetchMyDocuments();
     });
+
+    async function fetchMyDocuments() {
+      const token = localStorage.getItem('garage_token');
+      const docsContainer = document.getElementById('documentsList');
+      if (!token) {
+        docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-danger">Not logged in.</div>';
+        return;
+      }
+      
+      try {
+        const response = await fetch('http://localhost:8000/api/garage/me/documents', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch documents');
+        const docs = await response.json();
+        
+        if (docs.length === 0) {
+          docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-muted">No documents uploaded yet.</div>';
+          return;
+        }
+
+        const typeLabels = {
+          'aadhar': 'Aadhar / PAN Card',
+          'shop_license': 'Shop / Trade License'
+        };
+
+        docsContainer.innerHTML = docs.map(doc => {
+          const date = new Date(doc.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+          const isImage = doc.file_url.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+          
+          let preview = '';
+          if (isImage) {
+            preview = `<div class="rounded-3 border overflow-hidden mb-3 bg-light" style="height: 140px;">
+                         <img src="http://localhost:8000${doc.file_url}" class="w-100 h-100 object-fit-cover" alt="Document Preview">
+                       </div>`;
+          } else {
+            preview = `<div class="rounded-3 border overflow-hidden mb-3 bg-light d-flex align-items-center justify-content-center flex-column text-muted" style="height: 140px;">
+                         <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" class="mb-2"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                         <span class="small fw-bold">PDF Document</span>
+                       </div>`;
+          }
+
+          return `
+            <div class="col-md-6 col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-3">
+                  ${preview}
+                  <h6 class="fw-bold mb-1">${typeLabels[doc.document_type] || 'Verification Document'}</h6>
+                  <p class="small text-muted mb-3">Uploaded: ${date}</p>
+                  <a href="http://localhost:8000${doc.file_url}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-medium">View Full Screen</a>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error fetching documents.</div>';
+      }
+    }
   </script>
 </body>
 
