@@ -27,9 +27,13 @@ class EstimateStatus(str, Enum):
     rejected     = "rejected"
 
 class GarageRequestStatus(str, Enum):
-    pending  = "pending"
-    approved = "approved"
-    rejected = "rejected"
+    pending                = "pending"
+    under_review           = "under_review"
+    site_visit_scheduled   = "site_visit_scheduled"
+    documents_pending      = "documents_pending"
+    verification_completed = "verification_completed"
+    approved               = "approved"
+    rejected               = "rejected"
 
 
 # ──────────────────────────────────────────
@@ -86,25 +90,29 @@ class GarageRequestCreate(BaseModel):
     pincode:     Optional[str] = None
 
 class GarageRequestResponse(BaseModel):
-    id:          int
-    owner_name:  str
-    garage_name: str
-    phone:       str
-    email:       Optional[EmailStr] = None
-    garage_type: Optional[str] = None
-    address:     Optional[str] = None
-    city:        str
-    pincode:     Optional[str] = None
-    status:      GarageRequestStatus
-    admin_note:  Optional[str] = None
-    created_at:  datetime
+    id:                    int
+    owner_name:            str
+    garage_name:           str
+    phone:                 str
+    email:                 Optional[EmailStr] = None
+    garage_type:           Optional[str] = None
+    address:               Optional[str] = None
+    city:                  str
+    pincode:               Optional[str] = None
+    status:                GarageRequestStatus
+    admin_note:            Optional[str] = None
+    visit_date:            Optional[datetime] = None
+    visit_notes:           Optional[str] = None
+    is_site_verified:      Optional[bool] = None
+    is_documents_verified: Optional[bool] = None
+    verification_notes:    Optional[str] = None
+    created_at:            datetime
+    documents:             List['GarageDocumentResponse'] = []
 
     class Config:
         from_attributes = True
 
 class GarageRequestAdminUpdate(BaseModel):
-    """Admin approve/reject karta hai"""
-    status:     GarageRequestStatus
     admin_note: Optional[str] = None
 
 
@@ -202,10 +210,27 @@ class GarageServiceResponse(GarageServiceCreate):
 
 
 # ──────────────────────────────────────────
+# GARAGE DOCUMENTS
+# ──────────────────────────────────────────
+
+class GarageDocumentResponse(BaseModel):
+    id:            int
+    garage_id:     Optional[int] = None
+    request_id:    Optional[int] = None
+    document_type: str
+    file_url:      str
+    uploaded_at:   datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ──────────────────────────────────────────
 # GARAGE MAIN
 # ──────────────────────────────────────────
 
 class GarageUpdate(BaseModel):
+    is_active:            Optional[bool]  = None
     name:                 Optional[str]   = None
     owner_name:           Optional[str]   = None
     garage_type:          Optional[str]   = None
@@ -232,6 +257,7 @@ class GarageResponse(BaseModel):
     working_hours:        List[WorkingHourResponse] = []
     banking:              Optional[GarageBankingResponse] = None
     services:             List[GarageServiceResponse] = []
+    documents:            List[GarageDocumentResponse] = []
 
     class Config:
         from_attributes = True

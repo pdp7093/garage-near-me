@@ -1,12 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from database import engine, Base, ensure_schema_updates
 from routers import auth, garage, booking, vehicles, garage_requests, garage_auth
+import os
 
 Base.metadata.create_all(bind=engine)
 ensure_schema_updates()
 
 app = FastAPI(title="GarageNearMe API")
+
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,

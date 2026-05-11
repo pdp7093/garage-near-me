@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
@@ -273,3 +273,78 @@ def search_garages(
     query = query.join(models.GarageLocation).filter(models.GarageLocation.city.ilike(f"%{city}%"))
 
     return query.all()
+
+
+# ──────────────────────────────────────────
+# 11. GET MY DOCUMENTS
+# GET /api/garage/me/documents
+# ──────────────────────────────────────────
+
+@router.get("/me/documents", response_model=list[schemas.GarageDocumentResponse])
+def get_my_documents(
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    return db.query(models.GarageDocument).filter(
+        models.GarageDocument.garage_id == current_garage.id
+    ).all()
+
+
+# All Garage
+# garage.py mein add karo (end mein)
+
+@router.get("/admin/all", response_model=list[schemas.GarageResponse])
+def get_all_garages_admin(
+    x_admin_key: str = Header(None),
+    db: Session = Depends(get_db)
+):
+    """Admin — saare garages fetch karo (active + inactive dono)"""
+    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+    
+    return db.query(models.Garage).order_by(models.Garage.created_at.desc()).all()
+
+# Admin : Get single garage by ID 
+@router.get("/admin/{garage_id}", response_model=schemas.GarageResponse)
+def get_garage_by_id_admin(garage_id:int, x_admin_key: str =Header(None), db:Session = Depends(get_db)):
+    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+    g = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Garage not found")
+    return g
+
+
+# ── ADMIN: Toggle status
+@router.patch("/admin/{garage_id}/toggle-status", response_model=schemas.GarageResponse)
+def toggle_garage_status(
+    garage_id: int,
+    data: schemas.GarageUpdate,
+    x_admin_key: str = Header(None),
+    db: Session = Depends(get_db)
+):
+    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+    g = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Garage not found")
+    g.is_active = data.is_active
+    db.commit()
+    db.refresh(g)
+    return g
+
+# ── ADMIN: Delete garage
+@router.delete("/admin/{garage_id}", status_code=204)
+def delete_garage_admin(
+    garage_id: int,
+    x_admin_key: str = Header(None),
+    db: Session = Depends(get_db)
+):
+    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+    g = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Garage not found")
+    db.delete(g)
+    db.commit()
+    return None
