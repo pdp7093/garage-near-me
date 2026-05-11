@@ -12,7 +12,6 @@
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
   <style>
-    /* Profile specific overrides */
     .profile-nav-link {
       color: var(--color-text-muted);
       font-weight: 500;
@@ -41,25 +40,33 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: all 0.2s;
+      flex: 0 0 auto;
     }
 
-    .profile-photo-upload:hover {
-      border-color: var(--color-primary);
-      background: rgba(255, 107, 53, 0.05);
-    }
-
-    .profile-photo-upload input[type="file"] {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .profile-photo-upload img {
       width: 100%;
       height: 100%;
-      opacity: 0;
-      cursor: pointer;
+      object-fit: cover;
+    }
+
+    .profile-kv {
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 0.75rem;
+      padding: 0.85rem 1rem;
+      background: #fff;
+    }
+
+    .working-hour-row {
+      gap: 1rem;
+    }
+
+    @media (max-width: 575.98px) {
+      .working-hour-row {
+        align-items: flex-start !important;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -67,101 +74,29 @@
 <body>
 
   <div class="mechanic-layout">
+    <div id="sidebar-container"></div>
 
-    <!-- ═══ SIDEBAR ═══ -->
-    <aside class="mechanic-sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <a href="dashboard.html" class="d-flex align-items-center text-white text-decoration-none gap-2">
-          <div class="rounded bg-white d-flex align-items-center justify-content-center"
-            style="width: 28px; height: 28px; color: var(--color-primary);">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-              <path
-                d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
-            </svg>
-          </div>
-          <span class="fw-bold" style="font-family: var(--font-head); font-size: 1.1rem;">GarageNearMe</span>
-        </a>
-      </div>
-
-      <nav class="sidebar-nav">
-        <a href="dashboard.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
-          </svg>
-          Dashboard
-        </a>
-        <a href="sos-alerts.html" class="sidebar-link text-danger">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-          </svg>
-          Emergency SOS <span class="badge bg-danger ms-auto rounded-pill pulse-dot">1</span>
-        </a>
-        <a href="requests.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path
-              d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
-          </svg>
-          Bookings <span class="badge bg-primary ms-auto rounded-pill">1</span>
-        </a>
-        <a href="services.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path
-              d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
-          </svg>
-          Services
-        </a>
-        <a href="profile.html" class="sidebar-link active">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path
-              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-          </svg>
-          Profile
-        </a>
-      </nav>
-
-      <div class="mt-auto pb-4">
-        <a href="index.html" class="sidebar-link" style="color: #EF4444;">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="#EF4444">
-            <path
-              d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
-          </svg>
-          Logout
-        </a>
-      </div>
-    </aside>
-
-    <!-- Overlay for mobile sidebar -->
     <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
       style="z-index: 1030;"></div>
 
-    <!-- ═══ MAIN CONTENT ═══ -->
     <main class="mechanic-main">
+      <div id="topbar-container"></div>
 
-      <!-- Topbar -->
-      <header class="mechanic-topbar">
-        <div class="d-flex align-items-center gap-3">
-          <button class="btn d-lg-none p-0 border-0 shadow-none text-dark" id="sidebarToggle">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
-              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-            </svg>
-          </button>
-          <h5 class="mb-0 fw-bold" style="font-family: var(--font-head);">Garage Settings</h5>
-        </div>
+      <div class="mechanic-content">
+        <div id="profileAlert" class="alert d-none rounded-4 mb-4" role="alert"></div>
 
-        <div class="d-flex align-items-center gap-3">
-          <button class="btn text-white rounded-pill px-4 fw-bold shadow-sm d-none d-sm-inline-block"
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
+          <div>
+            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="profileHeading">Garage Settings</h4>
+            <p class="text-muted mb-0 small" id="profileSubheading">Loading your garage profile...</p>
+          </div>
+          <button class="btn text-white rounded-pill px-4 fw-bold shadow-sm align-self-start" id="saveProfileBtn"
             style="background: var(--color-primary);">
             Save Changes
           </button>
         </div>
-      </header>
-
-      <!-- Content Area -->
-      <div class="mechanic-content">
 
         <div class="row g-4">
-          <!-- Left Col: Nav -->
           <div class="col-lg-3">
             <div class="bg-white rounded-4 border shadow-sm p-3">
               <div class="d-flex flex-column gap-2" id="profileTabs">
@@ -174,199 +109,126 @@
             </div>
           </div>
 
-          <!-- Right Col: Forms -->
           <div class="col-lg-9">
-
-            <!-- SECTION 1: Business Details -->
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section" id="businessDetails">
               <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Business Details</h5>
 
               <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
-                <div class="profile-photo-upload">
+                <div class="profile-photo-upload" id="profileLogoPreview">
                   <div class="text-center text-muted">
                     <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="mb-1">
                       <path
                         d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
                     </svg>
-                    <div style="font-size: 11px;">Upload Logo</div>
+                    <div style="font-size: 11px;">No Logo</div>
                   </div>
-                  <input type="file" accept="image/*">
                 </div>
                 <div>
-                  <h6 class="fw-bold">Garage Logo / Photo</h6>
-                  <p class="text-muted small mb-0">This will be displayed to customers. Jpg, Png. Max 2MB.</p>
+                  <h6 class="fw-bold mb-1" id="profileLogoTitle">Garage Logo / Photo</h6>
+                  <p class="text-muted small mb-0">Logo upload field is stored as logo_url in the garage record.</p>
                 </div>
               </div>
 
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">Garage Name</label>
-                  <input type="text" class="form-control" value="Sharma Auto Garage">
+                  <label class="form-label small fw-medium text-muted mb-1" for="garageNameInput">Garage Name</label>
+                  <input type="text" class="form-control" id="garageNameInput" placeholder="Garage name">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">Owner Name</label>
-                  <input type="text" class="form-control" value="Suresh Sharma">
+                  <label class="form-label small fw-medium text-muted mb-1" for="ownerNameInput">Owner Name</label>
+                  <input type="text" class="form-control" id="ownerNameInput" placeholder="Owner name">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">Mobile Number</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="phoneInput">Mobile Number</label>
                   <div class="input-group">
                     <span class="input-group-text bg-light text-muted border-end-0">+91</span>
-                    <input type="tel" class="form-control border-start-0 ps-0" value="9876543210" readonly>
+                    <input type="tel" class="form-control border-start-0 ps-0" id="phoneInput" readonly>
                   </div>
                   <div class="form-text" style="font-size: 11px;">Contact support to change registered mobile.</div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">Email Address</label>
-                  <input type="email" class="form-control" placeholder="garage@example.com">
+                  <label class="form-label small fw-medium text-muted mb-1" for="emailInput">Email Address</label>
+                  <input type="email" class="form-control" id="emailInput" readonly>
+                  <div class="form-text" style="font-size: 11px;">Email update is not enabled in the current API.</div>
                 </div>
-                <div class="col-12">
-                  <label class="form-label small fw-medium text-muted mb-1">Garage Type</label>
-                  <select class="form-select">
-                    <option value="1" selected>Four Wheeler (Car) Specialist</option>
-                    <option value="2">Two Wheeler (Bike/Scooter) Specialist</option>
-                    <option value="3">Both (Cars & Bikes)</option>
-                    <option value="4">Mobile Mechanic</option>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1" for="garageTypeInput">Garage Type</label>
+                  <select class="form-select" id="garageTypeInput">
+                    <option value="">Select garage type</option>
+                    <option value="four_wheeler">Four Wheeler Specialist</option>
+                    <option value="two_wheeler">Two Wheeler Specialist</option>
+                    <option value="both">Both Cars & Bikes</option>
+                    <option value="mobile_mechanic">Mobile Mechanic</option>
                   </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1" for="visitingChargeInput">Visiting Charge</label>
+                  <input type="number" class="form-control" id="visitingChargeInput" min="0" step="1" placeholder="0">
+                </div>
+                <div class="col-md-6">
+                  <div class="profile-kv h-100">
+                    <div class="form-check form-switch mb-0">
+                      <input class="form-check-input" type="checkbox" role="switch" id="sosAvailableInput">
+                      <label class="form-check-label fw-medium" for="sosAvailableInput">Available for SOS</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="profile-kv h-100">
+                    <div class="form-check form-switch mb-0">
+                      <input class="form-check-input" type="checkbox" role="switch" id="pickDropInput">
+                      <label class="form-check-label fw-medium" for="pickDropInput">Offers Pick and Drop</label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- SECTION 2: Address & Location -->
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="addressLocation">
               <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Address & Location</h5>
 
               <div class="row g-3">
                 <div class="col-12">
-                  <label class="form-label small fw-medium text-muted mb-1">Shop / Building Number</label>
-                  <input type="text" class="form-control" value="Shop No. 12, ABC Complex">
+                  <label class="form-label small fw-medium text-muted mb-1" for="shopNumberInput">Shop / Building Number</label>
+                  <input type="text" class="form-control" id="shopNumberInput" placeholder="Shop no, building">
                 </div>
                 <div class="col-12">
-                  <label class="form-label small fw-medium text-muted mb-1">Street / Area</label>
-                  <input type="text" class="form-control" value="S.G. Highway, Near YMCA">
+                  <label class="form-label small fw-medium text-muted mb-1" for="streetInput">Street / Area</label>
+                  <input type="text" class="form-control" id="streetInput" placeholder="Street, area, landmark">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">City</label>
-                  <input type="text" class="form-control" value="Ahmedabad" readonly>
+                  <label class="form-label small fw-medium text-muted mb-1" for="cityInput">City</label>
+                  <input type="text" class="form-control" id="cityInput" placeholder="Ahmedabad">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">Pincode</label>
-                  <input type="text" class="form-control" value="380015">
+                  <label class="form-label small fw-medium text-muted mb-1" for="pincodeInput">Pincode</label>
+                  <input type="text" class="form-control" id="pincodeInput" placeholder="380001">
                 </div>
-                <div class="col-12 mt-4">
-                  <label class="form-label small fw-medium text-muted mb-2">GPS Location (For SOS & Search)</label>
-                  <div class="rounded-3 border overflow-hidden position-relative"
-                    style="height: 200px; background: #e9ecef;">
-                    <!-- Placeholder Map Image -->
-                    <img src="https://via.placeholder.com/800x400?text=Map+Integration+Here"
-                      class="w-100 h-100 object-fit-cover opacity-50" alt="Map">
-                    <div class="position-absolute top-50 start-50 translate-middle">
-                      <button class="btn btn-dark shadow rounded-pill d-flex align-items-center gap-2">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                          <path
-                            d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
-                        </svg>
-                        Update via GPS
-                      </button>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1" for="latitudeInput">Latitude</label>
+                  <input type="number" class="form-control" id="latitudeInput" step="any" placeholder="Latitude">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1" for="longitudeInput">Longitude</label>
+                  <input type="number" class="form-control" id="longitudeInput" step="any" placeholder="Longitude">
+                </div>
+                <div class="col-12 mt-3">
+                  <div class="rounded-4 border bg-light p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div>
+                      <h6 class="fw-bold mb-1">GPS Location</h6>
+                      <p class="text-muted small mb-0">Accurate coordinates help customers and SOS requests find you.</p>
                     </div>
-                  </div>
-                  <div class="form-text" style="font-size: 11px;">Accurate location ensures you get nearby SOS alerts.
+                    <a href="set-location.html" class="btn btn-dark rounded-pill px-4 fw-bold">Open Map</a>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- SECTION 3: Working Hours -->
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="workingHours">
               <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Working Hours</h5>
-
-              <div class="d-flex flex-column gap-3">
-                <!-- Day Row -->
-                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
-                  <div class="form-check form-switch mb-0" style="width: 120px;">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
-                    <label class="form-check-label ms-2 fw-medium">Monday</label>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
-                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
-                    <span class="text-muted small">to</span>
-                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
-                  </div>
-                </div>
-                <!-- Day Row -->
-                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
-                  <div class="form-check form-switch mb-0" style="width: 120px;">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
-                    <label class="form-check-label ms-2 fw-medium">Tuesday</label>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
-                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
-                    <span class="text-muted small">to</span>
-                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
-                  </div>
-                </div>
-                <!-- Day Row -->
-                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
-                  <div class="form-check form-switch mb-0" style="width: 120px;">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
-                    <label class="form-check-label ms-2 fw-medium">Wednesday</label>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
-                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
-                    <span class="text-muted small">to</span>
-                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
-                  </div>
-                </div>
-                <!-- Day Row -->
-                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
-                  <div class="form-check form-switch mb-0" style="width: 120px;">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
-                    <label class="form-check-label ms-2 fw-medium">Thursday</label>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
-                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
-                    <span class="text-muted small">to</span>
-                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
-                  </div>
-                </div>
-                <!-- Day Row -->
-                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
-                  <div class="form-check form-switch mb-0" style="width: 120px;">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
-                    <label class="form-check-label ms-2 fw-medium">Friday</label>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
-                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
-                    <span class="text-muted small">to</span>
-                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
-                  </div>
-                </div>
-                <!-- Day Row -->
-                <div class="d-flex align-items-center justify-content-between p-2 rounded hover-bg">
-                  <div class="form-check form-switch mb-0" style="width: 120px;">
-                    <input class="form-check-input" type="checkbox" role="switch" checked>
-                    <label class="form-check-label ms-2 fw-medium">Saturday</label>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
-                    <input type="time" class="form-control form-control-sm w-auto" value="09:00">
-                    <span class="text-muted small">to</span>
-                    <input type="time" class="form-control form-control-sm w-auto" value="20:00">
-                  </div>
-                </div>
-                <!-- Day Row -->
-                <div
-                  class="d-flex align-items-center justify-content-between p-2 rounded bg-light border border-danger border-opacity-10">
-                  <div class="form-check form-switch mb-0" style="width: 120px;">
-                    <input class="form-check-input" type="checkbox" role="switch">
-                    <label class="form-check-label ms-2 fw-medium text-danger">Sunday</label>
-                  </div>
-                  <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
-                    <span class="text-muted small">Closed</span>
-                  </div>
-                </div>
-              </div>
+              <div class="d-flex flex-column gap-3" id="workingHoursRows"></div>
             </div>
 
-            <!-- SECTION 4: Banking & Payouts -->
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="bankingInfo">
               <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Banking & Payouts</h5>
 
@@ -378,17 +240,15 @@
                 </svg>
                 <div>
                   <h6 class="fw-bold text-dark mb-1">Secure Payouts</h6>
-                  <p class="small text-muted mb-0">Earnings from online bookings are transferred to this account every
-                    Tuesday. Please ensure details are correct.</p>
+                  <p class="small text-muted mb-0">Earnings from online bookings are transferred to this account.</p>
                 </div>
               </div>
 
               <div class="row g-3">
                 <div class="col-12">
-                  <label class="form-label small fw-medium text-muted mb-1">UPI ID (Fastest)</label>
-                  <input type="text" class="form-control" placeholder="e.g. 9876543210@ybl">
+                  <label class="form-label small fw-medium text-muted mb-1" for="upiInput">UPI ID</label>
+                  <input type="text" class="form-control" id="upiInput" placeholder="9876543210@ybl">
                 </div>
-
                 <div class="col-12 my-2">
                   <div class="d-flex align-items-center gap-3">
                     <hr class="flex-grow-1">
@@ -396,37 +256,37 @@
                     <hr class="flex-grow-1">
                   </div>
                 </div>
-
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">Account Holder Name</label>
-                  <input type="text" class="form-control" placeholder="Name as per bank">
+                  <label class="form-label small fw-medium text-muted mb-1" for="accountHolderInput">Account Holder Name</label>
+                  <input type="text" class="form-control" id="accountHolderInput" placeholder="Name as per bank">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">Bank Name</label>
-                  <input type="text" class="form-control" placeholder="e.g. HDFC Bank">
+                  <label class="form-label small fw-medium text-muted mb-1" for="bankNameInput">Bank Name</label>
+                  <input type="text" class="form-control" id="bankNameInput" placeholder="Bank name">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">Account Number</label>
-                  <input type="password" class="form-control" placeholder="Enter Ac No.">
+                  <label class="form-label small fw-medium text-muted mb-1" for="accountNumberInput">Account Number</label>
+                  <input type="password" class="form-control" id="accountNumberInput" placeholder="Account number">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">IFSC Code</label>
-                  <input type="text" class="form-control text-uppercase" placeholder="e.g. HDFC0001234">
+                  <label class="form-label small fw-medium text-muted mb-1" for="ifscInput">IFSC Code</label>
+                  <input type="text" class="form-control text-uppercase" id="ifscInput" placeholder="HDFC0001234">
                 </div>
               </div>
             </div>
 
-            <!-- SECTION 5: My Documents -->
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="myDocuments">
               <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">My Documents</h5>
-              
-              <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 d-flex align-items-start gap-3 mb-4">
+
+              <div
+                class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 d-flex align-items-start gap-3 mb-4">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="#D97706" class="flex-shrink-0 mt-1">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                 </svg>
                 <div>
                   <h6 class="fw-bold text-dark mb-1" style="color: #92400E !important;">Managed by Admin</h6>
-                  <p class="small text-muted mb-0">These verification documents were securely uploaded by our team during your onboarding visit. To update them, please contact partner support.</p>
+                  <p class="small text-muted mb-0">These verification documents were uploaded during onboarding.</p>
                 </div>
               </div>
 
@@ -437,114 +297,477 @@
               </div>
             </div>
 
-            <!-- Mobile Only Save Button (bottom) -->
-            <button class="btn w-100 text-white rounded-pill py-2 fw-bold shadow-sm d-sm-none mt-4"
+            <button class="btn w-100 text-white rounded-pill py-2 fw-bold shadow-sm d-sm-none mt-4" id="saveProfileMobileBtn"
               style="background: var(--color-primary);">
               Save Changes
             </button>
-
           </div>
         </div>
-
       </div>
     </main>
-
   </div>
 
+  <script src="../js/components.js"></script>
   <script src="../js/bootstrap.js"></script>
   <script>
-    // Sidebar Toggle
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const API = 'http://localhost:8000';
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    let currentGarage = null;
+    let activeSection = 'businessDetails';
 
-    function toggleSidebar() {
-      sidebar.classList.toggle('show');
-      sidebarOverlay.classList.toggle('d-none');
+    Promise.all([
+      loadComponent('sidebar-container', 'components/sidebar.html?v=' + new Date().getTime(), setActiveSidebarLink),
+      loadComponent('topbar-container', 'components/topbar.html?v=' + new Date().getTime(), () => {
+        const titleEl = document.getElementById('topbar-title');
+        if (titleEl) titleEl.textContent = 'Garage Settings';
+      })
+    ]).then(() => {
+      bindSidebarToggle();
+      initProfileTabs();
+      renderWorkingHours([]);
+      bindSaveButtons();
+      loadGarageProfile();
+      fetchMyDocuments();
+    });
+
+    function bindSidebarToggle() {
+      const sidebar = document.getElementById('sidebar');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+      function toggleSidebar() {
+        if (sidebar) sidebar.classList.toggle('show');
+        if (sidebarOverlay) sidebarOverlay.classList.toggle('d-none');
+      }
+
+      if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+      if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
     }
 
-    sidebarToggle.addEventListener('click', toggleSidebar);
-    sidebarOverlay.addEventListener('click', toggleSidebar);
-
-    // Profile Settings Tab Switching
-    document.addEventListener('DOMContentLoaded', () => {
+    function initProfileTabs() {
       const tabs = document.querySelectorAll('.profile-nav-link');
       const sections = document.querySelectorAll('.profile-section');
 
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-          // Remove active classes
-          tabs.forEach(t => t.classList.remove('active'));
-          sections.forEach(s => s.classList.add('d-none'));
+          tabs.forEach(item => item.classList.remove('active'));
+          sections.forEach(section => section.classList.add('d-none'));
 
-          // Add active class
           tab.classList.add('active');
-          const targetId = tab.getAttribute('data-target');
-          document.getElementById(targetId).classList.remove('d-none');
+          activeSection = tab.getAttribute('data-target');
+          document.getElementById(activeSection).classList.remove('d-none');
         });
       });
+    }
 
-      // Fetch Documents
-      fetchMyDocuments();
-    });
+    function bindSaveButtons() {
+      document.getElementById('saveProfileBtn').addEventListener('click', saveActiveSection);
+      document.getElementById('saveProfileMobileBtn').addEventListener('click', saveActiveSection);
+    }
 
-    async function fetchMyDocuments() {
-      const token = localStorage.getItem('garage_token');
-      const docsContainer = document.getElementById('documentsList');
+    function getToken() {
+      return localStorage.getItem('garage_token');
+    }
+
+    function authHeaders(extra = {}) {
+      return {
+        ...extra,
+        'Authorization': `Bearer ${getToken()}`
+      };
+    }
+
+    async function loadGarageProfile() {
+      const token = getToken();
       if (!token) {
-        docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-danger">Not logged in.</div>';
+        window.location.href = 'index.html';
         return;
       }
-      
+
       try {
-        const response = await fetch('http://localhost:8000/api/garage/me/documents', {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch(`${API}/api/garage/me`, {
+          headers: authHeaders()
         });
-        if (!response.ok) throw new Error('Failed to fetch documents');
-        const docs = await response.json();
-        
-        if (docs.length === 0) {
-          docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-muted">No documents uploaded yet.</div>';
+
+        if (!response.ok) {
+          localStorage.removeItem('garage_token');
+          window.location.href = 'index.html';
           return;
         }
 
-        const typeLabels = {
-          'aadhar': 'Aadhar / PAN Card',
-          'shop_license': 'Shop / Trade License'
+        currentGarage = await response.json();
+        populateProfile(currentGarage);
+        showAlert('Profile loaded from database.', 'success');
+      } catch (err) {
+        console.error(err);
+        showAlert('Unable to load profile. Please make sure the backend is running.', 'danger');
+      }
+    }
+
+    function populateProfile(garage) {
+      const location = garage.location || {};
+      const banking = garage.banking || {};
+
+      setValue('garageNameInput', garage.name);
+      setValue('ownerNameInput', garage.owner_name);
+      setValue('phoneInput', formatPhone(garage.phone));
+      setValue('emailInput', garage.email);
+      setValue('garageTypeInput', garage.garage_type);
+      setValue('visitingChargeInput', garage.visiting_charge);
+      setChecked('sosAvailableInput', garage.is_sos_available);
+      setChecked('pickDropInput', garage.offers_pick_and_drop);
+
+      setValue('shopNumberInput', location.shop_number);
+      setValue('streetInput', location.street);
+      setValue('cityInput', location.city || 'Ahmedabad');
+      setValue('pincodeInput', location.pincode);
+      setValue('latitudeInput', location.latitude);
+      setValue('longitudeInput', location.longitude);
+
+      setValue('upiInput', banking.upi_id);
+      setValue('accountHolderInput', banking.account_holder);
+      setValue('bankNameInput', banking.bank_name);
+      setValue('accountNumberInput', banking.account_number);
+      setValue('ifscInput', banking.ifsc_code);
+
+      renderWorkingHours(garage.working_hours || []);
+      renderLogo(garage);
+      updateHeadings(garage);
+      updateTopbarProfile(garage);
+    }
+
+    function renderLogo(garage) {
+      const logo = document.getElementById('profileLogoPreview');
+      const title = document.getElementById('profileLogoTitle');
+      if (!logo) return;
+
+      if (garage.logo_url) {
+        logo.innerHTML = `<img src="${escapeHtml(makeFileUrl(garage.logo_url))}" alt="Garage logo">`;
+      } else {
+        const initials = getInitials(garage.name || garage.owner_name || 'Garage');
+        logo.innerHTML = `<div class="fw-bold" style="font-size: 32px; color: var(--color-primary);">${escapeHtml(initials)}</div>`;
+      }
+
+      if (title) title.textContent = garage.name || 'Garage Logo / Photo';
+    }
+
+    function updateHeadings(garage) {
+      const city = garage.location?.city || 'Location not set';
+      const type = humanizeGarageType(garage.garage_type || 'Garage');
+
+      document.getElementById('profileHeading').textContent = garage.name || 'Garage Settings';
+      document.getElementById('profileSubheading').textContent = `${garage.owner_name || 'Owner'} - ${city} - ${type}`;
+    }
+
+    function updateTopbarProfile(garage) {
+      const profileBlock = document.querySelector('#topbar-container .border-start');
+      if (!profileBlock) return;
+
+      const avatar = profileBlock.querySelector('.rounded-circle');
+      const name = profileBlock.querySelector('.d-none.d-md-block .fw-bold');
+      const role = profileBlock.querySelector('.d-none.d-md-block .text-muted');
+
+      if (avatar) avatar.textContent = getInitials(garage.name || garage.owner_name || 'GN');
+      if (name) name.textContent = garage.name || 'Garage';
+      if (role) role.textContent = garage.is_verified ? 'Verified Partner' : 'Partner';
+    }
+
+    function renderWorkingHours(hours) {
+      const container = document.getElementById('workingHoursRows');
+      const byDay = {};
+      hours.forEach(hour => {
+        byDay[String(hour.day_of_week).toLowerCase()] = hour;
+      });
+
+      container.innerHTML = days.map(day => {
+        const item = byDay[day] || {
+          day_of_week: day,
+          is_open: day !== 'sunday',
+          open_time: day === 'sunday' ? '' : '09:00',
+          close_time: day === 'sunday' ? '' : '20:00'
         };
 
-        docsContainer.innerHTML = docs.map(doc => {
-          const date = new Date(doc.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-          const isImage = doc.file_url.match(/\.(jpeg|jpg|gif|png)$/i) != null;
-          
-          let preview = '';
-          if (isImage) {
-            preview = `<div class="rounded-3 border overflow-hidden mb-3 bg-light" style="height: 140px;">
-                         <img src="http://localhost:8000${doc.file_url}" class="w-100 h-100 object-fit-cover" alt="Document Preview">
-                       </div>`;
-          } else {
-            preview = `<div class="rounded-3 border overflow-hidden mb-3 bg-light d-flex align-items-center justify-content-center flex-column text-muted" style="height: 140px;">
-                         <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" class="mb-2"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                         <span class="small fw-bold">PDF Document</span>
-                       </div>`;
-          }
+        const isOpen = Boolean(item.is_open);
+        const openTime = normalizeTime(item.open_time);
+        const closeTime = normalizeTime(item.close_time);
 
-          return `
-            <div class="col-md-6 col-lg-4">
-              <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-body p-3">
-                  ${preview}
-                  <h6 class="fw-bold mb-1">${typeLabels[doc.document_type] || 'Verification Document'}</h6>
-                  <p class="small text-muted mb-3">Uploaded: ${date}</p>
-                  <a href="http://localhost:8000${doc.file_url}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-medium">View Full Screen</a>
-                </div>
-              </div>
+        return `
+          <div class="d-flex align-items-center justify-content-between p-2 rounded border bg-light bg-opacity-50 working-hour-row" data-day="${day}">
+            <div class="form-check form-switch mb-0" style="width: 140px;">
+              <input class="form-check-input working-open" type="checkbox" role="switch" id="${day}Open" ${isOpen ? 'checked' : ''}>
+              <label class="form-check-label ms-2 fw-medium text-capitalize" for="${day}Open">${day}</label>
             </div>
-          `;
-        }).join('');
+            <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
+              <input type="time" class="form-control form-control-sm w-auto working-start" value="${openTime}" ${isOpen ? '' : 'disabled'}>
+              <span class="text-muted small">to</span>
+              <input type="time" class="form-control form-control-sm w-auto working-end" value="${closeTime}" ${isOpen ? '' : 'disabled'}>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.working-open').forEach(toggle => {
+        toggle.addEventListener('change', () => {
+          const row = toggle.closest('[data-day]');
+          row.querySelectorAll('.working-start, .working-end').forEach(input => {
+            input.disabled = !toggle.checked;
+          });
+        });
+      });
+    }
+
+    async function saveActiveSection() {
+      if (activeSection === 'myDocuments') {
+        showAlert('Documents are managed by admin, so there is nothing to save here.', 'warning');
+        return;
+      }
+
+      const token = getToken();
+      if (!token) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      setSaving(true);
+
+      try {
+        if (activeSection === 'businessDetails') await saveBusinessDetails();
+        if (activeSection === 'addressLocation') await saveLocation();
+        if (activeSection === 'workingHours') await saveWorkingHours();
+        if (activeSection === 'bankingInfo') await saveBanking();
+
+        await loadGarageProfile();
+        showAlert('Changes saved successfully.', 'success');
       } catch (err) {
+        console.error(err);
+        showAlert(err.message || 'Unable to save changes.', 'danger');
+      } finally {
+        setSaving(false);
+      }
+    }
+
+    async function saveBusinessDetails() {
+      const payload = {
+        name: getValue('garageNameInput'),
+        owner_name: getValue('ownerNameInput'),
+        garage_type: getValue('garageTypeInput') || null,
+        is_sos_available: getChecked('sosAvailableInput'),
+        offers_pick_and_drop: getChecked('pickDropInput'),
+        visiting_charge: getNumberOrNull('visitingChargeInput')
+      };
+
+      await sendJson(`${API}/api/garage/me`, 'PATCH', payload);
+    }
+
+    async function saveLocation() {
+      const payload = {
+        shop_number: getValue('shopNumberInput') || null,
+        street: getValue('streetInput') || null,
+        city: getValue('cityInput') || 'Ahmedabad',
+        pincode: getValue('pincodeInput') || null,
+        latitude: getNumberOrNull('latitudeInput'),
+        longitude: getNumberOrNull('longitudeInput')
+      };
+
+      await sendJson(`${API}/api/garage/me/location`, 'PATCH', payload);
+    }
+
+    async function saveWorkingHours() {
+      const payload = Array.from(document.querySelectorAll('#workingHoursRows [data-day]')).map(row => {
+        const isOpen = row.querySelector('.working-open').checked;
+        return {
+          day_of_week: row.dataset.day,
+          is_open: isOpen,
+          open_time: isOpen ? row.querySelector('.working-start').value || null : null,
+          close_time: isOpen ? row.querySelector('.working-end').value || null : null
+        };
+      });
+
+      await sendJson(`${API}/api/garage/me/working-hours`, 'PUT', payload);
+    }
+
+    async function saveBanking() {
+      const payload = {
+        upi_id: getValue('upiInput') || null,
+        account_holder: getValue('accountHolderInput') || null,
+        bank_name: getValue('bankNameInput') || null,
+        account_number: getValue('accountNumberInput') || null,
+        ifsc_code: getValue('ifscInput') || null
+      };
+
+      await sendJson(`${API}/api/garage/me/banking`, 'PATCH', payload);
+    }
+
+    async function sendJson(url, method, payload) {
+      const response = await fetch(url, {
+        method,
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const message = await readError(response);
+        throw new Error(message);
+      }
+
+      return response.json();
+    }
+
+    async function fetchMyDocuments() {
+      const docsContainer = document.getElementById('documentsList');
+      if (!getToken()) {
+        docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-danger">Not logged in.</div>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API}/api/garage/me/documents`, {
+          headers: authHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch documents');
+
+        const docs = await response.json();
+        renderDocuments(docs);
+      } catch (err) {
+        console.error(err);
         docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error fetching documents.</div>';
       }
+    }
+
+    function renderDocuments(docs) {
+      const docsContainer = document.getElementById('documentsList');
+      if (!docs.length) {
+        docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-muted">No documents uploaded yet.</div>';
+        return;
+      }
+
+      const typeLabels = {
+        aadhar: 'Aadhar / PAN Card',
+        shop_license: 'Shop / Trade License'
+      };
+
+      docsContainer.innerHTML = docs.map(doc => {
+        const fileUrl = makeFileUrl(doc.file_url);
+        const date = doc.uploaded_at
+          ? new Date(doc.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+          : 'Not available';
+        const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(doc.file_url || '');
+        const label = typeLabels[doc.document_type] || 'Verification Document';
+
+        const preview = isImage
+          ? `<div class="rounded-3 border overflow-hidden mb-3 bg-light" style="height: 140px;">
+               <img src="${escapeHtml(fileUrl)}" class="w-100 h-100 object-fit-cover" alt="Document preview">
+             </div>`
+          : `<div class="rounded-3 border overflow-hidden mb-3 bg-light d-flex align-items-center justify-content-center flex-column text-muted" style="height: 140px;">
+               <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" class="mb-2"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+               <span class="small fw-bold">Document</span>
+             </div>`;
+
+        return `
+          <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+              <div class="card-body p-3">
+                ${preview}
+                <h6 class="fw-bold mb-1">${escapeHtml(label)}</h6>
+                <p class="small text-muted mb-3">Uploaded: ${escapeHtml(date)}</p>
+                <a href="${escapeHtml(fileUrl)}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-medium">View Full Screen</a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showAlert(message, type) {
+      const alert = document.getElementById('profileAlert');
+      alert.textContent = message;
+      alert.className = `alert alert-${type} rounded-4 mb-4`;
+
+      if (type === 'success') {
+        setTimeout(() => alert.classList.add('d-none'), 2500);
+      }
+    }
+
+    function setSaving(isSaving) {
+      const buttons = [document.getElementById('saveProfileBtn'), document.getElementById('saveProfileMobileBtn')];
+      buttons.forEach(button => {
+        button.disabled = isSaving;
+        button.textContent = isSaving ? 'Saving...' : 'Save Changes';
+      });
+    }
+
+    function setValue(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.value = value ?? '';
+    }
+
+    function getValue(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function setChecked(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.checked = Boolean(value);
+    }
+
+    function getChecked(id) {
+      return document.getElementById(id).checked;
+    }
+
+    function getNumberOrNull(id) {
+      const value = getValue(id);
+      return value === '' ? null : Number(value);
+    }
+
+    function normalizeTime(value) {
+      if (!value) return '';
+      return String(value).slice(0, 5);
+    }
+
+    function formatPhone(phone) {
+      return String(phone || '').replace(/^\+?91/, '');
+    }
+
+    function humanizeGarageType(value) {
+      const labels = {
+        four_wheeler: 'Four Wheeler Specialist',
+        two_wheeler: 'Two Wheeler Specialist',
+        both: 'Cars & Bikes',
+        mobile_mechanic: 'Mobile Mechanic'
+      };
+      return labels[value] || value;
+    }
+
+    function getInitials(name) {
+      return String(name || 'GN')
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map(part => part.charAt(0).toUpperCase())
+        .join('') || 'GN';
+    }
+
+    function makeFileUrl(path) {
+      if (!path) return '';
+      if (/^https?:\/\//i.test(path)) return path;
+      return `${API}${path}`;
+    }
+
+    async function readError(response) {
+      try {
+        const data = await response.json();
+        return data.detail || data.message || 'Request failed';
+      } catch {
+        return 'Request failed';
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
   </script>
 </body>
