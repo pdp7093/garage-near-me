@@ -80,37 +80,83 @@
           <div class="auth-tab" data-target="registerForm">Apply as Partner</div>
         </div>
 
-        <!-- Login Form -->
-        <form id="loginForm" class="auth-form-container" onsubmit="handleLogin(event)">
-          <div class="text-center mb-4">
-            <h3 class="fw-bold" style="font-family: var(--font-head);">Welcome Back</h3>
-            <p class="text-muted small">Enter your credentials to access your dashboard.</p>
-          </div>
+        <!-- ═══ LOGIN FORM — OTP Based ═══ -->
+        <div id="loginForm" class="auth-form-container">
 
-          <div class="form-floating mb-3">
-            <input type="tel" class="form-control" id="loginMobile" placeholder="Mobile Number" required>
-            <label for="loginMobile">Mobile Number</label>
-          </div>
-
-          <div class="form-floating mb-4">
-            <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
-            <label for="loginPassword">Password</label>
-          </div>
-
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="rememberMe">
-              <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
+          <!-- Step 1: Phone Number -->
+          <div id="step-phone">
+            <div class="text-center mb-4">
+              <h3 class="fw-bold" style="font-family: var(--font-head);">Welcome Back</h3>
+              <p class="text-muted small">Enter your registered mobile number to get OTP.</p>
             </div>
-            <a href="#" class="small text-decoration-none" style="color: var(--color-primary);">Forgot Password?</a>
+
+            <div class="form-floating mb-3">
+              <input type="tel" class="form-control" id="loginMobile"
+                placeholder="Mobile Number" maxlength="10" inputmode="numeric" required>
+              <label for="loginMobile">Mobile Number</label>
+            </div>
+
+            <div id="loginAlert" class="alert d-none small mb-3" role="alert"></div>
+
+            <button type="button" id="sendOtpBtn"
+              class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm"
+              style="background: var(--color-primary);"
+              onclick="handleSendOTP()">
+              <span class="spinner-border spinner-border-sm me-2 d-none" id="otpSp"></span>
+              Send OTP
+            </button>
           </div>
 
-                <button type="button" onclick="window.location.href='dashboard.html'" class="btn w-100 text-white rounded-pill py-3 fw-bold fs-5 shadow-sm" style="background: var(--color-primary);">
-                  Get OTP
-                </button>
-        </form>
+          <!-- Step 2: OTP Verify (hidden initially) -->
+          <div id="step-otp" class="d-none">
+            <div class="text-center mb-4">
+              <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                style="width:56px;height:56px;background:rgba(255,107,53,0.1);">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="var(--color-primary)">
+                  <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/>
+                </svg>
+              </div>
+              <h5 class="fw-bold mb-1" style="font-family: var(--font-head);">Enter OTP</h5>
+              <p class="text-muted small mb-0" id="otpSentTo">OTP sent to your number</p>
+            </div>
 
-        <!-- Register Form (Hidden initially) -->
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control text-center fw-bold" id="otpInput"
+                placeholder="6-digit OTP" maxlength="6" inputmode="numeric"
+                style="font-size: 1.8rem; letter-spacing: 0.4em; font-family: monospace;">
+              <label for="otpInput">6-digit OTP</label>
+            </div>
+
+            <div id="verifyAlert" class="alert d-none small mb-3" role="alert"></div>
+
+            <button type="button" id="verifyOtpBtn"
+              class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm mb-2"
+              style="background: var(--color-primary);"
+              onclick="handleVerifyOTP()">
+              <span class="spinner-border spinner-border-sm me-2 d-none" id="verifySp"></span>
+              Verify & Login
+            </button>
+
+            <button type="button"
+              class="btn btn-light w-100 rounded-pill py-2 small fw-medium border"
+              onclick="backToPhone()">
+              ← Change Number
+            </button>
+
+            <!-- Resend OTP -->
+            <div class="text-center mt-3">
+              <span class="text-muted small" id="resendWrap">
+                Didn't get OTP?
+                <a href="#" class="text-decoration-none fw-bold" style="color: var(--color-primary);"
+                  onclick="handleSendOTP(); return false;">Resend OTP</a>
+              </span>
+            </div>
+          </div>
+
+        </div>
+        <!-- ═══ END LOGIN FORM ═══ -->
+
+        <!-- ═══ REGISTER FORM ═══ -->
         <form id="registerForm" class="auth-form-container d-none" onsubmit="handleRegister(event)">
           <div class="text-center mb-4">
             <h3 class="fw-bold" style="font-family: var(--font-head);">Partner With Us</h3>
@@ -172,16 +218,20 @@
 
           <div id="regAlert" class="alert alert-success d-none small mb-3" role="alert"></div>
 
-          <button type="submit" id="regBtn" class="btn w-100 text-white fw-bold py-2 shadow-sm rounded-pill mb-3" style="background: var(--color-primary);">
+          <button type="submit" id="regBtn"
+            class="btn w-100 text-white fw-bold py-2 shadow-sm rounded-pill mb-3"
+            style="background: var(--color-primary);">
             Request to Join
           </button>
 
           <p class="text-center text-muted small mb-0">
-            By registering, you agree to our <a href="#" class="text-decoration-none" style="color: var(--color-primary);">Terms of Service</a> &amp; Privacy Policy.
+            By registering, you agree to our
+            <a href="#" class="text-decoration-none" style="color: var(--color-primary);">Terms of Service</a>
+            &amp; Privacy Policy.
           </p>
         </form>
 
-        <!-- Upload Documents Form (Step 2) -->
+        <!-- Upload Documents Form (Step 2 of Register) -->
         <form id="uploadDocsForm" class="auth-form-container d-none" onsubmit="handleUploadDocs(event)">
           <div class="text-center mb-4">
             <h3 class="fw-bold" style="font-family: var(--font-head);">Upload Documents</h3>
@@ -207,11 +257,14 @@
 
           <div id="uploadAlert" class="alert d-none small mb-3" role="alert"></div>
 
-          <button type="submit" id="uploadBtn" class="btn w-100 text-white fw-bold py-2 shadow-sm rounded-pill mb-3" style="background: var(--color-primary);">
+          <button type="submit" id="uploadBtn"
+            class="btn w-100 text-white fw-bold py-2 shadow-sm rounded-pill mb-3"
+            style="background: var(--color-primary);">
             Upload & Finish
           </button>
           
-          <button type="button" onclick="window.location.reload()" class="btn btn-light w-100 fw-bold py-2 shadow-sm rounded-pill">
+          <button type="button" onclick="window.location.reload()"
+            class="btn btn-light w-100 fw-bold py-2 shadow-sm rounded-pill">
             Skip for Now
           </button>
         </form>
@@ -222,149 +275,250 @@
 
   <script src="../js/bootstrap.js"></script>
   <script>
-    // Tab Switching Logic
+    const API = 'http://localhost:8000';
+
+    // ── Tab Switching
     document.addEventListener('DOMContentLoaded', () => {
-      const tabs = document.querySelectorAll('.auth-tab');
+      const tabs  = document.querySelectorAll('.auth-tab');
       const forms = document.querySelectorAll('.auth-form-container');
 
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-          // Remove active from all tabs and forms
-          tabs.forEach(t => t.classList.remove('active'));
+          tabs.forEach(t  => t.classList.remove('active'));
           forms.forEach(f => f.classList.add('d-none'));
-          // Ensure step 2 is hidden when switching tabs
-          const uploadForm = document.getElementById('uploadDocsForm');
-          if (uploadForm) uploadForm.classList.add('d-none');
 
-          // Add active to clicked tab and its target form
+          // Reset login steps when switching tabs
+          document.getElementById('step-phone').classList.remove('d-none');
+          document.getElementById('step-otp').classList.add('d-none');
+          document.getElementById('loginAlert').classList.add('d-none');
+          document.getElementById('uploadDocsForm').classList.add('d-none');
+
           tab.classList.add('active');
           const targetId = tab.getAttribute('data-target');
           document.getElementById(targetId).classList.remove('d-none');
         });
       });
+
+      // Agar already logged in → dashboard
+      const token = localStorage.getItem('garage_token');
+      if (token) window.location.href = 'dashboard.html';
     });
 
-    // Handle form submissions (mock navigation)
-    function handleLogin(e) {
-      e.preventDefault();
-      // In a real app, validate credentials here
-      window.location.href = 'dashboard.html';
+    // ── STEP 1: Send OTP
+    async function handleSendOTP() {
+      const phone    = document.getElementById('loginMobile').value.trim();
+      const alertBox = document.getElementById('loginAlert');
+      const sp       = document.getElementById('otpSp');
+      const btn      = document.getElementById('sendOtpBtn');
+
+      // Validate
+      if (!/^\d{10}$/.test(phone)) {
+        alertBox.textContent = 'Please enter a valid 10-digit mobile number.';
+        alertBox.className   = 'alert alert-danger small mb-3';
+        alertBox.classList.remove('d-none');
+        return;
+      }
+
+      alertBox.classList.add('d-none');
+      sp.classList.remove('d-none');
+      btn.disabled = true;
+
+      try {
+        const res  = await fetch(`${API}/api/garage-auth/send-otp`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ phone })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          // Testing: OTP console mein dikhao aur auto-fill karo
+          if (data.otp) {
+            console.log(`%c OTP (Testing Only): ${data.otp} `, 'background:#FF6B35;color:#fff;font-size:16px;padding:4px 8px;border-radius:4px;');
+            document.getElementById('otpInput').value = data.otp;
+          }
+
+          document.getElementById('otpSentTo').textContent = `OTP sent to +91 ${phone}`;
+          document.getElementById('step-phone').classList.add('d-none');
+          document.getElementById('step-otp').classList.remove('d-none');
+        } else {
+          alertBox.textContent = data.detail || 'Phone number not registered. Contact admin.';
+          alertBox.className   = 'alert alert-danger small mb-3';
+          alertBox.classList.remove('d-none');
+        }
+      } catch {
+        alertBox.textContent = 'Network error. Is the backend running?';
+        alertBox.className   = 'alert alert-danger small mb-3';
+        alertBox.classList.remove('d-none');
+      }
+
+      sp.classList.add('d-none');
+      btn.disabled = false;
     }
 
+    // ── STEP 2: Verify OTP
+    async function handleVerifyOTP() {
+      const phone    = document.getElementById('loginMobile').value.trim();
+      const otp      = document.getElementById('otpInput').value.trim();
+      const alertBox = document.getElementById('verifyAlert');
+      const sp       = document.getElementById('verifySp');
+      const btn      = document.getElementById('verifyOtpBtn');
+
+      if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+        alertBox.textContent = 'Please enter the 6-digit OTP.';
+        alertBox.className   = 'alert alert-danger small mb-3';
+        alertBox.classList.remove('d-none');
+        return;
+      }
+
+      alertBox.classList.add('d-none');
+      sp.classList.remove('d-none');
+      btn.disabled = true;
+
+      try {
+        const res  = await fetch(`${API}/api/garage-auth/verify-otp`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ phone, otp })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          // Token localStorage mein save karo
+          localStorage.setItem('garage_token', data.access_token);
+          // Dashboard pe bhejo — wahan location check hoga
+          window.location.href = 'dashboard.html';
+        } else {
+          alertBox.textContent = data.detail || 'Invalid or expired OTP. Try again.';
+          alertBox.className   = 'alert alert-danger small mb-3';
+          alertBox.classList.remove('d-none');
+          btn.disabled = false;
+        }
+      } catch {
+        alertBox.textContent = 'Network error. Please try again.';
+        alertBox.className   = 'alert alert-danger small mb-3';
+        alertBox.classList.remove('d-none');
+        btn.disabled = false;
+      }
+
+      sp.classList.add('d-none');
+    }
+
+    // ── Back to phone step
+    function backToPhone() {
+      document.getElementById('step-otp').classList.add('d-none');
+      document.getElementById('step-phone').classList.remove('d-none');
+      document.getElementById('otpInput').value = '';
+      document.getElementById('verifyAlert').classList.add('d-none');
+    }
+
+    // ── Enter key support on OTP input
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('otpInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleVerifyOTP();
+      });
+      document.getElementById('loginMobile').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSendOTP();
+      });
+    });
+
+    // ── Register: Submit application
     async function handleRegister(e) {
       e.preventDefault();
-      
-      const btn = document.getElementById('regBtn');
+
+      const btn      = document.getElementById('regBtn');
       const alertBox = document.getElementById('regAlert');
-      const form = document.getElementById('registerForm');
-      
-      btn.disabled = true;
+      const form     = document.getElementById('registerForm');
+
+      btn.disabled  = true;
       btn.innerText = 'Submitting...';
       alertBox.classList.add('d-none');
       alertBox.classList.remove('alert-danger', 'alert-success');
 
-      const ownerName = document.getElementById('regFirstName').value.trim() + ' ' + document.getElementById('regLastName').value.trim();
+      const ownerName = document.getElementById('regFirstName').value.trim()
+                      + ' '
+                      + document.getElementById('regLastName').value.trim();
+
       const payload = {
-        owner_name: ownerName,
+        owner_name:  ownerName,
         garage_name: document.getElementById('regGarageName').value.trim(),
-        phone: document.getElementById('regMobile').value.trim(),
-        email: document.getElementById('regEmail').value.trim(),
+        phone:       document.getElementById('regMobile').value.trim(),
+        email:       document.getElementById('regEmail').value.trim() || null,
         garage_type: document.getElementById('regType').value,
-        address: document.getElementById('regAddress').value.trim(),
-        city: document.getElementById('regCity').value.trim(),
-        pincode: document.getElementById('regPincode').value.trim()
+        address:     document.getElementById('regAddress').value.trim(),
+        city:        document.getElementById('regCity').value.trim(),
+        pincode:     document.getElementById('regPincode').value.trim()
       };
 
       try {
-        const response = await fetch('http://localhost:8000/api/garage-requests/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
+        const response = await fetch(`${API}/api/garage-requests/`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(payload)
         });
-
         const data = await response.json();
 
         if (response.ok) {
-          // Save request ID
           document.getElementById('currentRequestId').value = data.id;
-          
-          // Switch to Step 2
           form.classList.add('d-none');
           document.getElementById('uploadDocsForm').classList.remove('d-none');
         } else {
-          alertBox.innerText = data.detail || 'Failed to submit application. Please try again.';
+          alertBox.innerText = data.detail || 'Failed to submit. Please try again.';
           alertBox.classList.add('alert-danger');
           alertBox.classList.remove('d-none');
         }
-      } catch (err) {
-        alertBox.innerText = 'Network error. Please make sure the server is running.';
+      } catch {
+        alertBox.innerText = 'Network error. Is the backend running?';
         alertBox.classList.add('alert-danger');
         alertBox.classList.remove('d-none');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Request to Join';
       }
+
+      btn.disabled  = false;
+      btn.innerText = 'Request to Join';
     }
 
+    // ── Register: Upload Documents
     async function handleUploadDocs(e) {
       e.preventDefault();
-      
-      const btn = document.getElementById('uploadBtn');
-      const alertBox = document.getElementById('uploadAlert');
+
+      const btn       = document.getElementById('uploadBtn');
+      const alertBox  = document.getElementById('uploadAlert');
       const requestId = document.getElementById('currentRequestId').value;
-      
-      btn.disabled = true;
+
+      btn.disabled  = true;
       btn.innerText = 'Uploading...';
       alertBox.classList.add('d-none');
       alertBox.classList.remove('alert-danger', 'alert-success');
 
       try {
-        // Upload Aadhar
-        const aadharFile = document.getElementById('docAadhar').files[0];
-        if(aadharFile) {
-           const formData = new FormData();
-           formData.append('file', aadharFile);
-           await fetch(`http://localhost:8000/api/garage-requests/${requestId}/documents?document_type=aadhar`, {
+        const uploads = [
+          { id: 'docAadhar',  type: 'aadhar' },
+          { id: 'docPan',     type: 'pan' },
+          { id: 'docLicense', type: 'shop_license' }
+        ];
+
+        for (const u of uploads) {
+          const file = document.getElementById(u.id).files[0];
+          if (file) {
+            const fd = new FormData();
+            fd.append('file', file);
+            await fetch(`${API}/api/garage-requests/${requestId}/documents?document_type=${u.type}`, {
               method: 'POST',
-              body: formData
-           });
-        }
-        
-        // Upload PAN
-        const panFile = document.getElementById('docPan').files[0];
-        if(panFile) {
-           const formData = new FormData();
-           formData.append('file', panFile);
-           await fetch(`http://localhost:8000/api/garage-requests/${requestId}/documents?document_type=pan`, {
-              method: 'POST',
-              body: formData
-           });
-        }
-        
-        // Upload License
-        const licenseFile = document.getElementById('docLicense').files[0];
-        if(licenseFile) {
-           const formData = new FormData();
-           formData.append('file', licenseFile);
-           await fetch(`http://localhost:8000/api/garage-requests/${requestId}/documents?document_type=shop_license`, {
-              method: 'POST',
-              body: formData
-           });
+              body:   fd
+            });
+          }
         }
 
-        // Success
-        alertBox.innerText = 'Application & documents submitted successfully! Our team will review your account soon.';
+        alertBox.innerText = '✅ Application & documents submitted! Our team will review and approve your account soon.';
         alertBox.classList.add('alert-success');
         alertBox.classList.remove('d-none');
-        btn.innerText = 'Done';
-        
-      } catch(err) {
+        btn.innerText = 'Done ✓';
+
+      } catch {
         alertBox.innerText = 'Error uploading documents. Please try again.';
         alertBox.classList.add('alert-danger');
         alertBox.classList.remove('d-none');
-        btn.disabled = false;
+        btn.disabled  = false;
         btn.innerText = 'Upload & Finish';
       }
     }

@@ -205,6 +205,7 @@ def add_service(
     service = models.GarageService(
         garage_id    = current_garage.id,
         service_name = service_data.service_name,
+        category     = service_data.category,
         price        = service_data.price,
         is_available = service_data.is_available,
     )
@@ -348,3 +349,205 @@ def delete_garage_admin(
     db.delete(g)
     db.commit()
     return None
+
+# ──────────────────────────────────────────
+# DASHBOARD SUMMARY
+# GET /api/garage/dashboard-summary
+# ──────────────────────────────────────────
+
+@router.get("/dashboard-summary")
+def get_dashboard_summary(
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Garage Dashboard Summary
+    """
+
+    # ─────────────────────────────
+    # SERVICES COUNT
+    # ─────────────────────────────
+
+    services_count = db.query(
+        models.GarageService
+    ).filter(
+        models.GarageService.garage_id == current_garage.id
+    ).count()
+
+
+    # ─────────────────────────────
+    # DOCUMENTS COUNT
+    # ─────────────────────────────
+
+    documents_count = db.query(
+        models.GarageDocument
+    ).filter(
+        models.GarageDocument.garage_id == current_garage.id
+    ).count()
+
+
+    # ─────────────────────────────
+    # WORKING DAYS COUNT
+    # ─────────────────────────────
+
+    working_days = db.query(
+        models.GarageWorkingHours
+    ).filter(
+        models.GarageWorkingHours.garage_id == current_garage.id,
+        models.GarageWorkingHours.is_open == True
+    ).count()
+
+
+    # ─────────────────────────────
+    # PROFILE COMPLETION
+    # ─────────────────────────────
+
+    total_fields = 8
+    completed = 0
+
+    if current_garage.name:
+        completed += 1
+
+    if current_garage.owner_name:
+        completed += 1
+
+    if current_garage.phone:
+        completed += 1
+
+    if current_garage.email:
+        completed += 1
+
+    if current_garage.garage_type:
+        completed += 1
+
+    if current_garage.location:
+        completed += 1
+
+    if services_count > 0:
+        completed += 1
+
+    if documents_count > 0:
+        completed += 1
+
+    profile_completion = int(
+        (completed / total_fields) * 100
+    )
+
+
+    # ─────────────────────────────
+    # TEMP BUSINESS METRICS
+    # (Until booking system is built)
+    # ─────────────────────────────
+
+    todays_earnings = services_count * 250
+
+    jobs_completed = services_count
+
+    active_sos = 1 if current_garage.is_sos_available else 0
+
+    customer_rating = round(
+        3.5 + (profile_completion / 100) * 1.5,
+        1
+    )
+
+
+    # ─────────────────────────────
+    # RESPONSE
+    # ─────────────────────────────
+
+    return {
+
+        "garage_name": current_garage.name,
+
+        "city": (
+            current_garage.location.city
+            if current_garage.location
+            else None
+        ),
+
+        # Business Metrics
+        "todays_earnings": todays_earnings,
+        "jobs_completed": jobs_completed,
+        "active_sos": active_sos,
+        "customer_rating": customer_rating,
+
+        # Setup Metrics
+        "services_count": services_count,
+        "documents_count": documents_count,
+        "working_days": working_days,
+        "profile_completion": profile_completion,
+
+        # Status
+        "is_sos_available": current_garage.is_sos_available
+    }
+
+# ---------------------------------------
+# Get My Services
+# ---------------------------------------
+
+@router.get("/me/services",response_model=list[schemas.GarageServiceResponse])
+def get_my_services(db:Session = Depends(get_db), current_garage: models.Garage = Depends(get_current_garage)):
+    """ Garage Services """
+    return db.query(models.GarageService).filter(
+        models.GarageService.garage_id == current_garage.id
+    ).order_by(models.GarageService.id.desc()).all()
+
+
+# ----- Update Service --------
+@router.patch("/me/services/{service_id}",response_model = schemas.GarageServiceResponse)
+def update_service(service_id: int , service_data: schemas.GarageServiceCreate,
+    db:Session = Depends(get_db), current_garage:models.Garage = Depends(get_current_garage)):
+
+    """ Update """
+
+    service = db.query(models.GarageService).filter(
+        models.GarageService.id == service_id ,
+        models.GarageService.garage_id == current_garage.id
+    ).first()
+
+    if not service:
+        raise HTTPException(status_code = 404, detail = "Service Not Found")
+
+    for field, value in service_data.model_dump().items():
+        setattr(service, field,value)
+
+    db.commit()
+    db.refresh(service)
+
+    return service
+
+# ──────────────────────────────────────────
+# TOGGLE SERVICE STATUS
+# PATCH /api/garage/me/services/{service_id}/toggle
+# ──────────────────────────────────────────
+
+@router.patch("/me/services/{service_id}/toggle")
+def toggle_service_status(
+    service_id: int,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+
+    service = db.query(
+        models.GarageService
+    ).filter(
+        models.GarageService.id == service_id,
+        models.GarageService.garage_id == current_garage.id
+    ).first()
+
+    if not service:
+        raise HTTPException(
+            status_code=404,
+            detail="Service not found"
+        )
+
+    # Toggle
+    service.is_available = not service.is_available
+
+    db.commit()
+    db.refresh(service)
+
+    return {
+        "message": "Service status updated",
+        "is_available": service.is_available
+    }

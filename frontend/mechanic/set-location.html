@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Set Your Garage Location - GarageNearMe</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { background: var(--color-bg, #F5F6FA); }
+
+    .location-shell {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2rem 1rem 3rem;
+    }
+
+    /* ── Step header ── */
+    .setup-header {
+      background: #1B1F2E;
+      border-radius: 20px;
+      padding: 1.5rem 2rem;
+      color: #fff;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .setup-header::after {
+      content: '';
+      position: absolute; top: -40px; right: -40px;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: rgba(255,107,53,0.1);
+    }
+    .setup-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,107,53,0.2); color: #FF6B35;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── Search box ── */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .search-wrap input {
+      width: 100%;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 12px 48px 12px 16px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: #fff;
+    }
+    .search-wrap input:focus {
+      border-color: #FF6B35;
+      box-shadow: 0 0 0 3px rgba(255,107,53,0.1);
+    }
+    .search-wrap .search-icon {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: #9CA3AF;
+    }
+    .search-results {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: #fff; border: 1.5px solid #E5E7EB;
+      border-radius: 12px; z-index: 1000;
+      max-height: 220px; overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      margin-top: 4px;
+    }
+    .search-result-item {
+      padding: 10px 16px; cursor: pointer;
+      border-bottom: 1px solid #F3F4F6;
+      font-size: 0.85rem; color: #374151;
+      transition: background 0.1s;
+    }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:hover { background: #F9FAFB; }
+    .search-result-item strong { color: #1B1F2E; font-size: 0.88rem; }
+
+    /* ── Map container ── */
+    #map {
+      height: 380px;
+      border-radius: 16px;
+      border: 2px solid #E5E7EB;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Map hint ── */
+    .map-hint {
+      background: rgba(27,31,46,0.85);
+      color: #fff; font-size: 0.78rem; font-weight: 500;
+      padding: 6px 14px; border-radius: 20px;
+      position: absolute; bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 500; white-space: nowrap;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ── Location info card ── */
+    .location-card {
+      background: #fff; border: 1.5px solid #E5E7EB;
+      border-radius: 16px; padding: 1.25rem;
+      margin-top: 1rem;
+    }
+    .location-card.has-location {
+      border-color: #86EFAC; background: #F0FDF4;
+    }
+    .coord-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #F3F4F6; border-radius: 8px;
+      padding: 6px 12px; font-size: 0.8rem;
+      font-weight: 600; color: #374151;
+      font-family: monospace;
+    }
+
+    /* ── GPS Button ── */
+    .btn-gps {
+      display: flex; align-items: center; gap: 8px;
+      background: #fff; border: 1.5px solid #E5E7EB;
+      border-radius: 12px; padding: 10px 16px;
+      font-size: 0.85rem; font-weight: 600; color: #374151;
+      cursor: pointer; transition: all 0.15s; width: 100%;
+      justify-content: center;
+    }
+    .btn-gps:hover { background: #F3F4F6; border-color: #1B1F2E; }
+    .btn-gps.loading { opacity: 0.7; pointer-events: none; }
+
+    /* ── Save button ── */
+    .btn-save {
+      background: #FF6B35; color: #fff; border: none;
+      border-radius: 12px; padding: 14px;
+      font-size: 0.95rem; font-weight: 700;
+      width: 100%; cursor: pointer;
+      transition: background 0.15s;
+      display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+    }
+    .btn-save:hover { background: #e55a25; }
+    .btn-save:disabled { background: #D1D5DB; cursor: not-allowed; }
+
+    /* ── Skip link ── */
+    .skip-link {
+      text-align: center; margin-top: 0.75rem;
+    }
+    .skip-link a {
+      color: #9CA3AF; font-size: 0.82rem;
+      text-decoration: none;
+    }
+    .skip-link a:hover { color: #6B7280; text-decoration: underline; }
+
+    /* ── Success overlay ── */
+    .success-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9999;
+      align-items: center; justify-content: center;
+    }
+    .success-overlay.show { display: flex; }
+    .success-box {
+      background: #fff; border-radius: 20px;
+      padding: 2rem; text-align: center;
+      max-width: 340px; width: 90%;
+      animation: popIn 0.3s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="location-shell">
+
+  <!-- Header -->
+  <div class="setup-header">
+    <div class="setup-badge">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      One-time Setup
+    </div>
+    <h4 class="fw-bold mb-1" style="font-family: 'Syne', sans-serif;">Set Your Garage Location</h4>
+    <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size: 0.88rem;">
+      Customers nearby will find you. Pin your exact garage location on the map.
+    </p>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Search area, street, or locality in Ahmedabad..." autocomplete="off" />
+    <span class="search-icon">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    </span>
+    <div class="search-results d-none" id="searchResults"></div>
+  </div>
+
+  <!-- GPS Button -->
+  <button class="btn-gps mb-3" id="gpsBtn" onclick="useMyLocation()">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="#FF6B35"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+    <span id="gpsBtnText">Use My Current Location</span>
+  </button>
+
+  <!-- Map -->
+  <div style="position: relative;">
+    <div id="map"></div>
+    <div class="map-hint" id="mapHint">📍 Drag the pin to your exact garage location</div>
+  </div>
+
+  <!-- Location Info -->
+  <div class="location-card" id="locationCard">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="#9CA3AF"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      <span class="text-muted small fw-medium" id="locationLabel">No location selected yet</span>
+    </div>
+    <div class="d-flex gap-2 flex-wrap" id="coordDisplay" style="display:none !important;">
+      <span class="coord-pill" id="latDisplay">Lat: —</span>
+      <span class="coord-pill" id="lngDisplay">Lng: —</span>
+    </div>
+  </div>
+
+  <!-- Address fields (auto-fill) -->
+  <div class="bg-white border rounded-4 p-3 mt-3" id="addressFields" style="display:none;">
+    <div class="fw-semibold small text-muted mb-2" style="text-transform:uppercase;letter-spacing:0.06em;font-size:0.7rem;">Confirm Address Details</div>
+    <div class="row g-2">
+      <div class="col-12">
+        <label class="form-label small fw-semibold">Street / Area</label>
+        <input type="text" class="form-control form-control-sm" id="fieldStreet" placeholder="e.g. Sindhi Market, Navrangpura">
+      </div>
+      <div class="col-6">
+        <label class="form-label small fw-semibold">City</label>
+        <input type="text" class="form-control form-control-sm" id="fieldCity" value="Ahmedabad">
+      </div>
+      <div class="col-6">
+        <label class="form-label small fw-semibold">Pincode</label>
+        <input type="text" class="form-control form-control-sm" id="fieldPincode" placeholder="380001" maxlength="6">
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Button -->
+  <div class="mt-3">
+    <button class="btn-save" id="saveBtn" disabled onclick="saveLocation()">
+      <span class="spinner-border spinner-border-sm d-none" id="saveSp"></span>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" id="saveIcon"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      Confirm & Save Location
+    </button>
+    <div class="skip-link">
+      <a href="dashboard.html">Skip for now (set later from Profile)</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Success Overlay -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-3" style="width:64px;height:64px;background:#DCFCE7;">
+      <svg viewBox="0 0 24 24" width="32" height="32" fill="#16A34A"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    </div>
+    <h5 class="fw-bold mb-2" style="font-family:'Syne',sans-serif;">Location Saved!</h5>
+    <p class="text-muted small mb-3">Your garage is now visible to customers nearby.</p>
+    <div class="fw-semibold small text-success" id="successAddr">—</div>
+    <div class="mt-3 text-muted small">Redirecting to dashboard...</div>
+  </div>
+</div>
+
+
+<script src="../js/bootstrap.js"></script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const API = 'http://localhost:8000';
+
+// ── Auth check
+const token = localStorage.getItem('garage_token');
+if (!token) window.location.href = 'index.html';
+
+// ── State
+let selectedLat = null;
+let selectedLng = null;
+let marker      = null;
+
+// ── Ahmedabad center
+const AHMEDABAD = [23.0225, 72.5714];
+
+// ── Init map
+const map = L.map('map', {
+  center: AHMEDABAD,
+  zoom: 13,
+  zoomControl: true
+});
+
+// OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19
+}).addTo(map);
+
+// Custom orange marker
+const orangeIcon = L.divIcon({
+  className: '',
+  html: `<div style="
+    width:36px; height:36px;
+    background:#FF6B35;
+    border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg);
+    border:3px solid #fff;
+    box-shadow:0 4px 12px rgba(255,107,53,0.5);
+  "></div>`,
+  iconSize: [36, 36],
+  iconAnchor: [18, 36],
+  popupAnchor: [0, -36]
+});
+
+// Click on map → move pin
+map.on('click', (e) => {
+  setPin(e.latlng.lat, e.latlng.lng);
+  reverseGeocode(e.latlng.lat, e.latlng.lng);
+});
+
+// ── Set pin
+function setPin(lat, lng) {
+  selectedLat = parseFloat(lat.toFixed(6));
+  selectedLng = parseFloat(lng.toFixed(6));
+
+  if (marker) {
+    marker.setLatLng([lat, lng]);
+  } else {
+    marker = L.marker([lat, lng], { icon: orangeIcon, draggable: true }).addTo(map);
+    marker.on('dragend', (e) => {
+      const pos = e.target.getLatLng();
+      setPin(pos.lat, pos.lng);
+      reverseGeocode(pos.lat, pos.lng);
+    });
+  }
+
+  // Update UI
+  document.getElementById('latDisplay').textContent = `Lat: ${selectedLat}`;
+  document.getElementById('lngDisplay').textContent = `Lng: ${selectedLng}`;
+  document.getElementById('coordDisplay').style.display = 'flex';
+  document.getElementById('saveBtn').disabled = false;
+  document.getElementById('locationCard').classList.add('has-location');
+  document.getElementById('addressFields').style.display = 'block';
+  document.getElementById('mapHint').textContent = '✅ Drag pin to fine-tune location';
+}
+
+// ── Reverse geocode (address from lat/lng)
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+    const data = await res.json();
+    if (data && data.display_name) {
+      const addr = data.address || {};
+      const short = [
+        addr.road || addr.neighbourhood || addr.suburb,
+        addr.city_district || addr.suburb,
+      ].filter(Boolean).join(', ');
+
+      document.getElementById('locationLabel').textContent = data.display_name.split(',').slice(0,3).join(',');
+      document.getElementById('locationLabel').style.color = '#166534';
+
+      if (addr.road || addr.neighbourhood) {
+        document.getElementById('fieldStreet').value = addr.road || addr.neighbourhood || '';
+      }
+      if (addr.postcode) {
+        document.getElementById('fieldPincode').value = addr.postcode;
+      }
+      if (addr.city || addr.town) {
+        document.getElementById('fieldCity').value = addr.city || addr.town || 'Ahmedabad';
+      }
+    }
+  } catch {
+    document.getElementById('locationLabel').textContent = `Pin dropped at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
+}
+
+// ── GPS — use current location
+function useMyLocation() {
+  const btn = document.getElementById('gpsBtn');
+  const txt = document.getElementById('gpsBtnText');
+  btn.classList.add('loading');
+  txt.textContent = 'Getting location...';
+
+  if (!navigator.geolocation) {
+    txt.textContent = 'GPS not supported';
+    btn.classList.remove('loading');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      map.setView([lat, lng], 17);
+      setPin(lat, lng);
+      reverseGeocode(lat, lng);
+      btn.classList.remove('loading');
+      txt.textContent = 'Use My Current Location';
+    },
+    (err) => {
+      txt.textContent = 'Could not get location';
+      btn.classList.remove('loading');
+      setTimeout(() => txt.textContent = 'Use My Current Location', 2000);
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
+}
+
+// ── Search address
+let searchTimer = null;
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  const q = e.target.value.trim();
+  if (q.length < 3) {
+    document.getElementById('searchResults').classList.add('d-none');
+    return;
+  }
+  searchTimer = setTimeout(() => searchAddress(q), 400);
+});
+
+async function searchAddress(query) {
+  try {
+    // Bias towards Ahmedabad
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ' Ahmedabad Gujarat')}&format=json&limit=5&countrycodes=in`
+    );
+    const results = await res.json();
+    showSearchResults(results);
+  } catch {
+    document.getElementById('searchResults').classList.add('d-none');
+  }
+}
+
+function showSearchResults(results) {
+  const container = document.getElementById('searchResults');
+  if (!results.length) {
+    container.classList.add('d-none');
+    return;
+  }
+  container.innerHTML = results.map((r, i) => {
+    const parts = r.display_name.split(',');
+    const main = parts.slice(0, 2).join(',');
+    const sub  = parts.slice(2, 4).join(',');
+    return `<div class="search-result-item" onclick="selectSearchResult(${r.lat}, ${r.lon}, '${r.display_name.replace(/'/g, "\\'")}')">
+      <strong>${main}</strong><br>
+      <span style="color:#9CA3AF;font-size:0.75rem;">${sub}</span>
+    </div>`;
+  }).join('');
+  container.classList.remove('d-none');
+}
+
+function selectSearchResult(lat, lng, name) {
+  map.setView([lat, lng], 17);
+  setPin(parseFloat(lat), parseFloat(lng));
+  reverseGeocode(parseFloat(lat), parseFloat(lng));
+  document.getElementById('searchInput').value = name.split(',').slice(0,2).join(',');
+  document.getElementById('searchResults').classList.add('d-none');
+}
+
+// Hide search results on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-wrap')) {
+    document.getElementById('searchResults').classList.add('d-none');
+  }
+});
+
+// ── Save Location
+async function saveLocation() {
+  if (!selectedLat || !selectedLng) return;
+
+  const btn   = document.getElementById('saveBtn');
+  const sp    = document.getElementById('saveSp');
+  const icon  = document.getElementById('saveIcon');
+  btn.disabled = true;
+  sp.classList.remove('d-none');
+  icon.classList.add('d-none');
+
+  const street  = document.getElementById('fieldStreet').value.trim();
+  const city    = document.getElementById('fieldCity').value.trim() || 'Ahmedabad';
+  const pincode = document.getElementById('fieldPincode').value.trim();
+
+  try {
+    const res = await fetch(`${API}/api/garage/me/location`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        latitude:  selectedLat,
+        longitude: selectedLng,
+        street:    street || null,
+        city:      city,
+        pincode:   pincode || null
+      })
+    });
+
+    if (res.ok) {
+      // Mark location as set
+      localStorage.setItem('garage_location_set', 'true');
+
+      // Show success
+      document.getElementById('successAddr').textContent =
+        street ? `${street}, ${city}` : `${city} (${selectedLat}, ${selectedLng})`;
+      document.getElementById('successOverlay').classList.add('show');
+
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 2000);
+    } else {
+      const e = await res.json();
+      alert(e.detail || 'Could not save location. Try again.');
+      btn.disabled = false;
+      sp.classList.add('d-none');
+      icon.classList.remove('d-none');
+    }
+  } catch {
+    alert('Network error. Please try again.');
+    btn.disabled = false;
+    sp.classList.add('d-none');
+    icon.classList.remove('d-none');
+  }
+}
+
+// ── On load: check if location already set → prefill
+async function checkExistingLocation() {
+  try {
+    const res = await fetch(`${API}/api/garage-auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      localStorage.removeItem('garage_token');
+      window.location.href = 'index.html';
+      return;
+    }
+    const garage = await res.json();
+    const loc = garage.location;
+    if (loc && loc.latitude && loc.longitude) {
+      // Location already set — prefill and show
+      map.setView([loc.latitude, loc.longitude], 17);
+      setPin(loc.latitude, loc.longitude);
+      document.getElementById('fieldStreet').value  = loc.street  || '';
+      document.getElementById('fieldCity').value    = loc.city    || 'Ahmedabad';
+      document.getElementById('fieldPincode').value = loc.pincode || '';
+      document.getElementById('locationLabel').textContent = 'Location already set — update if needed';
+    }
+  } catch {
+    // silent fail
+  }
+}
+
+checkExistingLocation();
+</script>
+</body>
+</html>

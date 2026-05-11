@@ -16,28 +16,29 @@
 <body>
 
   <div class="mechanic-layout">
-    
+
     <!-- SIDEBAR COMPONENT -->
     <div id="sidebar-container"></div>
 
     <!-- Overlay for mobile sidebar -->
-    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index: 1030;"></div>
+    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
+      style="z-index: 1030;"></div>
 
     <!-- ═══ MAIN CONTENT ═══ -->
     <main class="mechanic-main">
-      
+
       <!-- Topbar -->
       <!-- TOPBAR COMPONENT -->
       <div id="topbar-container"></div>
 
       <!-- Content Area -->
       <div class="mechanic-content">
-        
+
         <!-- Welcome & SOS Toggle -->
         <div class="sos-toggle-wrapper mb-4">
           <div>
-            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);">Welcome back, Sharma Auto</h4>
-            <p class="text-muted mb-0 small">You have 2 pending requests today.</p>
+            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="garageName">Welcome back</h4>
+            <p class="text-muted mb-0 small" id="garageMetaInfo">You have 2 pending requests today.</p>
           </div>
           <div class="d-flex align-items-center gap-3">
             <div class="text-end d-none d-sm-block">
@@ -56,12 +57,14 @@
             <div class="stat-card">
               <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="stat-icon" style="background: rgba(255, 107, 53, 0.1); color: var(--color-primary);">
-                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path
+                      d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
+                  </svg>
                 </div>
                 <div class="text-muted fw-medium">Today's Earnings</div>
               </div>
-              <h3 class="fw-bold mb-0">₹2,450</h3>
-              <div class="text-success small mt-2">↑ 12% from yesterday</div>
+              <h3 class="fw-bold mb-0" id="todaysEarningsStat">0</h3>
             </div>
           </div>
 
@@ -69,12 +72,14 @@
             <div class="stat-card">
               <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
-                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path
+                      d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
                 </div>
                 <div class="text-muted fw-medium">Jobs Completed</div>
               </div>
-              <h3 class="fw-bold mb-0">4</h3>
-              <div class="text-muted small mt-2">This week: 18</div>
+              <h3 class="fw-bold mb-0" id="jobsCompletedStat">0</h3>
             </div>
           </div>
 
@@ -82,12 +87,14 @@
             <div class="stat-card">
               <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="stat-icon" style="background: rgba(239, 68, 68, 0.1); color: #EF4444;">
-                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                  </svg>
                 </div>
                 <div class="text-muted fw-medium">Active SOS</div>
               </div>
-              <h3 class="fw-bold mb-0 text-danger">1</h3>
-              <div class="text-danger small mt-2 fw-bold">Requires Action!</div>
+              <h3 class="fw-bold mb-0 text-danger" id="activeSOSStat">0</h3>
             </div>
           </div>
 
@@ -95,12 +102,14 @@
             <div class="stat-card">
               <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">
-                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                    <path
+                      d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                  </svg>
                 </div>
                 <div class="text-muted fw-medium">Customer Rating</div>
               </div>
-              <h3 class="fw-bold mb-0">4.8</h3>
-              <div class="text-muted small mt-2">Based on 42 reviews</div>
+              <h3 class="fw-bold mb-0" id="customerRatingStat">0</h3>
             </div>
           </div>
         </div>
@@ -145,7 +154,8 @@
                     <span class="text-success fw-bold small">Accepted</span>
                   </td>
                   <td class="text-end">
-                    <a href="job-detail.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">View Details</a>
+                    <a href="job-detail.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">View
+                      Details</a>
                   </td>
                 </tr>
               </tbody>
@@ -164,36 +174,255 @@
       loadComponent('sidebar-container', 'components/sidebar.html?v=' + new Date().getTime(), setActiveSidebarLink),
       loadComponent('topbar-container', 'components/topbar.html?v=' + new Date().getTime(), () => {
         const titleEl = document.getElementById('topbar-title');
-        if(titleEl) titleEl.textContent = 'Overview';
+        if (titleEl) titleEl.textContent = 'Overview';
       })
     ]).then(() => {
       const sidebar = document.getElementById('sidebar');
       const sidebarToggle = document.getElementById('sidebarToggle');
       const sidebarOverlay = document.getElementById('sidebarOverlay');
       function toggleSidebar() {
-        if(sidebar) sidebar.classList.toggle('show');
-        if(sidebarOverlay) sidebarOverlay.classList.toggle('d-none');
+        if (sidebar) sidebar.classList.toggle('show');
+        if (sidebarOverlay) sidebarOverlay.classList.toggle('d-none');
       }
-      if(sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
-      if(sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+      if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+      if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+      checkLocationSet();
+      async function checkLocationSet() {
+        const token = localStorage.getItem('garage_token');
+        if (!token) { window.location.href = 'index.html'; return; }
+        try {
+          const res = await fetch('http://localhost:8000/api/garage-auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (!res.ok) { window.location.href = 'index.html'; return; }
+          const garage = await res.json();
+          const loc = garage.location;
+          if (!loc || !loc.latitude || !loc.longitude) {
+            window.location.href = 'set-location.html';
+          }
+        } catch { /* silent */ }
+      }
     });
   </script>
   <script src="../js/bootstrap.js"></script>
   <script>
-    // SOS Toggle Logic
-    const sosToggle = document.getElementById('sosToggle');
-    const sosStatusText = document.getElementById('sosStatusText');
 
-    if (sosToggle && sosStatusText) {
-      sosToggle.addEventListener('change', (e) => {
-        if (e.target.checked) {
-          sosStatusText.textContent = "Available for SOS";
-          sosStatusText.className = "fw-bold text-success";
-        } else {
-          sosStatusText.textContent = "Offline";
-          sosStatusText.className = "fw-bold text-muted";
+    const API = 'http://localhost:8000';
+
+
+    // ─────────────────────────────────────
+    // LOAD DASHBOARD DATA
+    // ─────────────────────────────────────
+
+    async function loadGarageDashboard() {
+
+      const token = localStorage.getItem('garage_token');
+
+      // Agar token nahi hai → login page
+      if (!token) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      try {
+
+        // Garage profile fetch
+        const response = await fetch(`${API}/api/garage/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        // Invalid token
+        if (!response.ok) {
+
+          localStorage.removeItem('garage_token');
+
+          window.location.href = 'index.html';
+
+          return;
         }
+
+        // JSON response
+        const garage = await response.json();
+
+        console.log('Garage Data:', garage);
+
+        // ─────────────────────────
+        // WELCOME SECTION
+        // ─────────────────────────
+
+        document.getElementById('garageName').innerText =
+          `Welcome back, ${garage.name}`;
+
+
+        // ─────────────────────────
+        // META INFO
+        // ─────────────────────────
+
+        const city =
+          garage.location?.city || 'Location not set';
+
+        const garageType =
+          garage.garage_type || 'Garage';
+
+        document.getElementById('garageMetaInfo').innerText =
+          `${garage.owner_name} • ${city} • ${garageType}`;
+
+
+        // ─────────────────────────
+        // SOS TOGGLE
+        // ─────────────────────────
+
+        const sosToggle =
+          document.getElementById('sosToggle');
+
+        sosToggle.checked =
+          garage.is_sos_available;
+
+        updateSOSUI(
+          garage.is_sos_available
+        );
+
+      } catch (err) {
+
+        console.error('Dashboard Error:', err);
+
+      }
+
+    }
+
+
+    // ─────────────────────────────────────
+    // UPDATE SOS UI
+    // ─────────────────────────────────────
+
+    function updateSOSUI(isEnabled) {
+
+      const sosStatusText =
+        document.getElementById('sosStatusText');
+
+      if (isEnabled) {
+
+        sosStatusText.textContent =
+          'Available for SOS';
+
+        sosStatusText.className =
+          'fw-bold text-success';
+
+      } else {
+
+        sosStatusText.textContent =
+          'Offline';
+
+        sosStatusText.className =
+          'fw-bold text-muted';
+
+      }
+
+    }
+
+
+    // ─────────────────────────────────────
+    // SOS TOGGLE SAVE
+    // ─────────────────────────────────────
+
+    document.getElementById('sosToggle')
+      .addEventListener('change', async (e) => {
+
+        const token =
+          localStorage.getItem('garage_token');
+
+        try {
+
+          const response = await fetch(
+            `${API}/api/garage/me`,
+            {
+              method: 'PATCH',
+
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+
+              body: JSON.stringify({
+                is_sos_available: e.target.checked
+              })
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error();
+          }
+
+          // UI update
+          updateSOSUI(
+            e.target.checked
+          );
+
+        } catch (err) {
+
+          console.error(err);
+
+          alert('Failed to update SOS status');
+
+        }
+
       });
+
+
+    // ─────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────
+
+    loadGarageDashboard();
+    loadDashboardSummary();
+
+    async function loadDashboardSummary() {
+
+      const token = localStorage.getItem('garage_token');
+
+      if (!token) {
+        return;
+      }
+
+      try {
+
+        const response = await fetch(
+          `${API}/api/garage/dashboard-summary`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error();
+        }
+
+        const data = await response.json();
+
+        console.log('Dashboard Summary:', data);
+
+        document.getElementById('todaysEarningsStat').innerText =
+          `₹${data.todays_earnings}`;
+
+        document.getElementById('jobsCompletedStat').innerText =
+          data.jobs_completed;
+
+        document.getElementById('activeSOSStat').innerText =
+          data.active_sos;
+
+        document.getElementById('customerRatingStat').innerText =
+          data.customer_rating;
+
+      } catch (err) {
+
+        console.error(err);
+
+      }
+
     }
   </script>
 </body>

@@ -256,6 +256,7 @@ class GarageService(Base):
     id           = Column(Integer, primary_key=True, index=True)
     garage_id    = Column(Integer, ForeignKey("garages.id"), nullable=False)
     service_name = Column(String(100), nullable=False)
+    category     = Column(String, nullable=True)
     price        = Column(Numeric(10, 2), nullable=True)
     is_available = Column(Boolean, default=True)
 

@@ -102,6 +102,17 @@ def ensure_schema_updates():
                 "ALTER COLUMN garage_id DROP NOT NULL"
             )
 
+    if "garage_services" in table_names:
+        service_columns = {
+            column["name"] for column in inspector.get_columns("garage_services")
+        }
+
+        if "category" not in service_columns:
+            updates.append(
+                "ALTER TABLE garage_services "
+                "ADD COLUMN category VARCHAR(100)"
+            )
+
     if not updates:
         return
 

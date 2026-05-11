@@ -144,6 +144,8 @@ class GarageLocationCreate(BaseModel):
     street:      Optional[str] = None
     city:        str = "Ahmedabad"
     pincode:     Optional[str] = None
+    latitude:    Optional[float] = None
+    longitude:   Optional[float] = None
 
 class GarageLocationResponse(BaseModel):
     id:          int
@@ -199,6 +201,7 @@ class GarageBankingResponse(GarageBankingCreate):
 
 class GarageServiceCreate(BaseModel):
     service_name: str
+    category:     Optional[str] = None
     price:        Optional[float] = None
     is_available: bool = True
 
