@@ -360,3 +360,48 @@ class BookingResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ──────────────────────────────────────────
+# DEFAULT SERVICES
+# ──────────────────────────────────────────
+
+class DefaultServiceCreate(BaseModel):
+    vehicle_type:    str            # two_wheeler | four_wheeler | both
+    category:        str            # General Service | Repair Service | Major Repair
+    service_name:    str
+    suggested_price: Optional[float] = None
+    price_type:      str = "fixed"  # fixed | starting | estimate | quote
+    is_active:       bool = True
+
+class DefaultServiceUpdate(BaseModel):
+    vehicle_type:    Optional[str]   = None
+    category:        Optional[str]   = None
+    service_name:    Optional[str]   = None
+    suggested_price: Optional[float] = None
+    price_type:      Optional[str]   = None
+    is_active:       Optional[bool]  = None
+
+class DefaultServiceResponse(BaseModel):
+    id:              int
+    vehicle_type:    str
+    category:        str
+    service_name:    str
+    suggested_price: Optional[float] = None
+    price_type:      str
+    is_active:       bool
+    created_at:      datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ──────────────────────────────────────────
+# GARAGE SERVICE — Update schema (PATCH)
+# ──────────────────────────────────────────
+
+class GarageServiceUpdate(BaseModel):
+    service_name: Optional[str]   = None
+    category:     Optional[str]   = None
+    price:        Optional[float] = None
+    is_available: Optional[bool]  = None

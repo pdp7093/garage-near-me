@@ -298,3 +298,20 @@ class Booking(Base):
 
     customer               = relationship("Customer", back_populates="bookings")
     garage                 = relationship("Garage", back_populates="bookings")
+
+# ──────────────────────────────────────────
+# DEFAULT SERVICES (Admin creates these)
+# Mechanic ke liye pre-filled suggestions
+# ──────────────────────────────────────────
+ 
+class DefaultService(Base):
+    __tablename__ = "default_services"
+ 
+    id              = Column(Integer, primary_key=True, index=True)
+    vehicle_type    = Column(String(20), nullable=False)   # two_wheeler | four_wheeler | both
+    category        = Column(String(50), nullable=False)   # General Service | Repair Service | Major Repair
+    service_name    = Column(String(100), nullable=False)
+    suggested_price = Column(Numeric(10, 2), nullable=True)
+    price_type      = Column(String(20), default="fixed")  # fixed | starting | estimate | quote
+    is_active       = Column(Boolean, default=True)
+    created_at      = Column(DateTime(timezone=True), server_default=func.now())

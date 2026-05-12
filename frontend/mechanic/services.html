@@ -11,122 +11,322 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
+  <style>
+    /* ── Category Group ── */
+    .category-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.75rem 1.25rem;
+      background: #F8FAFC;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .category-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .cat-general {
+      background: #EFF6FF;
+    }
+
+    .cat-repair {
+      background: #FFF7ED;
+    }
+
+    .cat-major {
+      background: #FEF2F2;
+    }
+
+    .cat-label {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #1B1F2E;
+      font-family: var(--font-head);
+    }
+
+    .cat-count {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: #6B7280;
+      font-weight: 500;
+    }
+
+    /* ── Price Type Badge ── */
+    .price-type {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .pt-fixed {
+      background: #ECFDF5;
+      color: #065F46;
+    }
+
+    .pt-starting {
+      background: #EFF6FF;
+      color: #1D4ED8;
+    }
+
+    .pt-estimate {
+      background: #FFF7ED;
+      color: #C2410C;
+    }
+
+    .pt-quote {
+      background: #F5F3FF;
+      color: #6D28D9;
+    }
+
+    /* ── Suggested Services Section ── */
+    .suggested-section {
+      background: linear-gradient(135deg, #1B1F2E 0%, #2d3348 100%);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: #fff;
+    }
+
+    .suggested-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 107, 53, 0.2);
+      color: #FF6B35;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .suggested-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 1rem;
+    }
+
+    .suggested-card {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .suggested-card:hover {
+      background: rgba(255, 107, 53, 0.15);
+      border-color: rgba(255, 107, 53, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .suggested-card.adding {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .suggested-card.added {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: rgba(34, 197, 94, 0.3);
+      pointer-events: none;
+    }
+
+    .sug-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .sug-price {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .sug-add-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 107, 53, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .suggested-card:hover .sug-add-btn {
+      background: #FF6B35;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #9CA3AF;
+    }
+
+    .empty-state svg {
+      margin-bottom: 1rem;
+      opacity: 0.4;
+    }
+
+    /* ── Toast ── */
+    .gnm-toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1B1F2E;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+
+    .gnm-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .gnm-toast.success {
+      background: #16A34A;
+    }
+
+    .gnm-toast.error {
+      background: #DC2626;
+    }
+  </style>
 </head>
 
 <body>
 
   <div class="mechanic-layout">
-
-    <!-- ═══ SIDEBAR ═══ -->
     <div id="sidebar-container"></div>
-
-    <!-- Overlay for mobile sidebar -->
     <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
-      style="z-index: 1030;"></div>
+      style="z-index:1030;"></div>
 
-    <!-- ═══ MAIN CONTENT ═══ -->
     <main class="mechanic-main">
-
-      <!-- Topbar -->
       <div id="topbar-container"></div>
 
-      <!-- Content Area -->
       <div class="mechanic-content">
-        <div class="d-flex justify-content-end mb-4">
 
-          <button class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background: var(--color-primary);"
-            data-bs-toggle="modal" data-bs-target="#addServiceModal">
-            + Add New Service
-          </button>
-
-        </div>
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
           <div>
-            <p class="text-muted mb-0">Manage the services you offer and set base pricing.</p>
+            <h4 class="fw-bold mb-1" style="font-family:var(--font-head);">Services</h4>
+            <p class="text-muted mb-0 small">Manage services you offer — customers will see these on your profile.</p>
           </div>
-          <!-- Mobile only add button -->
-          <button class="btn text-white rounded-pill px-4 fw-bold shadow-sm d-sm-none"
-            style="background: var(--color-primary);" data-bs-toggle="modal" data-bs-target="#addServiceModal">
-            + Add New Service
+          <button class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background:var(--color-primary);"
+            data-bs-toggle="modal" data-bs-target="#addServiceModal">
+            + Add Custom Service
           </button>
-          <div class="position-relative" style="max-width: 300px; width: 100%;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--color-text-muted)"
-              class="position-absolute top-50 translate-middle-y ms-3">
-              <path
-                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-            </svg>
-            <input type="text" class="form-control rounded-pill ps-5 bg-white border" placeholder="Search services...">
-          </div>
         </div>
 
-        <!-- Services Table -->
-        <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th scope="col" class="fw-semibold text-muted py-3 ps-4 border-bottom">Service Name</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom">Category</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom">Base Price</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom text-center">Status</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 pe-4 border-bottom text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="border-top-0" id="servicesTableBody"></tbody>
-            </table>
+        <!-- ── SUGGESTED SERVICES SECTION ── -->
+        <div class="suggested-section" id="suggestedSection" style="display:none;">
+          <div class="suggested-badge">✨ Recommended for you</div>
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+              <h5 class="fw-bold mb-1" style="font-family:var(--font-head);">Suggested Services</h5>
+              <p class="mb-0 small" style="color:rgba(255,255,255,0.6);">Click to instantly add — based on your garage
+                type.</p>
+            </div>
+            <button class="btn btn-sm rounded-pill fw-bold px-3"
+              style="background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.2);"
+              onclick="addAllSuggested()">
+              <span id="addAllSp" class="spinner-border spinner-border-sm me-1 d-none"></span>
+              + Add All
+            </button>
           </div>
+          <div class="suggested-grid" id="suggestedGrid"></div>
+        </div>
+
+        <!-- ── MY SERVICES — Grouped ── -->
+        <div class="bg-white rounded-4 border shadow-sm overflow-hidden" id="servicesContainer">
+          <div class="empty-state" id="emptyState">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+              <path
+                d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+            </svg>
+            <div class="fw-bold text-muted mb-1">No services yet</div>
+            <div class="text-muted small">Add from suggestions above or create a custom service.</div>
+          </div>
+          <div id="servicesGrouped"></div>
         </div>
 
       </div>
     </main>
-
   </div>
 
-  <!-- Add Service Modal -->
-  <div class="modal fade" id="addServiceModal" tabindex="-1" aria-hidden="true">
+  <!-- ── ADD CUSTOM SERVICE MODAL ── -->
+  <div class="modal fade" id="addServiceModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 border-0 shadow">
         <div class="modal-header border-bottom-0 pb-0">
-          <h5 class="modal-title fw-bold" style="font-family: var(--font-head);">Add New Service</h5>
-          <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title fw-bold" style="font-family:var(--font-head);">Add Custom Service</h5>
+          <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body pt-2">
           <form id="addServiceForm">
             <div class="mb-3">
-              <label class="form-label text-muted small fw-medium mb-1">Service Name</label>
-              <input type="text" class="form-control" id="serviceName" placeholder="e.g. Wheel Balancing">
+              <label class="form-label text-muted small fw-medium mb-1">Service Name *</label>
+              <input type="text" class="form-control" id="serviceName" placeholder="e.g. Wheel Balancing" required>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label text-muted small fw-medium mb-1">Category</label>
-              <select class="form-select" id="serviceCategory">
-                <option value="" selected disabled>Select Category</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Repair">Repair</option>
-                <option value="Cleaning">Cleaning</option>
-                <option value="Emergency">Emergency</option>
-                <option value="Denting & Painting">Denting & Painting</option>
-              </select>
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label text-muted small fw-medium mb-1">Category *</label>
+                <select class="form-select" id="serviceCategory" required>
+                  <option value="" disabled selected>Select</option>
+                  <option value="General Service">General Service</option>
+                  <option value="Repair Service">Repair Service</option>
+                  <option value="Major Repair">Major Repair</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-muted small fw-medium mb-1">Price Type *</label>
+                <select class="form-select" id="servicePriceType">
+                  <option value="fixed">Fixed Price</option>
+                  <option value="starting">Starting From</option>
+                  <option value="estimate">Estimate</option>
+                  <option value="quote">Quote Only</option>
+                </select>
+              </div>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label text-muted small fw-medium mb-1">Base Price (₹)</label>
-              <input type="number" class="form-control" id="servicePrice" placeholder="e.g. 500">
-            </div>
-
             <div class="mb-4">
-              <label class="form-label text-muted small fw-medium mb-1">Short Description (Optional)</label>
-              <textarea class="form-control" rows="2" id="serviceDescription"
-                placeholder="Briefly describe what's included..."></textarea>
+              <label class="form-label text-muted small fw-medium mb-1">Base Price (₹) <span
+                  class="text-muted">(optional for estimate/quote)</span></label>
+              <input type="number" class="form-control" id="servicePrice" placeholder="e.g. 499" min="0">
             </div>
-
-            <div class="form-check form-switch mb-4">
-              <input class="form-check-input" type="checkbox" role="switch" id="activeStatus" checked>
-              <label class="form-check-label ms-2 text-dark" for="activeStatus">Mark as Active immediately</label>
-            </div>
-
+            <div class="alert alert-danger d-none small py-2" id="addServiceErr"></div>
             <button type="submit" class="btn w-100 text-white fw-bold py-2 rounded-pill shadow-sm"
-              style="background: var(--color-primary);">
+              style="background:var(--color-primary);" id="addServiceBtn">
+              <span class="spinner-border spinner-border-sm me-1 d-none" id="addServiceSp"></span>
               Save Service
             </button>
           </form>
@@ -135,374 +335,320 @@
     </div>
   </div>
 
+  <!-- Toast -->
+  <div class="gnm-toast" id="gnmToast"></div>
+
   <script src="../js/components.js"></script>
   <script>
     initMechanicChrome('Services', mechanicCheckLocationSet);
   </script>
   <script src="../js/bootstrap.js"></script>
   <script>
-
     const API = 'http://localhost:8000';
+    const token = localStorage.getItem('garage_token');
+    if (!token) window.location.href = 'index.html';
 
-    const addServiceForm =
-      document.getElementById('addServiceForm');
+    let suggestedServices = [];  // store for "Add All"
 
-    if (addServiceForm) {
-
-      addServiceForm.addEventListener(
-        'submit',
-        async function (e) {
-
-          e.preventDefault();
-
-          const token =
-            localStorage.getItem('garage_token');
-
-          const serviceName =
-            document.getElementById('serviceName').value;
-
-          const servicePrice =
-            document.getElementById('servicePrice').value;
-
-          const serviceCategory =
-            document.getElementById('serviceCategory').value;
-
-          try {
-
-            const response = await fetch(
-              `${API}/api/garage/me/services`,
-              {
-                method: 'POST',
-
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-
-                body: JSON.stringify({
-                  service_name: serviceName,
-                  category: serviceCategory,
-                  price: Number(servicePrice),
-                  is_available: true
-                })
-              }
-            );
-
-            if (!response.ok) {
-
-              const error =
-                await response.json();
-
-              console.error(error);
-
-              alert('Failed to add service');
-
-              return;
-            }
-
-            // Reload table
-            loadServices();
-
-            // Reset form
-            addServiceForm.reset();
-
-            // Close modal
-            const modalElement =
-              document.getElementById('addServiceModal');
-
-            const modal =
-              bootstrap.Modal.getInstance(modalElement);
-
-            if (modal) {
-              modal.hide();
-            }
-
-            alert('Service added successfully');
-
-          } catch (err) {
-
-            console.error(err);
-
-            alert('Server error');
-
-          }
-
-        }
-      );
-
+    /* ── Toast ── */
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('gnmToast');
+      t.textContent = msg;
+      t.className = `gnm-toast ${type} show`;
+      setTimeout(() => t.classList.remove('show'), 3000);
     }
-    // ─────────────────────────────
-    // LOAD SERVICES
-    // ─────────────────────────────
 
-    async function loadServices() {
+    /* ── Category config ── */
+    const CAT_CONFIG = {
+      'General Service': { icon: '🔧', cls: 'cat-general' },
+      'Repair Service': { icon: '⚙️', cls: 'cat-repair' },
+      'Major Repair': { icon: '🚗', cls: 'cat-major' },
+    };
 
-      const token = localStorage.getItem('garage_token');
+    function priceTypeBadge(pt) {
+      const map = {
+        fixed: ['pt-fixed', 'Fixed'],
+        starting: ['pt-starting', 'Starting'],
+        estimate: ['pt-estimate', 'Estimate'],
+        quote: ['pt-quote', 'Quote'],
+      };
+      const [cls, lbl] = map[pt] || ['pt-fixed', pt];
+      return `<span class="price-type ${cls}">${lbl}</span>`;
+    }
 
-      if (!token) {
-        window.location.href = 'index.html';
-        return;
-      }
+    function formatPrice(price, priceType) {
+      if (!price && price !== 0) return priceType === 'estimate' ? 'Get Estimate' : 'Get Quote';
+      if (priceType === 'starting') return `₹${price}+`;
+      return `₹${price}`;
+    }
+
+    /* ── Load Suggested Services ── */
+    async function loadSuggested() {
+      try {
+        const res = await fetch(`${API}/api/garage/me/suggested-services`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        suggestedServices = await res.json();
+
+        const section = document.getElementById('suggestedSection');
+        const grid = document.getElementById('suggestedGrid');
+
+        if (!suggestedServices.length) {
+          section.style.display = 'none';
+          return;
+        }
+
+        section.style.display = 'block';
+        grid.innerHTML = suggestedServices.map(s => `
+      <div class="suggested-card" id="sug-${s.id}" onclick="addSuggestedService(${s.id})">
+        <div>
+          <div class="sug-name">${s.service_name}</div>
+          <div class="sug-price">${formatPrice(s.suggested_price, s.price_type)} · ${s.category}</div>
+        </div>
+        <div class="sug-add-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </div>
+      </div>`).join('');
+      } catch { /* silent */ }
+    }
+
+    /* ── Add Single Suggested Service ── */
+    async function addSuggestedService(defaultId) {
+      const card = document.getElementById(`sug-${defaultId}`);
+      if (card) card.classList.add('adding');
 
       try {
-
-        const response = await fetch(
-          `${API}/api/garage/me/services`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
+        const res = await fetch(`${API}/api/garage/me/suggested-services/${defaultId}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          if (card) {
+            card.classList.remove('adding');
+            card.classList.add('added');
+            card.innerHTML = `<div class="sug-name" style="color:#4ade80;">✓ Added</div>`;
           }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to load services');
+          showToast('Service added!', 'success');
+          loadServices();
+          // Refresh suggested after 1 sec
+          setTimeout(loadSuggested, 800);
+        } else {
+          const e = await res.json();
+          if (card) card.classList.remove('adding');
+          showToast(e.detail || 'Could not add service', 'error');
         }
-
-        const services = await response.json();
-
-        console.log('Services:', services);
-
-        renderServices(services);
-
-      } catch (err) {
-
-        console.error(err);
-        renderServices([]);
-
-        const tableBody =
-          document.getElementById('servicesTableBody');
-
-        tableBody.innerHTML = `
-      <tr>
-        <td colspan="5" class="text-center py-5 text-muted">
-          Unable to load services. Please restart the backend and try again.
-        </td>
-      </tr>
-    `;
-
+      } catch {
+        if (card) card.classList.remove('adding');
+        showToast('Network error', 'error');
       }
-
     }
 
+    /* ── Add All Suggested ── */
+    async function addAllSuggested() {
+      if (!suggestedServices.length) return;
+      const sp = document.getElementById('addAllSp');
+      sp.classList.remove('d-none');
 
-    // ─────────────────────────────
-    // RENDER SERVICES
-    // ─────────────────────────────
-
-    function renderServices(services) {
-
-      const tableBody =
-        document.getElementById('servicesTableBody');
-
-      tableBody.innerHTML = '';
-
-      // Empty state
-      if (services.length === 0) {
-
-        tableBody.innerHTML = `
-      <tr>
-        <td colspan="5" class="text-center py-5 text-muted">
-          No services added yet.
-        </td>
-      </tr>
-    `;
-
-        return;
+      for (const s of suggestedServices) {
+        try {
+          await fetch(`${API}/api/garage/me/suggested-services/${s.id}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        } catch { /* skip */ }
       }
 
-      services.forEach(service => {
+      sp.classList.add('d-none');
+      showToast('All services added!', 'success');
+      await loadServices();
+      await loadSuggested();
+    }
 
-        tableBody.innerHTML += `
+    /* ── Load My Services ── */
+    async function loadServices() {
+      try {
+        const res = await fetch(`${API}/api/garage/me/services`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+        const services = await res.json();
+        renderGrouped(services);
+      } catch {
+        document.getElementById('servicesGrouped').innerHTML = '';
+        document.getElementById('emptyState').style.display = 'block';
+      }
+    }
 
-      <tr>
+    /* ── Render Grouped ── */
+    function renderGrouped(services) {
+      const grouped = document.getElementById('servicesGrouped');
+      const empty = document.getElementById('emptyState');
 
-        <td class="ps-4 py-3">
-          <div class="fw-bold text-dark">
-            ${service.service_name}
-          </div>
+      if (!services.length) {
+        grouped.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
 
-          <div class="text-muted small">
-            Garage Service
-          </div>
-        </td>
-
-        <td>
-          <span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill">
-            ${service.category || 'General'}
-          </span>
-        </td>
-
-        <td>
-          <div class="fw-bold">
-            ₹${service.price}
-          </div>
-
-          <div class="text-muted small">
-            Base Price
-          </div>
-        </td>
-
-        <td class="text-center">
-
-          <div class="form-check form-switch d-inline-block m-0">
-
-            <input
-              class="form-check-input"
-              type="checkbox"
-              role="switch"
-              ${service.is_available ? 'checked' : ''}
-              onchange="toggleService(${service.id}, this.checked)"
-            >
-
-          </div>
-
-        </td>
-
-        <td class="pe-4 text-end">
-
-          <button
-            class="btn btn-sm btn-light border rounded-circle p-2 me-1 text-primary"
-            title="Edit"
-            onclick="window.location.href = 'edit-service.html?id=${service.id}'"
-          >
-
-            <svg viewBox="0 0 24 24"
-                 width="16"
-                 height="16"
-                 fill="currentColor">
-
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-
-            </svg>
-
-          </button>
-
-          <button
-            class="btn btn-sm btn-light border rounded-circle p-2 text-danger"
-            title="Delete"
-            onclick="deleteService(${service.id})"
-          >
-
-            <svg viewBox="0 0 24 24"
-                 width="16"
-                 height="16"
-                 fill="currentColor">
-
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-
-            </svg>
-
-          </button>
-
-        </td>
-
-      </tr>
-
-    `;
-
+      // Group by category
+      const groups = {};
+      services.forEach(s => {
+        const cat = s.category || 'General Service';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(s);
       });
 
+      const order = ['General Service', 'Repair Service', 'Major Repair'];
+      const allCats = [...new Set([...order, ...Object.keys(groups)])];
+
+      grouped.innerHTML = allCats
+        .filter(cat => groups[cat])
+        .map(cat => {
+          const cfg = CAT_CONFIG[cat] || { icon: '🔩', cls: 'cat-general' };
+          const rows = groups[cat];
+          return `
+        <div class="category-group">
+          <div class="category-header">
+            <div class="category-icon ${cfg.cls}">${cfg.icon}</div>
+            <span class="cat-label">${cat}</span>
+            <span class="cat-count">${rows.length} service${rows.length > 1 ? 's' : ''}</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th class="fw-semibold text-muted py-2 ps-4 small border-bottom">Service</th>
+                  <th class="fw-semibold text-muted py-2 small border-bottom">Price</th>
+                  <th class="fw-semibold text-muted py-2 small border-bottom text-center">Available</th>
+                  <th class="fw-semibold text-muted py-2 pe-4 small border-bottom text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(s => `
+                <tr>
+                  <td class="ps-4 py-3">
+                    <div class="fw-bold text-dark small">${s.service_name}</div>
+                  </td>
+                  <td>
+                    <div class="fw-bold small">${formatPrice(s.price, s.price_type || 'fixed')}</div>
+                  </td>
+                  <td class="text-center">
+                    <div class="form-check form-switch d-inline-block m-0">
+                      <input class="form-check-input" type="checkbox" role="switch"
+                        ${s.is_available ? 'checked' : ''}
+                        onchange="toggleService(${s.id}, this)">
+                    </div>
+                  </td>
+                  <td class="pe-4 text-end">
+                    <button class="btn btn-sm btn-light border rounded-circle p-2 me-1 text-primary"
+                      onclick="window.location.href='edit-service.html?id=${s.id}'" title="Edit">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-sm btn-light border rounded-circle p-2 text-danger"
+                      onclick="deleteService(${s.id})" title="Delete">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+        }).join('');
     }
 
+    /* ── Toggle Service ── */
+    async function toggleService(serviceId, checkbox) {
+      try {
+        const res = await fetch(`${API}/api/garage/me/services/${serviceId}/toggle`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+        showToast('Updated!', 'success');
+      } catch {
+        checkbox.checked = !checkbox.checked;
+        showToast('Could not update', 'error');
+      }
+    }
 
-    // ─────────────────────────────
-    // DELETE SERVICE
-    // ─────────────────────────────
-
+    /* ── Delete Service ── */
     async function deleteService(serviceId) {
-
-      const confirmed =
-        confirm('Delete this service?');
-
-      if (!confirmed) return;
-
-      const token =
-        localStorage.getItem('garage_token');
-
+      if (!confirm('Delete this service?')) return;
       try {
-
-        const response = await fetch(
-          `${API}/api/garage/me/services/${serviceId}`,
-          {
-            method: 'DELETE',
-
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error();
-        }
-
+        const res = await fetch(`${API}/api/garage/me/services/${serviceId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error();
+        showToast('Service deleted', 'success');
         loadServices();
-
-      } catch (err) {
-
-        console.error(err);
-
-        alert('Failed to delete service');
-
+        loadSuggested();
+      } catch {
+        showToast('Could not delete', 'error');
       }
-
     }
 
+    /* ── Add Custom Service ── */
+    document.getElementById('addServiceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('serviceName').value.trim();
+      const category = document.getElementById('serviceCategory').value;
+      const price = document.getElementById('servicePrice').value;
+      const errEl = document.getElementById('addServiceErr');
+      const sp = document.getElementById('addServiceSp');
+      const btn = document.getElementById('addServiceBtn');
 
-    // ─────────────────────────────
-    // TOGGLE SERVICE
-    // ─────────────────────────────
-
-    async function toggleService(
-      serviceId,
-      isAvailable
-    ) {
-
-      const token =
-        localStorage.getItem('garage_token');
+      if (!name || !category) {
+        errEl.textContent = 'Service name and category required.';
+        errEl.classList.remove('d-none');
+        return;
+      }
+      errEl.classList.add('d-none');
+      sp.classList.remove('d-none');
+      btn.disabled = true;
 
       try {
+        const res = await fetch(`${API}/api/garage/me/services`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            service_name: name,
+            category: category,
+            price: price ? Number(price) : null,
+            is_available: true
+          })
+        });
 
-        const response = await fetch(
-          `${API}/api/garage/me/services/${serviceId}/toggle`,
-          {
-            method: 'PATCH',
-
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error();
+        if (res.ok) {
+          bootstrap.Modal.getInstance(document.getElementById('addServiceModal')).hide();
+          document.getElementById('addServiceForm').reset();
+          showToast('Service added!', 'success');
+          loadServices();
+          loadSuggested();
+        } else {
+          const err = await res.json();
+          errEl.textContent = err.detail || 'Could not add service.';
+          errEl.classList.remove('d-none');
         }
-
-        console.log(
-          'Service updated'
-        );
-
-      } catch (err) {
-
-        console.error(err);
-
-        alert('Failed to update service');
-
-        // Reload correct state
-        loadServices();
-
+      } catch {
+        errEl.textContent = 'Network error. Try again.';
+        errEl.classList.remove('d-none');
       }
 
-    }
+      sp.classList.add('d-none');
+      btn.disabled = false;
+    });
 
-
-    // ─────────────────────────────
-    // INIT
-    // ─────────────────────────────
-
+    /* ── Init ── */
     loadServices();
-
+    loadSuggested();
   </script>
 </body>
 
