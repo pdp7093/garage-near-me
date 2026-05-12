@@ -153,6 +153,22 @@ body {
   border-radius: 0.5rem;
   transition: all 0.2s;
   font-weight: 500;
+  white-space: nowrap;
+}
+
+.admin-nav-link svg {
+  flex: 0 0 20px;
+}
+
+.admin-nav-link .admin-nav-label {
+  display: inline-block;
+  flex: 1 1 auto;
+  min-width: 0;
+  color: inherit !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  font-size: 0.95rem;
+  line-height: 1.2;
 }
 
 .admin-nav-link:hover {

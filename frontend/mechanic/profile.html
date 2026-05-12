@@ -162,7 +162,8 @@
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="visitingChargeInput">Visiting Charge</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="visitingChargeInput">Visiting
+                    Charge</label>
                   <input type="number" class="form-control" id="visitingChargeInput" min="0" step="1" placeholder="0">
                 </div>
                 <div class="col-md-6">
@@ -189,7 +190,8 @@
 
               <div class="row g-3">
                 <div class="col-12">
-                  <label class="form-label small fw-medium text-muted mb-1" for="shopNumberInput">Shop / Building Number</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="shopNumberInput">Shop / Building
+                    Number</label>
                   <input type="text" class="form-control" id="shopNumberInput" placeholder="Shop no, building">
                 </div>
                 <div class="col-12">
@@ -213,10 +215,12 @@
                   <input type="number" class="form-control" id="longitudeInput" step="any" placeholder="Longitude">
                 </div>
                 <div class="col-12 mt-3">
-                  <div class="rounded-4 border bg-light p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                  <div
+                    class="rounded-4 border bg-light p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                     <div>
                       <h6 class="fw-bold mb-1">GPS Location</h6>
-                      <p class="text-muted small mb-0">Accurate coordinates help customers and SOS requests find you.</p>
+                      <p class="text-muted small mb-0">Accurate coordinates help customers and SOS requests find you.
+                      </p>
                     </div>
                     <a href="set-location.html" class="btn btn-dark rounded-pill px-4 fw-bold">Open Map</a>
                   </div>
@@ -257,7 +261,8 @@
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="accountHolderInput">Account Holder Name</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="accountHolderInput">Account Holder
+                    Name</label>
                   <input type="text" class="form-control" id="accountHolderInput" placeholder="Name as per bank">
                 </div>
                 <div class="col-md-6">
@@ -265,7 +270,8 @@
                   <input type="text" class="form-control" id="bankNameInput" placeholder="Bank name">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="accountNumberInput">Account Number</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="accountNumberInput">Account
+                    Number</label>
                   <input type="password" class="form-control" id="accountNumberInput" placeholder="Account number">
                 </div>
                 <div class="col-md-6">
@@ -297,8 +303,8 @@
               </div>
             </div>
 
-            <button class="btn w-100 text-white rounded-pill py-2 fw-bold shadow-sm d-sm-none mt-4" id="saveProfileMobileBtn"
-              style="background: var(--color-primary);">
+            <button class="btn w-100 text-white rounded-pill py-2 fw-bold shadow-sm d-sm-none mt-4"
+              id="saveProfileMobileBtn" style="background: var(--color-primary);">
               Save Changes
             </button>
           </div>
@@ -315,34 +321,13 @@
     let currentGarage = null;
     let activeSection = 'businessDetails';
 
-    Promise.all([
-      loadComponent('sidebar-container', 'components/sidebar.html?v=' + new Date().getTime(), setActiveSidebarLink),
-      loadComponent('topbar-container', 'components/topbar.html?v=' + new Date().getTime(), () => {
-        const titleEl = document.getElementById('topbar-title');
-        if (titleEl) titleEl.textContent = 'Garage Settings';
-      })
-    ]).then(() => {
-      bindSidebarToggle();
+    initMechanicChrome('Garage Settings', () => {
       initProfileTabs();
       renderWorkingHours([]);
       bindSaveButtons();
       loadGarageProfile();
       fetchMyDocuments();
     });
-
-    function bindSidebarToggle() {
-      const sidebar = document.getElementById('sidebar');
-      const sidebarToggle = document.getElementById('sidebarToggle');
-      const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-      function toggleSidebar() {
-        if (sidebar) sidebar.classList.toggle('show');
-        if (sidebarOverlay) sidebarOverlay.classList.toggle('d-none');
-      }
-
-      if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
-      if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
-    }
 
     function initProfileTabs() {
       const tabs = document.querySelectorAll('.profile-nav-link');
@@ -371,6 +356,7 @@
 
     function authHeaders(extra = {}) {
       return {
+
         ...extra,
         'Authorization': `Bearer ${getToken()}`
       };
@@ -636,7 +622,43 @@
     function renderDocuments(docs) {
       const docsContainer = document.getElementById('documentsList');
       if (!docs.length) {
-        docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-muted">No documents uploaded yet.</div>';
+        docsContainer.innerHTML = `
+  <div class="col-12">
+
+    <div class="text-center py-5">
+
+      <div class="mb-3">
+        <svg
+          viewBox="0 0 24 24"
+          width="52"
+          height="52"
+          fill="currentColor"
+          class="text-muted"
+        >
+          <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8zm0 1.5L18.5 8H14z"/>
+        </svg>
+      </div>
+
+      <h6 class="fw-bold mb-2">
+        No documents uploaded yet
+      </h6>
+
+      <p class="text-muted small mb-4">
+        Upload your garage verification documents.
+      </p>
+
+      <button
+        class="btn btn-dark rounded-pill px-4 fw-bold"
+        data-bs-toggle="modal"
+        data-bs-target="#uploadDocumentModal"
+      >
+        Upload Document
+      </button>
+
+    </div>
+
+  </div>
+`;
         return;
       }
 
@@ -769,6 +791,207 @@
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
     }
+  </script>
+  <!-- UPLOAD DOCUMENT MODAL -->
+  <div class="modal fade" id="uploadDocumentModal" tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+      <div class="modal-content rounded-4 border-0">
+
+        <div class="modal-header border-0 pb-0">
+
+          <h5 class="fw-bold">
+            Upload Document
+          </h5>
+
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+        </div>
+
+        <div class="modal-body">
+
+          <form id="uploadDocumentForm">
+
+            <div class="mb-3">
+
+              <label class="form-label fw-medium">
+                Document Type
+              </label>
+
+              <select class="form-select" id="documentType" required>
+                <option value="">
+                  Select Document
+                </option>
+
+                <option value="aadhar">
+                  Aadhar / PAN Card
+                </option>
+
+                <option value="shop_license">
+                  Shop / Trade License
+                </option>
+
+              </select>
+
+            </div>
+
+            <div class="mb-4">
+
+              <label class="form-label fw-medium">
+                Upload File
+              </label>
+
+              <input type="file" class="form-control" id="documentFile" required>
+
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold">
+              Upload Document
+            </button>
+
+          </form>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    // ─────────────────────────────
+    // UPLOAD DOCUMENT
+    // ─────────────────────────────
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      function () {
+
+        const uploadForm =
+          document.getElementById(
+            'uploadDocumentForm'
+          );
+
+        if (!uploadForm) return;
+
+        uploadForm.addEventListener(
+          'submit',
+          async function (e) {
+
+            e.preventDefault();
+
+            const token =
+              localStorage.getItem(
+                'garage_token'
+              );
+
+            const documentType =
+              document.getElementById(
+                'documentType'
+              ).value;
+
+            const fileInput =
+              document.getElementById(
+                'documentFile'
+              );
+
+            if (!fileInput.files.length) {
+
+              alert(
+                'Please select a file'
+              );
+
+              return;
+
+            }
+
+            const formData =
+              new FormData();
+
+            formData.append(
+              'document_type',
+              documentType
+            );
+
+            formData.append(
+              'file',
+              fileInput.files[0]
+            );
+
+            try {
+
+              const response =
+                await fetch(
+                  `${API}/api/garage/me/documents`,
+                  {
+                    method: 'POST',
+
+                    headers: {
+                      'Authorization':
+                        `Bearer ${token}`
+                    },
+
+                    body: formData
+                  }
+                );
+
+              if (!response.ok) {
+
+                const errorText =
+                  await response.text();
+
+                console.error(errorText);
+
+                throw new Error(
+                  'Upload failed'
+                );
+
+              }
+
+              // Reload documents
+              await fetchMyDocuments();
+
+              // Reset form
+              uploadForm.reset();
+
+              // Close modal
+              const modalElement =
+                document.getElementById(
+                  'uploadDocumentModal'
+                );
+
+              const modal =
+                bootstrap.Modal.getInstance(
+                  modalElement
+                );
+
+              if (modal) {
+                modal.hide();
+              }
+
+              alert(
+                'Document uploaded successfully'
+              );
+
+            } catch (err) {
+
+              console.error(err);
+
+              alert(
+                'Failed to upload document'
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
   </script>
 </body>
 

@@ -633,24 +633,7 @@
 
   <script src="../js/components.js"></script>
   <script>
-    // Load components
-    const v = new Date().getTime();
-    Promise.all([
-      loadComponent('sidebar-container', 'components/sidebar.html?v=' + v, setActiveSidebarLink),
-      loadComponent('topbar-container', 'components/topbar.html?v=' + v, () => {
-        const titleEl = document.getElementById('topbar-title');
-        if (titleEl) titleEl.textContent = 'Manage Garages & Partners';
-      })
-    ]).then(() => {
-      // Re-bind sidebar toggle after load
-      const sidebar = document.getElementById('sidebar');
-      const sidebarToggle = document.getElementById('sidebarToggle');
-      if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', () => {
-          sidebar.classList.toggle('show');
-        });
-      }
-    });
+    initAdminChrome('Manage Garages & Partners');
   </script>
   <script src="../js/bootstrap.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

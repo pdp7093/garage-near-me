@@ -168,19 +168,38 @@
 .sidebar-link {
   display: flex;
   align-items: center;
+  gap: 12px;
   padding: 0.95rem 2rem;
   color: var(--mechanic-sidebar-text);
   text-decoration: none;
   font-weight: 500;
+  font-size: 0.95rem;
+  line-height: 1.2;
   transition: all 0.2s ease;
   border-left: 4px solid transparent;
   border-radius: 0;
+  white-space: nowrap;
 }
 
 .sidebar-link svg {
-  margin-right: 12px;
   fill: currentColor;
   opacity: 0.7;
+  flex: 0 0 20px;
+}
+
+.sidebar-link .sidebar-label {
+  display: inline-block;
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #F9FAFB !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.sidebar-link .badge {
+  flex: 0 0 auto;
 }
 
 .sidebar-link:hover {

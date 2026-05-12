@@ -4,9 +4,10 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 import os
-
+from fastapi import UploadFile, File, Form
 import models, schemas
 from database import get_db
+from utils.file_upload import save_garage_document
 
 router = APIRouter()
 
@@ -289,6 +290,44 @@ def get_my_documents(
     return db.query(models.GarageDocument).filter(
         models.GarageDocument.garage_id == current_garage.id
     ).all()
+
+
+#  Upload Garage Document
+# ──────────────────────────────────────────
+# UPLOAD GARAGE DOCUMENT
+# POST /api/garage/me/documents
+# ──────────────────────────────────────────
+
+@router.post("/me/documents")
+def upload_garage_document(
+    document_type: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    file_url = save_garage_document(
+        file,
+        document_type=document_type,
+        garage_name=current_garage.name,
+        owner_name=current_garage.owner_name,
+    )
+
+    # Save DB record
+    document = models.GarageDocument(
+        garage_id=current_garage.id,
+        document_type=document_type,
+        file_url=file_url
+    )
+
+    db.add(document)
+    db.commit()
+    db.refresh(document)
+
+    return {
+        "message": "Document uploaded successfully",
+        "document": document
+    }
+
 
 
 # All Garage

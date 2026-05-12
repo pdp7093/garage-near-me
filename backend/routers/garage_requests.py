@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File
 from sqlalchemy.orm import Session
 from datetime import datetime
 import os
-import shutil
-from pathlib import Path
 
 import models, schemas
 from database import get_db
+from utils.file_upload import save_garage_document
 
 router = APIRouter()
 
@@ -93,20 +92,18 @@ def upload_request_document(
     req = db.query(models.GarageRequest).filter(models.GarageRequest.id == request_id).first()
     if not req:
         raise HTTPException(status_code=404, detail="Request not found")
-        
-    safe_name = "".join(c for c in req.owner_name if c.isalnum() or c in (' ', '_')).replace(' ', '_').lower()
-    folder_name = f"req_{safe_name}_{request_id}"
-    upload_dir = Path(f"uploads/{folder_name}")
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    file_path = upload_dir / file.filename
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+
+    file_url = save_garage_document(
+        file,
+        document_type=document_type,
+        garage_name=req.garage_name,
+        owner_name=req.owner_name,
+    )
         
     doc = models.GarageDocument(
         request_id=request_id,
         document_type=document_type,
-        file_url=f"/uploads/{folder_name}/{file.filename}"
+        file_url=file_url
     )
     db.add(doc)
     
@@ -421,20 +418,18 @@ def upload_garage_document(
     garage = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
     if not garage:
         raise HTTPException(status_code=404, detail="Garage not found")
-        
-    safe_name = "".join(c for c in garage.owner_name if c.isalnum() or c in (' ', '_')).replace(' ', '_').lower()
-    folder_name = f"{safe_name}_{garage_id}"
-    upload_dir = Path(f"uploads/{folder_name}")
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    file_path = upload_dir / file.filename
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+
+    file_url = save_garage_document(
+        file,
+        document_type=document_type,
+        garage_name=garage.name,
+        owner_name=garage.owner_name,
+    )
         
     doc = models.GarageDocument(
         garage_id=garage_id,
         document_type=document_type,
-        file_url=f"/uploads/{folder_name}/{file.filename}"
+        file_url=file_url
     )
     db.add(doc)
     db.commit()

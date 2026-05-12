@@ -46,6 +46,98 @@ function setActiveSidebarLink() {
   });
 }
 
+function bindAdminSidebarToggle() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  if (sidebarToggle && sidebar) {
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('show');
+    });
+  }
+}
+
+async function initAdminChrome(pageTitle, callback = null) {
+  const v = new Date().getTime();
+
+  await Promise.all([
+    loadComponent('sidebar-container', 'components/sidebar.html?v=' + v, setActiveSidebarLink),
+    loadComponent('topbar-container', 'components/topbar.html?v=' + v, () => {
+      const titleEl = document.getElementById('topbar-title');
+      if (titleEl) titleEl.textContent = pageTitle;
+    })
+  ]);
+
+  bindAdminSidebarToggle();
+
+  if (callback && typeof callback === 'function') {
+    callback();
+  }
+}
+
+function bindMechanicSidebarToggle() {
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+  function toggleSidebar() {
+    if (sidebar) sidebar.classList.toggle('show');
+    if (sidebarOverlay) sidebarOverlay.classList.toggle('d-none');
+  }
+
+  if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+  if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+}
+
+async function initMechanicChrome(pageTitle, callback = null, activeHref = null) {
+  const v = new Date().getTime();
+
+  await Promise.all([
+    loadComponent('sidebar-container', 'components/sidebar.html?v=' + v, () => {
+      setActiveSidebarLink();
+      if (activeHref) {
+        const activeLink = document.querySelector(`.sidebar-link[href="${activeHref}"]`);
+        if (activeLink) activeLink.classList.add('active');
+      }
+    }),
+    loadComponent('topbar-container', 'components/topbar.html?v=' + v, () => {
+      const titleEl = document.getElementById('topbar-title');
+      if (titleEl) titleEl.textContent = pageTitle;
+    })
+  ]);
+
+  bindMechanicSidebarToggle();
+
+  if (callback && typeof callback === 'function') {
+    callback();
+  }
+}
+
+async function mechanicCheckLocationSet() {
+  const token = localStorage.getItem('garage_token');
+  if (!token) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:8000/api/garage-auth/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    const garage = await res.json();
+    const loc = garage.location;
+    if (!loc || !loc.latitude || !loc.longitude) {
+      window.location.href = 'set-location.html';
+    }
+  } catch {
+    /* silent */
+  }
+}
+
 function initCustomerMenu() {
   const menuBtn = document.getElementById('menuBtn');
   const mobileMenu = document.getElementById('mobileMenu');
@@ -62,4 +154,3 @@ function initCustomerMenu() {
     });
   }
 }
-

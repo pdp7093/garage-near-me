@@ -137,39 +137,7 @@
 
   <script src="../js/components.js"></script>
   <script>
-    Promise.all([
-      loadComponent('sidebar-container', 'components/sidebar.html?v=' + new Date().getTime(), setActiveSidebarLink),
-      loadComponent('topbar-container', 'components/topbar.html?v=' + new Date().getTime(), () => {
-        const titleEl = document.getElementById('topbar-title');
-        if (titleEl) titleEl.textContent = 'Overview';
-      })
-    ]).then(() => {
-      const sidebar = document.getElementById('sidebar');
-      const sidebarToggle = document.getElementById('sidebarToggle');
-      const sidebarOverlay = document.getElementById('sidebarOverlay');
-      function toggleSidebar() {
-        if (sidebar) sidebar.classList.toggle('show');
-        if (sidebarOverlay) sidebarOverlay.classList.toggle('d-none');
-      }
-      if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
-      if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
-      checkLocationSet();
-      async function checkLocationSet() {
-        const token = localStorage.getItem('garage_token');
-        if (!token) { window.location.href = 'index.html'; return; }
-        try {
-          const res = await fetch('http://localhost:8000/api/garage-auth/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (!res.ok) { window.location.href = 'index.html'; return; }
-          const garage = await res.json();
-          const loc = garage.location;
-          if (!loc || !loc.latitude || !loc.longitude) {
-            window.location.href = 'set-location.html';
-          }
-        } catch { /* silent */ }
-      }
-    });
+    initMechanicChrome('Services', mechanicCheckLocationSet);
   </script>
   <script src="../js/bootstrap.js"></script>
   <script>
