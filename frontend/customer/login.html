@@ -331,8 +331,26 @@
                 localStorage.setItem('gnm_token', data.access_token);
                 localStorage.setItem('gnm_role', 'customer');
 
+                // ✅ User info fetch karo aur save karo (navbar ke liye)
+                try {
+                    const meRes = await fetch(`${API_BASE}/api/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${data.access_token}` }
+                    });
+                    if (meRes.ok) {
+                        const meData = await meRes.json();
+                        localStorage.setItem('gnm_user', JSON.stringify({
+                            name: meData.name,
+                            email: meData.email,
+                            phone: meData.phone,
+                            profile_image: meData.profile_image ? `${API_BASE}${meData.profile_image}` : null
+                        }));
+                    }
+                } catch (meErr) {
+                    console.warn('Could not fetch user info:', meErr);
+                }
+
                 // Redirect
-                window.location.href = 'dashboard.html';
+                window.location.href = 'index.html';
 
             } catch (err) {
                 // Button reset karo

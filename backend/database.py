@@ -113,6 +113,17 @@ def ensure_schema_updates():
                 "ADD COLUMN category VARCHAR(100)"
             )
 
+    if "customers" in table_names:
+        customer_columns = {
+            column["name"] for column in inspector.get_columns("customers")
+        }
+
+        if "profile_image" not in customer_columns:
+            updates.append(
+                "ALTER TABLE customers "
+                "ADD COLUMN profile_image VARCHAR(500)"
+            )
+
     if not updates:
         return
 

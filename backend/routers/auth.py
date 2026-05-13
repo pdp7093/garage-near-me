@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -8,6 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 import models, schemas
 from database import get_db
+from utils.file_upload import save_customer_profile_image
 
 router = APIRouter()
 
@@ -111,11 +112,13 @@ def get_me(
 
 @router.patch("/me", response_model=schemas.CustomerResponse)
 def update_me(
-    update_data: schemas.CustomerUpdate,
+    name: str = Form(None),
+    email: str = Form(None),
+    profile_image: UploadFile = File(None),
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
-    """Profile update karo — naam ya email."""
+    """Profile update karo — naam, email, ya profile image."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: int = payload.get("user_id")
@@ -126,8 +129,14 @@ def update_me(
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
 
-    for field, value in update_data.model_dump(exclude_unset=True).items():
-        setattr(customer, field, value)
+    if name is not None:
+        customer.name = name
+    if email is not None:
+        customer.email = email
+    if profile_image is not None:
+        # Save the file
+        image_path = save_customer_profile_image(profile_image, customer.id)
+        customer.profile_image = image_path
 
     db.commit()
     db.refresh(customer)

@@ -49,12 +49,14 @@ class CustomerCreate(BaseModel):
 class CustomerUpdate(BaseModel):
     name:  Optional[str] = None
     email: Optional[EmailStr] = None
+    profile_image: Optional[str] = None
 
 class CustomerResponse(BaseModel):
     id:         int
     name:       str
     phone:      str
     email:      EmailStr
+    profile_image: Optional[str] = None
     created_at: datetime
 
     class Config:

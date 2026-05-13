@@ -106,3 +106,25 @@ def save_garage_document(
         shutil.copyfileobj(file.file, buffer)
 
     return f"/{file_path.as_posix()}"
+
+
+CUSTOMER_PROFILE_ROOT = Path("uploads") / "customer_profiles"
+
+
+def save_customer_profile_image(file: UploadFile, customer_id: int) -> str:
+    """
+    Save a customer profile image under:
+    uploads/customer_profiles/{customer_id}/{unique-filename}
+
+    Returns the URL path stored in the database.
+    """
+    upload_dir = CUSTOMER_PROFILE_ROOT / str(customer_id)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}{_safe_extension(file.filename)}"
+    file_path = upload_dir / filename
+
+    with file_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return f"/{file_path.as_posix()}"

@@ -56,7 +56,7 @@
             <div class="d-none d-md-flex align-items-center gap-3">
                 <a href="search-results.html" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
                 <div class="dropdown">
-                    <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown">
+                    <div id="topAvatarCircle" class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown">
                         JD
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                 <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:100px;">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center gap-3 mb-4">
-                            <div class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0" style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);">
+                            <div id="sidebarAvatarCircle" class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0" style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);">
                                 JD
                             </div>
                             <div>
@@ -223,6 +223,66 @@
 
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="../js/script.js"></script>
+    <script>
+        const API_BASE = "http://127.0.0.1:8000";
+        const token = localStorage.getItem('gnm_token');
+
+        function authHeaders() {
+            return { 'Authorization': `Bearer ${token}` };
+        }
+
+        async function loadUserInfo() {
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/me`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load user info');
+                }
+
+                const data = await response.json();
+                const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'JD';
+                const avatarHtml = data.profile_image
+                    ? `<img src="${API_BASE}${data.profile_image}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
+                    : initials;
+
+                const topAvatar = document.getElementById('topAvatarCircle');
+                const sidebarAvatar = document.getElementById('sidebarAvatarCircle');
+                if (topAvatar) topAvatar.innerHTML = avatarHtml;
+                if (sidebarAvatar) sidebarAvatar.innerHTML = avatarHtml;
+
+                if (!data.profile_image) {
+                    document.querySelectorAll('.rounded-circle').forEach(el => {
+                        if (el.textContent.trim() === 'JD') {
+                            el.textContent = initials;
+                        }
+                    });
+                }
+
+                document.querySelectorAll('h6').forEach(el => {
+                    if (el.textContent.trim() === 'John Doe') {
+                        el.textContent = data.name || 'John Doe';
+                        if (el.nextElementSibling) {
+                            el.nextElementSibling.textContent = data.phone || '+91 98765 43210';
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('User info load error:', err);
+                localStorage.removeItem('gnm_token');
+                localStorage.removeItem('gnm_role');
+                window.location.href = 'login.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadUserInfo);
+    </script>
 </body>
 
 </html>

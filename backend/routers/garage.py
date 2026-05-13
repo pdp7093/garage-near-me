@@ -8,6 +8,10 @@ from fastapi import UploadFile, File, Form
 import models, schemas
 from database import get_db
 from utils.file_upload import save_garage_document
+import math
+from fastapi.responses import JSONResponse 
+from datetime import datetime as dt 
+from typing import Optional as Opt
 
 router = APIRouter()
 
@@ -589,4 +593,211 @@ def toggle_service_status(
     return {
         "message": "Service status updated",
         "is_available": service.is_available
+    }
+
+# NearBy Garages 
+def haversine_distance(lat1:float, lng1:float, lat2 :float,lng2:float) -> float:
+    R = 6371
+    d_lat = math.radians(lat2-lat1)
+    d_lng = math.radians(lng2 - lng1)
+    a = (
+        math.sin(d_lat / 2) ** 2 
+        + math.cos(math.radians(lat1))
+        *math.cos(math.radians(lat2))
+        *math.sin(d_lng / 2) ** 2
+    )
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 -a))
+    return R * c 
+
+class NearbeGarageResponse(schemas.GaragePublicResponse):
+    distance_km : float 
+    is_open_noe : bool 
+
+    class Config:
+        from_attributes = True 
+
+
+@router.get("/nearby")
+def get_nearby_garages(lat: float,lng: float,radius: float = 2.0,service_name: Opt[str] = None,db: Session = Depends(get_db),):
+    """
+    Customer ke aas paas ke garages fetch karo.
+    - Haversine formula se distance calculate hoti hai
+    - radius default 2km
+    - service_name se filter optional (partial match)
+    - Response mein distance_km aur is_open_now bhi aata hai
+    """
+    # Sirf active + verified garages jo location set kar chuke hain
+    garages = (
+        db.query(models.Garage)
+        .join(models.GarageLocation)
+        .filter(
+            models.Garage.is_active   == True,
+            models.Garage.is_verified == True,
+            models.GarageLocation.latitude  != None,
+            models.GarageLocation.longitude != None,
+        )
+        .all()
+    )
+ 
+    # Aaj ka din aur current time (IST offset nahi — UTC use kar rahe hain abhi)
+    now = dt.utcnow()
+    today = now.strftime("%A").lower()  # e.g. "monday"
+ 
+    results = []
+ 
+    for garage in garages:
+        loc = garage.location
+        distance = haversine_distance(lat, lng, loc.latitude, loc.longitude)
+ 
+        # Radius ke bahar — skip
+        if distance > radius:
+            continue
+ 
+        # Service name filter — agar diya gaya hai
+        if service_name:
+            service_match = any(
+                service_name.lower() in s.service_name.lower()
+                for s in garage.services
+                if s.is_available
+            )
+            if not service_match:
+                continue
+ 
+        # is_open_now calculate karo
+        is_open_now = False
+        for wh in garage.working_hours:
+            if wh.day_of_week == today and wh.is_open:
+                if wh.open_time and wh.close_time:
+                    current_time = now.time()
+                    if wh.open_time <= current_time <= wh.close_time:
+                        is_open_now = True
+                break
+ 
+        results.append({
+            "id":                   garage.id,
+            "name":                 garage.name,
+            "phone":                garage.phone,
+            "garage_type":          garage.garage_type,
+            "logo_url":             garage.logo_url,
+            "is_verified":          garage.is_verified,
+            "offers_pick_and_drop": garage.offers_pick_and_drop,
+            "visiting_charge":      float(garage.visiting_charge) if garage.visiting_charge else 0.0,
+            "location": {
+                "id":          loc.id,
+                "shop_number": loc.shop_number,
+                "street":      loc.street,
+                "city":        loc.city,
+                "pincode":     loc.pincode,
+                "latitude":    loc.latitude,
+                "longitude":   loc.longitude,
+            },
+            "services": [
+                {
+                    "id":           s.id,
+                    "service_name": s.service_name,
+                    "category":     s.category,
+                    "price":        float(s.price) if s.price else None,
+                    "is_available": s.is_available,
+                }
+                for s in garage.services
+                if s.is_available
+            ],
+            "distance_km": round(distance, 2),
+            "is_open_now": is_open_now,
+        })
+ 
+    # Distance ke hisaab se sort karo (nearest first)
+    results.sort(key=lambda x: x["distance_km"])
+ 
+    return results
+ 
+ 
+
+
+@router.get("/{garage_id}/public")
+def get_garage_public_detail(
+    garage_id: int,
+    db: Session = Depends(get_db),
+):
+    """
+    Garage detail page ke liye — no auth required.
+    Customer is page pe services select karta hai aur booking karta hai.
+    """
+    garage = db.query(models.Garage).filter(
+        models.Garage.id         == garage_id,
+        models.Garage.is_active  == True,
+        models.Garage.is_verified == True,
+    ).first()
+ 
+    if not garage:
+        raise HTTPException(status_code=404, detail="Garage not found")
+ 
+    # is_open_now
+    now   = dt.utcnow()
+    today = now.strftime("%A").lower()
+    is_open_now    = False
+    todays_hours   = None
+ 
+    for wh in garage.working_hours:
+        if wh.day_of_week == today:
+            todays_hours = wh
+            if wh.is_open and wh.open_time and wh.close_time:
+                if wh.open_time <= now.time() <= wh.close_time:
+                    is_open_now = True
+            break
+ 
+    # Services category wise group karo
+    services_grouped = {}
+    for s in garage.services:
+        if not s.is_available:
+            continue
+        cat = s.category or "Other"
+        if cat not in services_grouped:
+            services_grouped[cat] = []
+        services_grouped[cat].append({
+            "id":           s.id,
+            "service_name": s.service_name,
+            "price":        float(s.price) if s.price else None,
+            "is_available": s.is_available,
+        })
+ 
+    # Working hours full list
+    working_hours = [
+        {
+            "day":        wh.day_of_week,
+            "is_open":    wh.is_open,
+            "open_time":  str(wh.open_time)  if wh.open_time  else None,
+            "close_time": str(wh.close_time) if wh.close_time else None,
+        }
+        for wh in garage.working_hours
+    ]
+ 
+    loc = garage.location
+ 
+    return {
+        "id":                   garage.id,
+        "name":                 garage.name,
+        "phone":                garage.phone,
+        "garage_type":          garage.garage_type,
+        "logo_url":             garage.logo_url,
+        "is_verified":          garage.is_verified,
+        "is_sos_available":     garage.is_sos_available,
+        "offers_pick_and_drop": garage.offers_pick_and_drop,
+        "visiting_charge":      float(garage.visiting_charge) if garage.visiting_charge else 0.0,
+        "is_open_now":          is_open_now,
+        "todays_hours": {
+            "open_time":  str(todays_hours.open_time)  if todays_hours and todays_hours.open_time  else None,
+            "close_time": str(todays_hours.close_time) if todays_hours and todays_hours.close_time else None,
+            "is_open":    todays_hours.is_open if todays_hours else False,
+        } if todays_hours else None,
+        "location": {
+            "shop_number": loc.shop_number if loc else None,
+            "street":      loc.street      if loc else None,
+            "city":        loc.city        if loc else None,
+            "pincode":     loc.pincode     if loc else None,
+            "latitude":    loc.latitude    if loc else None,
+            "longitude":   loc.longitude   if loc else None,
+        },
+        "services_grouped": services_grouped,
+        "working_hours":    working_hours,
     }

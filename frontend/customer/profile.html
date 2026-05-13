@@ -48,8 +48,8 @@
             <div class="d-none d-md-flex align-items-center gap-3">
                 <a href="search-results.html" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
                 <div class="dropdown">
-                    <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown">
-                        JD
+                    <div id="topAvatarCircle" class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown">
+                        <input type="file" id="profileImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
                     </div>
                 </div>
             </div>
@@ -69,9 +69,10 @@
                 <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:100px;">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center gap-3 mb-4">
-                            <div class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0" style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);">
-                                JD
+                            <div id="sidebarAvatarCircle" class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0" style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);">
+                                <input type="file" id="profileImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
                             </div>
+                            <input type="file" id="profileImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
                             <div>
                                 <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">John Doe</h6>
                                 <p class="text-muted small mb-0">+91 98765 43210</p>
@@ -114,12 +115,14 @@
                     <div class="card-body p-4 p-md-5">
                         <div class="d-flex flex-column flex-md-row align-items-md-center gap-4 mb-5">
                             <div class="position-relative">
-                                <div class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold shadow-sm" style="width:100px; height:100px; background:var(--color-primary); font-size:36px; font-family:var(--font-head);">
-                                    JD
+                                <div id="profilePageAvatarCircle" class="rounded-circle d-flex justify-content-center align-items-center fw-bold shadow-sm" style="width:100px; height:100px; font-size:36px; font-family:var(--font-head);">
+                                    <input type="file" id="profileImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
                                 </div>
-                                <button class="btn btn-sm btn-light border shadow-sm rounded-circle position-absolute bottom-0 end-0 p-2 d-flex align-items-center justify-content-center" style="width:36px; height:36px;">
+                                <input type="file" id="profileImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+                                <button class="btn btn-sm btn-light border shadow-sm rounded-circle position-absolute bottom-0 end-0 p-2 d-flex align-items-center justify-content-center" style="width:36px; height:36px;" onclick="document.getElementById('profileImageInput').click()">
                                     <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                                 </button>
+                                <input type="file" id="profileImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
                             </div>
                             <div>
                                 <h5 class="fw-bold mb-1" style="color:var(--color-text);">Profile Picture</h5>
@@ -213,14 +216,27 @@
                 document.getElementById('profilePhone').value = data.phone;
                 document.getElementById('profileEmail').value = data.email || '';
 
-                // Update UI elements with name
+                // Persist user data for shared nav/avatar state
+                localStorage.setItem('gnm_user', JSON.stringify({
+                    name: data.name,
+                    email: data.email,
+                    phone: data.phone,
+                    profile_image: data.profile_image ? `${API_BASE}${data.profile_image}` : null
+                }));
+
+                // Update avatar circles
+                const profileAvatar = document.getElementById('profilePageAvatarCircle');
+                const sidebarAvatar = document.getElementById('sidebarAvatarCircle');
+                const topAvatar = document.getElementById('topAvatarCircle');
                 const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-                document.querySelectorAll('.rounded-circle').forEach(el => {
-                    if(el.textContent.trim() === 'JD') {
-                        el.textContent = initials;
-                    }
-                });
-                
+                const avatarHtml = data.profile_image
+                    ? `<img src="${API_BASE}${data.profile_image}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
+                    : initials;
+
+                if (profileAvatar) profileAvatar.innerHTML = avatarHtml;
+                if (sidebarAvatar) sidebarAvatar.innerHTML = avatarHtml;
+                if (topAvatar) topAvatar.innerHTML = avatarHtml;
+
                 document.querySelectorAll('h6').forEach(el => {
                     if(el.textContent === 'John Doe') {
                         el.textContent = data.name;
@@ -245,14 +261,17 @@
             const name = document.getElementById('profileName').value.trim();
             const email = document.getElementById('profileEmail').value.trim();
 
+            const formData = new FormData();
+            if (name) formData.append('name', name);
+            if (email) formData.append('email', email);
+
             try {
                 const response = await fetch(`${API_BASE}/api/auth/me`, {
                     method: 'PATCH',
                     headers: { 
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ name: name, email: email })
+                    body: formData
                 });
 
                 if (!response.ok) {
@@ -269,6 +288,46 @@
                 btn.disabled = false;
             }
             return false;
+        }
+
+        async function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            // Validate file size (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Image size should be less than 2MB.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('profile_image', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/me`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Failed to upload image');
+                }
+
+                alert('Profile image updated successfully! ✅');
+                loadProfile(); // Reload to reflect changes
+            } catch (err) {
+                alert(err.message);
+            }
         }
 
         function logout() {

@@ -19,25 +19,45 @@
     </div>
 
     <div class="gnm-nav-right">
-      <div class="gnm-location">
-        <svg viewBox="0 0 24 24" fill="#FF6B35" width="13" height="13">
-          <path
-            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-        </svg>
-        <span>Ahmedabad</span>
-      </div>
-      <a href="login.html" class="gnm-btn-login">Login</a>
+      <a href="login.html" id="navLoginButton" class="gnm-btn-login">Login</a>
+      <a href="profile.html" id="navProfileButton" class="gnm-profile-avatar d-none" title="Go to profile">
+        <div class="gnm-avatar-circle" id="navAvatarInitials">JD</div>
+      </a>
       <button class="gnm-hamburger" id="menuBtn" aria-label="Toggle menu">
         <span></span><span></span><span></span>
       </button>
     </div>
-
   </div>
   <div class="gnm-mobile-menu" id="mobileMenu">
     <a href="index.html">Home</a>
     <a href="search-results.html">Garages</a>
     <a href="services.html">Services</a>
     <a href="about.html">About</a>
-    <a href="login.html" class="gnm-mobile-login">Login</a>
+    <a href="login.html" id="mobileLoginLink" class="gnm-mobile-login">Login</a>
+    <a href="profile.html" id="mobileProfileLink" class="d-none">Profile</a>
   </div>
+
+  <style>
+    .gnm-avatar-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #FF6B35;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      font-family: var(--font-head);
+      text-transform: uppercase;
+      flex-shrink: 0;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .gnm-profile-avatar:hover .gnm-avatar-circle {
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    }
+  </style>
 </nav>

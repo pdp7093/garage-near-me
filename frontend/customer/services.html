@@ -12,40 +12,7 @@
 
 <body style="background:var(--color-bg); min-height:100vh; display: flex; flex-direction: column;">
 
-    <!-- ═══ NAVBAR ═══ -->
-    <nav class="gnm-nav sticky-top shadow-sm border-bottom">
-        <div class="gnm-nav-inner">
-            <a href="index.html" class="gnm-logo text-decoration-none">
-                <div class="gnm-logo-icon">
-                    <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                        <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
-                    </svg>
-                </div>
-                <span class="gnm-logo-text">GarageNearMe</span>
-            </a>
-
-            <div class="gnm-nav-center d-none d-lg-flex">
-                <a href="index.html" class="gnm-nav-link">Home</a>
-                <a href="search-results.html" class="gnm-nav-link">Garages</a>
-                <a href="services.html" class="gnm-nav-link active">Services</a>
-                <a href="about.html" class="gnm-nav-link">About</a>
-            </div>
-
-            <div class="gnm-nav-right">
-                <a href="login.html" class="gnm-btn-login d-none d-md-flex">Login</a>
-                <button class="gnm-hamburger d-lg-none" id="menuBtn" aria-label="Toggle menu">
-                    <span></span><span></span><span></span>
-                </button>
-            </div>
-        </div>
-        <div class="gnm-mobile-menu" id="mobileMenu">
-            <a href="index.html">Home</a>
-            <a href="search-results.html">Garages</a>
-            <a href="services.html" class="active">Services</a>
-            <a href="about.html">About</a>
-            <a href="login.html" class="gnm-mobile-login">Login</a>
-        </div>
-    </nav>
+    <div id="navbar-container"></div>
 
     <!-- ═══ SERVICES HERO ═══ -->
     <div class="bg-white border-bottom py-5">
@@ -157,50 +124,18 @@
         </div>
     </div>
 
-    <!-- ═══ FOOTER ═══ -->
-    <footer class="gnm-footer mt-auto">
-        <div class="gnm-footer-top">
-            <div class="gnm-footer-brand">
-                <a href="index.html" class="gnm-logo">
-                    <div class="gnm-logo-icon">
-                        <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
-                            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
-                        </svg>
-                    </div>
-                    <span class="gnm-logo-text">GarageNearMe</span>
-                </a>
-                <p class="gnm-footer-tagline">Your trusted vehicle repair partner — anytime, anywhere in the city.</p>
-            </div>
+    <div id="footer-container"></div>
 
-            <div class="gnm-footer-col">
-                <div class="gnm-footer-heading">Platform</div>
-                <a href="search-results.html" class="gnm-footer-link">Find Garages</a>
-                <a href="sos-tracking.html" class="gnm-footer-link">Emergency SOS</a>
-                <a href="services.html" class="gnm-footer-link">Services</a>
-                <a href="about.html" class="gnm-footer-link">About Us</a>
-            </div>
-
-            <div class="gnm-footer-col">
-                <div class="gnm-footer-heading">For Garages</div>
-                <a href="register.html" class="gnm-footer-link">Register Garage</a>
-                <a href="login.html" class="gnm-footer-link">Mechanic Login</a>
-            </div>
-
-            <div class="gnm-footer-col">
-                <div class="gnm-footer-heading">Contact</div>
-                <p class="gnm-footer-link">support@garagenearme.in</p>
-                <p class="gnm-footer-link">+91 98765 43210</p>
-                <p class="gnm-footer-link">New Delhi, India</p>
-            </div>
-        </div>
-        <div class="gnm-footer-bottom">
-            <span>&copy; 2026 GarageNearMe. All rights reserved.</span>
-            <div class="gnm-footer-legal">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Use</a>
-            </div>
-        </div>
-    </footer>
+    <script src="../js/components.js"></script>
+    <script>
+      Promise.all([
+        loadComponent('navbar-container', 'components/navbar.html', () => {
+          setActiveSidebarLink();
+          initCustomerMenu();
+        }),
+        loadComponent('footer-container', 'components/footer.html')
+      ]);
+    </script>
 
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="../js/script.js"></script>
