@@ -75,13 +75,21 @@ async function initAdminChrome(pageTitle, callback = null) {
 }
 
 function bindMechanicSidebarToggle() {
-  const sidebar = document.getElementById('sidebar');
+  const sidebarContainer = document.getElementById('sidebar-container');
   const sidebarToggle = document.getElementById('sidebarToggle');
   const sidebarOverlay = document.getElementById('sidebarOverlay');
 
   function toggleSidebar() {
-    if (sidebar) sidebar.classList.toggle('show');
-    if (sidebarOverlay) sidebarOverlay.classList.toggle('d-none');
+    if (sidebarContainer) {
+      sidebarContainer.classList.toggle('show');
+    }
+    if (sidebarOverlay) {
+      if (sidebarOverlay.classList.contains('d-none')) {
+        sidebarOverlay.classList.remove('d-none');
+      } else {
+        sidebarOverlay.classList.add('d-none');
+      }
+    }
   }
 
   if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);

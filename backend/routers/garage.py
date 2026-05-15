@@ -624,12 +624,12 @@ def get_nearby_garages(lat: float,lng: float,radius: float = 2.0,service_name: O
     - Haversine formula se distance calculate hoti hai
     - radius default 2km
     - service_name se filter optional (partial match)
-    - Response mein distance_km aur is_open_now bhi aata hai
+    - Response mein distance_km, is_open_now, is_sos_available bhi aata hai
     """
-    # Sirf active + verified garages jo location set kar chuke hain
+    # Sirf active + verified garages jo location set kar chuke hain (LEFT JOIN to handle missing locations)
     garages = (
         db.query(models.Garage)
-        .join(models.GarageLocation)
+        .outerjoin(models.GarageLocation)
         .filter(
             models.Garage.is_active   == True,
             models.Garage.is_verified == True,
@@ -639,13 +639,19 @@ def get_nearby_garages(lat: float,lng: float,radius: float = 2.0,service_name: O
         .all()
     )
  
-    # Aaj ka din aur current time (IST offset nahi — UTC use kar rahe hain abhi)
-    now = dt.utcnow()
+    # IST time (UTC + 5:30)
+    from datetime import timedelta
+    IST = timedelta(hours=5, minutes=30)
+    now = dt.utcnow() + IST
     today = now.strftime("%A").lower()  # e.g. "monday"
  
     results = []
  
     for garage in garages:
+        # Location check
+        if not garage.location or not garage.location.latitude or not garage.location.longitude:
+            continue
+            
         loc = garage.location
         distance = haversine_distance(lat, lng, loc.latitude, loc.longitude)
  
@@ -665,13 +671,17 @@ def get_nearby_garages(lat: float,lng: float,radius: float = 2.0,service_name: O
  
         # is_open_now calculate karo
         is_open_now = False
-        for wh in garage.working_hours:
-            if wh.day_of_week == today and wh.is_open:
-                if wh.open_time and wh.close_time:
-                    current_time = now.time()
-                    if wh.open_time <= current_time <= wh.close_time:
-                        is_open_now = True
-                break
+        try:
+            for wh in garage.working_hours:
+                if wh.day_of_week == today and wh.is_open:
+                    if wh.open_time and wh.close_time:
+                        current_time = now.time()
+                        if wh.open_time <= current_time <= wh.close_time:
+                            is_open_now = True
+                    break
+        except Exception as e:
+            print(f"Working hours error for garage {garage.id}: {e}")
+            is_open_now = True  # Default to open if error
  
         results.append({
             "id":                   garage.id,
@@ -681,6 +691,7 @@ def get_nearby_garages(lat: float,lng: float,radius: float = 2.0,service_name: O
             "logo_url":             garage.logo_url,
             "is_verified":          garage.is_verified,
             "offers_pick_and_drop": garage.offers_pick_and_drop,
+            "is_sos_available":     garage.is_sos_available,
             "visiting_charge":      float(garage.visiting_charge) if garage.visiting_charge else 0.0,
             "location": {
                 "id":          loc.id,

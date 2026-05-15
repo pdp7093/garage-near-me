@@ -294,17 +294,50 @@
 
 /* Responsive Dashboard */
 @media (max-width: 991.98px) {
-  .mechanic-sidebar {
+  .mechanic-layout {
+    flex-direction: column;
+  }
+
+  #sidebar-container {
     position: fixed;
+    width: var(--mechanic-sidebar-width);
     height: 100vh;
     transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1040;
+    flex: none;
   }
-  .mechanic-sidebar.show {
+
+  #sidebar-container.show {
     transform: translateX(0);
   }
+
+  .mechanic-sidebar {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    transform: translateX(0);
+  }
+
+  #sidebarOverlay {
+    display: none !important;
+  }
+
+  #sidebarOverlay:not(.d-none) {
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mechanic-main {
+    width: 100%;
+    flex: 1;
+  }
+
   .mechanic-topbar {
     padding: 0 1rem;
   }
+
   .mechanic-content {
     padding: 1rem;
   }
