@@ -812,3 +812,113 @@ def get_garage_public_detail(
         "services_grouped": services_grouped,
         "working_hours":    working_hours,
     }
+
+# ──────────────────────────────────────────
+# SUGGESTED SERVICES — GET
+# GET /api/garage/me/suggested-services
+# ──────────────────────────────────────────
+
+@router.get("/me/suggested-services")
+def get_suggested_services(
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Mechanic ke garage_type ke according default services return karo
+    jo usne abhi tak apni list mein add nahi ki hain.
+    """
+    garage_type = current_garage.garage_type  # two_wheeler | four_wheeler | both
+
+    # Already added services ke naam (lowercase for comparison)
+    existing_names = {
+        s.service_name.lower()
+        for s in current_garage.services
+    }
+
+    # Default services — garage type ke according filter
+    query = db.query(models.DefaultService).filter(
+        models.DefaultService.is_active == True
+    )
+
+    if garage_type == "two_wheeler":
+        query = query.filter(
+            models.DefaultService.vehicle_type.in_(["two_wheeler", "both"])
+        )
+    elif garage_type == "four_wheeler":
+        query = query.filter(
+            models.DefaultService.vehicle_type.in_(["four_wheeler", "both"])
+        )
+    # "both" ke liye sab dikhao — no extra filter
+
+    all_defaults = query.order_by(
+        models.DefaultService.category,
+        models.DefaultService.id
+    ).all()
+
+    # Jo already add ho chuki hain unhe hataao
+    suggestions = [
+        {
+            "id":              s.id,
+            "vehicle_type":    s.vehicle_type,
+            "category":        s.category,
+            "service_name":    s.service_name,
+            "suggested_price": float(s.suggested_price) if s.suggested_price else None,
+            "price_type":      s.price_type,
+        }
+        for s in all_defaults
+        if s.service_name.lower() not in existing_names
+    ]
+
+    return suggestions
+
+
+# ──────────────────────────────────────────
+# SUGGESTED SERVICES — ADD ONE
+# POST /api/garage/me/suggested-services/{default_id}
+# ──────────────────────────────────────────
+
+@router.post("/me/suggested-services/{default_id}", status_code=201)
+def add_suggested_service(
+    default_id: int,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Mechanic ek suggested service apni list mein add karta hai.
+    Default service ka price aur category copy hoti hai.
+    """
+    default_svc = db.query(models.DefaultService).filter(
+        models.DefaultService.id        == default_id,
+        models.DefaultService.is_active == True
+    ).first()
+
+    if not default_svc:
+        raise HTTPException(status_code=404, detail="Default service not found")
+
+    # Already exist karta hai check
+    existing = db.query(models.GarageService).filter(
+        models.GarageService.garage_id    == current_garage.id,
+        models.GarageService.service_name == default_svc.service_name
+    ).first()
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Service already added")
+
+    new_service = models.GarageService(
+        garage_id    = current_garage.id,
+        service_name = default_svc.service_name,
+        category     = default_svc.category,
+        price        = default_svc.suggested_price,
+        is_available = True,
+    )
+    db.add(new_service)
+    db.commit()
+    db.refresh(new_service)
+
+    return {
+        "id":           new_service.id,
+        "service_name": new_service.service_name,
+        "category":     new_service.category,
+        "price":        float(new_service.price) if new_service.price else None,
+        "is_available": new_service.is_available,
+    }

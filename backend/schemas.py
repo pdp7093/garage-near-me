@@ -64,6 +64,31 @@ class CustomerResponse(BaseModel):
 
 
 # ──────────────────────────────────────────
+# CUSTOMER ADDRESS
+# ──────────────────────────────────────────
+
+class CustomerAddressCreate(BaseModel):
+    title:      Optional[str] = None
+    address:    str
+    latitude:   Optional[float] = None
+    longitude:  Optional[float] = None
+    is_default: bool = False
+
+class CustomerAddressResponse(BaseModel):
+    id:         int
+    customer_id:int
+    title:      Optional[str] = None
+    address:    str
+    latitude:   Optional[float] = None
+    longitude:  Optional[float] = None
+    is_default: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ──────────────────────────────────────────
 # AUTH (Customer)
 # ──────────────────────────────────────────
 
@@ -324,11 +349,17 @@ class SOSBookingCreate(BookingCreate):
 class BookingStatusUpdate(BaseModel):
     status:      BookingStatus
     garage_note: Optional[str] = None
+    final_amount: Optional[float] = None
+
+class EstimateItem(BaseModel):
+    item_name: str
+    price: float
 
 class BookingEstimateUpdate(BaseModel):
-    estimated_amount: float
+    estimate_details: list[EstimateItem]
     estimate_status:  EstimateStatus
     pickup_charge:    Optional[float] = None
+    has_hidden_issues: bool = False
 
 class EstimateApproval(BaseModel):
     estimate_status: EstimateStatus
@@ -352,7 +383,13 @@ class BookingResponse(BaseModel):
     pickup_address:         Optional[str] = None
     pickup_charge:          Optional[float] = None
     estimated_amount:       Optional[float] = None
-    estimate_status:        EstimateStatus
+    estimate_details:       Optional[list[dict]] = None
+    estimate_status:        Optional[EstimateStatus] = None
+    has_hidden_issues:      bool = False
+    additional_estimate:    Optional[float] = None
+    additional_estimate_note: Optional[str] = None
+    additional_estimate_details: Optional[list[dict]] = None
+    additional_otp_verified: bool = False
     responded_at:           Optional[datetime] = None
     started_at:             Optional[datetime] = None
     completed_at:           Optional[datetime] = None

@@ -351,8 +351,8 @@
                         <svg viewBox="0 0 24 24" fill="var(--color-border)" width="64" height="64" class="mb-3">
                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                         </svg>
-                        <h5 class="fw-bold mb-2" style="color:var(--color-text);">Koi garage nahi mila</h5>
-                        <p style="font-size:14px;">2km radius mein koi garage nahi hai.<br>Filter change karke try karo.</p>
+                        <h5 class="fw-bold mb-2" style="color:var(--color-text);">No garages found</h5>
+                        <p style="font-size:14px;">No garages found within a 2km radius.<br>Try changing your filters.</p>
                     </div>`;
                 document.getElementById('pagination-info').textContent = '';
                 document.getElementById('pagination').innerHTML = '';
@@ -460,7 +460,7 @@
                 attribution: '© OpenStreetMap contributors'
             }).addTo(desktopMap);
             L.circleMarker([userLat, userLng], { radius: 10, fillColor: '#FF6B35', color: 'white', weight: 3, fillOpacity: 1 })
-                .addTo(desktopMap).bindPopup('<b>Aap yahan hain</b>');
+                .addTo(desktopMap).bindPopup('<b>You are here</b>');
             L.circle([userLat, userLng], { radius: 2000, color: '#1B1F2E', fillColor: '#1B1F2E', fillOpacity: .04, weight: 1.5, dashArray: '6,4' })
                 .addTo(desktopMap);
         }
@@ -472,7 +472,7 @@
                 attribution: '© OpenStreetMap contributors'
             }).addTo(mobileMap);
             L.circleMarker([userLat, userLng], { radius: 10, fillColor: '#FF6B35', color: 'white', weight: 3, fillOpacity: 1 })
-                .addTo(mobileMap).bindPopup('<b>Aap yahan hain</b>');
+                .addTo(mobileMap).bindPopup('<b>You are here</b>');
         }
 
         function markerIcon(isOpen) {
@@ -569,10 +569,10 @@
                     <svg viewBox="0 0 24 24" fill="var(--color-danger,#E53E3E)" width="48" height="48" class="mb-3">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                     </svg>
-                    <h5 class="fw-bold mb-2">Kuch gadbad ho gayi</h5>
+                    <h5 class="fw-bold mb-2">Something went wrong</h5>
                     <p style="font-size:14px;">${msg}</p>
                     <button class="btn btn-sm rounded-pill px-4 text-white mt-2" style="background:var(--color-primary);"
-                        onclick="fetchWithCoordinates(userLat,userLng)">Dobara Try Karo</button>
+                        onclick="fetchWithCoordinates(userLat,userLng)">Try Again</button>
                 </div>`;
         }
     </script>

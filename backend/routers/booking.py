@@ -218,8 +218,14 @@ def update_booking_estimate(
     else:
         booking.pickup_charge = update.pickup_charge
 
-    booking.estimated_amount = update.estimated_amount
+    # Calculate total estimated amount from itemized list
+    total_estimate = sum(item.price for item in update.estimate_details)
+    booking.estimated_amount = total_estimate
+    
+    # Store itemized details
+    booking.estimate_details = [item.dict() for item in update.estimate_details]
     booking.estimate_status  = update.estimate_status
+    booking.has_hidden_issues = update.has_hidden_issues
 
     db.commit()
     db.refresh(booking)
@@ -303,6 +309,27 @@ def get_all_garage_bookings(
     ).order_by(models.Booking.created_at.desc()).all()
 
 
+@router.get("/garage/{booking_id}", response_model=schemas.BookingResponse)
+def get_garage_booking(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Garage ke liye ek specific booking ki details.
+    GET /api/bookings/garage/{booking_id}
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id        == booking_id,
+        models.Booking.garage_id == current_garage.id
+    ).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+        
+    return booking
+
+
 @router.patch("/{booking_id}/status", response_model=schemas.BookingResponse)
 def update_booking_status(
     booking_id: int,
@@ -349,10 +376,183 @@ def update_booking_status(
         booking.started_at = now
     elif update.status == models.BookingStatus.completed:
         booking.completed_at = now
+        booking.final_amount = update.final_amount
 
     booking.status      = update.status
     booking.garage_note = update.garage_note
 
+    db.commit()
+    db.refresh(booking)
+    return booking
+
+
+# ──────────────────────────────────────────
+# SEND ESTIMATE OTP (Garage → Customer)
+# POST /api/bookings/{booking_id}/send-estimate-otp
+# ──────────────────────────────────────────
+
+import random
+
+@router.post("/{booking_id}/send-estimate-otp")
+def send_estimate_otp(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Garage estimate bhejne ke baad OTP customer ke phone pe jaata hai.
+    Customer OTP de toh kaam shuru.
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id        == booking_id,
+        models.Booking.garage_id == current_garage.id
+    ).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking.estimate_status != models.EstimateStatus.pending:
+        raise HTTPException(status_code=400, detail="Estimate must be sent first")
+
+    otp = str(random.randint(100000, 999999))
+    booking.estimate_otp          = otp
+    booking.estimate_otp_verified = False
+    booking.estimate_otp_sent_at  = datetime.utcnow()
+    db.commit()
+
+    # TODO: SMS send karo customer ke phone pe
+    print(f"\n{'='*40}")
+    print(f"ESTIMATE OTP for Booking #{booking_id}: {otp}")
+    print(f"Customer phone: {booking.customer.phone}")
+    print(f"{'='*40}\n")
+
+    return {
+        "message": "OTP sent to customer",
+        "otp": otp  # TESTING ONLY
+    }
+
+
+# ──────────────────────────────────────────
+# VERIFY ESTIMATE OTP (Garage verifies customer OTP)
+# POST /api/bookings/{booking_id}/verify-estimate-otp
+# ──────────────────────────────────────────
+
+@router.post("/{booking_id}/verify-estimate-otp", response_model=schemas.BookingResponse)
+def verify_estimate_otp(
+    booking_id: int,
+    otp: str,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Customer ka OTP verify karo → booking ongoing ho jaati hai.
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id        == booking_id,
+        models.Booking.garage_id == current_garage.id
+    ).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking.estimate_otp != otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    if booking.estimate_otp_verified:
+        raise HTTPException(status_code=400, detail="OTP already used")
+
+    booking.estimate_otp_verified = True
+    booking.estimate_status       = models.EstimateStatus.approved
+    booking.status                = models.BookingStatus.ongoing
+    booking.started_at            = datetime.utcnow()
+    db.commit()
+    db.refresh(booking)
+    return booking
+
+
+# ──────────────────────────────────────────
+# SEND ADDITIONAL ESTIMATE (Hidden Issues mile)
+# PATCH /api/bookings/{booking_id}/additional-estimate
+# ──────────────────────────────────────────
+
+from pydantic import BaseModel
+from typing import List, Optional
+
+class AdditionalEstimateItem(BaseModel):
+    item_name: str
+    price: float
+
+class AdditionalEstimatePayload(BaseModel):
+    items: List[AdditionalEstimateItem]
+    note: Optional[str] = None
+
+@router.patch("/{booking_id}/additional-estimate")
+def send_additional_estimate(
+    booking_id: int,
+    payload: AdditionalEstimatePayload,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Hidden issues mile → additional estimate bhejo.
+    Customer ka OTP 2 lena hoga kaam shuru karne ke liye.
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id        == booking_id,
+        models.Booking.garage_id == current_garage.id,
+        models.Booking.status    == models.BookingStatus.ongoing
+    ).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found or not ongoing")
+
+    total = sum(item.price for item in payload.items)
+    booking.additional_estimate         = total
+    booking.additional_estimate_note    = payload.note
+    booking.additional_estimate_details = [i.dict() for i in payload.items]
+
+    # Send OTP 2
+    otp = str(random.randint(100000, 999999))
+    booking.additional_otp          = otp
+    booking.additional_otp_verified = False
+    booking.additional_otp_sent_at  = datetime.utcnow()
+    db.commit()
+    db.refresh(booking)
+
+    print(f"\n{'='*40}")
+    print(f"ADDITIONAL OTP for Booking #{booking_id}: {otp}")
+    print(f"{'='*40}\n")
+
+    return {
+        "message": "Additional estimate sent, OTP generated",
+        "additional_estimate": total,
+        "otp": otp  # TESTING ONLY
+    }
+
+
+# ──────────────────────────────────────────
+# VERIFY ADDITIONAL OTP
+# POST /api/bookings/{booking_id}/verify-additional-otp
+# ──────────────────────────────────────────
+
+@router.post("/{booking_id}/verify-additional-otp", response_model=schemas.BookingResponse)
+def verify_additional_otp(
+    booking_id: int,
+    otp: str,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Customer OTP 2 deta hai → additional kaam bhi start.
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id        == booking_id,
+        models.Booking.garage_id == current_garage.id
+    ).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if not booking.additional_otp:
+        raise HTTPException(status_code=400, detail="No additional estimate sent")
+    if booking.additional_otp != otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    if booking.additional_otp_verified:
+        raise HTTPException(status_code=400, detail="OTP already used")
+
+    booking.additional_otp_verified = True
     db.commit()
     db.refresh(booking)
     return booking

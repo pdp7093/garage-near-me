@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base, ensure_schema_updates
-from routers import auth, garage, booking, vehicles, garage_requests, garage_auth
+from routers import auth, garage, booking, vehicles, addresses, garage_requests, garage_auth
 from routers import default_services
 import os
 
@@ -26,6 +26,7 @@ app.add_middleware(
 app.include_router(auth.router,             prefix="/api/auth",             tags=["Customer Auth"])
 app.include_router(booking.router,          prefix="/api/bookings",         tags=["Bookings"])
 app.include_router(vehicles.router,         prefix="/api/vehicles",         tags=["Vehicles"])
+app.include_router(addresses.router,        prefix="/api/addresses",        tags=["Addresses"])
 
 # Garage
 app.include_router(garage_requests.router,  prefix="/api/garage-requests",  tags=["Garage Onboarding"])

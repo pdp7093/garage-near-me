@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Bookings - GarageNearMe</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    .request-card {
+      transition: all 0.2s ease;
+      border: 1px solid var(--color-border);
+    }
+
+    .request-card:hover {
+      border-color: rgba(255, 107, 53, 0.3);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .filter-btn {
+      transition: all .15s;
+      font-size: 13px;
+    }
+
+    .filter-btn.active {
+      background: var(--color-primary) !important;
+      color: white !important;
+      border-color: var(--color-primary) !important;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .status-pending {
+      background: #EFF6FF;
+      color: #2563EB;
+    }
+
+    .status-accepted {
+      background: #F0FDF4;
+      color: #16A34A;
+    }
+
+    .status-ongoing {
+      background: #FFFBEB;
+      color: #D97706;
+    }
+
+    .status-completed {
+      background: #F0FDF4;
+      color: #15803D;
+    }
+
+    .status-rejected {
+      background: #FEF2F2;
+      color: #DC2626;
+    }
+
+    .status-cancelled {
+      background: #F3F4F6;
+      color: #6B7280;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mechanic-layout">
+    <div id="sidebar-container"></div>
+    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
+      style="z-index:1030;"></div>
+
+    <main class="mechanic-main">
+      <div id="topbar-container"></div>
+
+      <div class="mechanic-content">
+
+        <!-- Filter Bar -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+          <div class="d-flex flex-wrap gap-2" id="filter-btns">
+            <button class="btn btn-outline-secondary filter-btn rounded-pill px-4 active"
+              onclick="setFilter('all', this)">
+              All <span class="badge bg-secondary ms-1 rounded-pill" id="count-all">0</span>
+            </button>
+            <button class="btn btn-outline-secondary filter-btn rounded-pill px-4" onclick="setFilter('pending', this)">
+              New <span class="badge bg-primary ms-1 rounded-pill" id="count-pending">0</span>
+            </button>
+            <button class="btn btn-outline-secondary filter-btn rounded-pill px-4"
+              onclick="setFilter('accepted', this)">
+              Accepted <span class="badge bg-info ms-1 rounded-pill" id="count-accepted">0</span>
+            </button>
+            <button class="btn btn-outline-secondary filter-btn rounded-pill px-4" onclick="setFilter('ongoing', this)">
+              In Progress <span class="badge bg-warning ms-1 rounded-pill" id="count-ongoing">0</span>
+            </button>
+            <button class="btn btn-outline-secondary filter-btn rounded-pill px-4"
+              onclick="setFilter('completed', this)">
+              Completed <span class="badge bg-success ms-1 rounded-pill" id="count-completed">0</span>
+            </button>
+          </div>
+          <button class="btn btn-outline-secondary rounded-pill px-3 d-flex align-items-center gap-2"
+            style="font-size:13px;" onclick="loadBookings()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+              <path
+                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+            </svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="row g-4" id="bookings-container"></div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/mechanic-auth.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/bootstrap.js"></script>
+
+  <script>
+    initMechanicChrome('Bookings');
+
+    let allBookings = [];
+    let currentFilter = 'all';
+
+    // ── Load bookings ──
+    async function loadBookings() {
+      showSkeletons();
+      try {
+        const res = await fetch(`${getApiBase()}/api/bookings/garage/all`, {
+          headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+        });
+        if (!res.ok) throw new Error();
+        allBookings = await res.json();
+        updateCounts();
+        renderBookings();
+      } catch {
+        document.getElementById('bookings-container').innerHTML = `
+          <div class="col-12">
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="var(--color-danger,#E53E3E)" width="48" height="48" class="mb-3">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+              <h5 class="fw-bold mb-2">Bookings load nahi hue</h5>
+              <button class="btn btn-sm rounded-pill px-4 text-white mt-2" style="background:var(--color-primary);" onclick="loadBookings()">Dobara Try Karo</button>
+            </div>
+          </div>`;
+      }
+    }
+
+    // ── Update filter counts ──
+    function updateCounts() {
+      const counts = { all: allBookings.length, pending: 0, accepted: 0, ongoing: 0, completed: 0 };
+      allBookings.forEach(b => { if (counts[b.status] !== undefined) counts[b.status]++; });
+      Object.keys(counts).forEach(k => {
+        const el = document.getElementById(`count-${k}`);
+        if (el) el.textContent = counts[k];
+      });
+    }
+
+    // ── Filter ──
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderBookings();
+    }
+
+    // ── Render ──
+    function renderBookings() {
+      const container = document.getElementById('bookings-container');
+      let data = currentFilter === 'all'
+        ? allBookings
+        : allBookings.filter(b => b.status === currentFilter);
+
+      // Sort — pending first, then by date
+      data.sort((a, b) => {
+        const order = { pending: 0, accepted: 1, ongoing: 2, completed: 3, rejected: 4, cancelled: 5 };
+        if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      if (data.length === 0) {
+        container.innerHTML = `
+          <div class="col-12">
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="var(--color-border)" width="64" height="64" class="mb-3">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
+              </svg>
+              <h5 class="fw-bold mb-2">Koi booking nahi mili</h5>
+              <p style="font-size:14px;">Is category mein abhi koi booking nahi hai.</p>
+            </div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = data.map(b => buildCard(b)).join('');
+    }
+
+    // ── Card HTML ──
+    function buildCard(b) {
+      const statusConfig = {
+        pending: { label: 'New Booking', cls: 'status-pending' },
+        accepted: { label: 'Accepted', cls: 'status-accepted' },
+        ongoing: { label: 'In Progress', cls: 'status-ongoing' },
+        completed: { label: 'Completed', cls: 'status-completed' },
+        rejected: { label: 'Rejected', cls: 'status-rejected' },
+        cancelled: { label: 'Cancelled', cls: 'status-cancelled' },
+      };
+      const sc = statusConfig[b.status] || { label: b.status, cls: 'status-cancelled' };
+
+      const date = new Date(b.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      const time = new Date(b.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+      const pickDrop = b.requires_pick_and_drop
+        ? `<span class="badge rounded-pill px-2 py-1" style="background:#EFF6FF;color:#2563EB;font-size:11px;">🚗 Pick &amp; Drop</span>`
+        : '';
+
+      const scheduledStr = b.scheduled_at
+        ? `<div class="text-muted" style="font-size:12px;">📅 ${new Date(b.scheduled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} ${new Date(b.scheduled_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>`
+        : '';
+
+      const estimateSection = b.estimated_amount
+        ? `<div class="d-flex justify-content-between align-items-center px-3 py-2 rounded-3 mb-3" style="background:#F0FDF4;">
+              <span class="text-muted" style="font-size:13px;">Estimate Sent</span>
+              <span class="fw-bold" style="color:#16A34A;font-size:16px;">₹${b.estimated_amount}</span>
+           </div>`
+        : '';
+
+      const borderStyle = b.status === 'ongoing'
+        ? 'border-left: 4px solid #F59E0B;'
+        : b.status === 'pending'
+          ? 'border-left: 4px solid #2563EB;'
+          : '';
+
+      return `
+        <div class="col-12 col-xl-6">
+          <div class="bg-white rounded-4 p-4 request-card h-100 d-flex flex-column" style="${borderStyle}">
+
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="status-badge ${sc.cls}">${sc.label}</span>
+                ${pickDrop}
+              </div>
+              <div class="text-end text-muted" style="font-size:11px;">${date}<br>${time}</div>
+            </div>
+
+            <!-- Booking ID & Vehicle -->
+            <div class="mb-3">
+              <h5 class="fw-bold mb-1" style="font-family:var(--font-head);color:var(--color-text);">Booking #${b.id}</h5>
+              <div class="d-flex align-items-center gap-2 text-muted mb-1" style="font-size:13px;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+                <span>${b.vehicle_model || (b.vehicle_type === 'two_wheeler' ? '2 Wheeler' : b.vehicle_type === 'four_wheeler' ? '4 Wheeler' : 'Vehicle')}</span>
+                ${b.vehicle_number ? `<span class="badge bg-light text-dark border fw-normal" style="font-size:11px;">${b.vehicle_number}</span>` : ''}
+              </div>
+              ${b.service_type
+          ? `<div class="text-dark fw-medium" style="font-size:13px;"><span class="text-muted">Service:</span> ${b.service_type}</div>`
+          : `<div class="text-muted" style="font-size:13px;font-style:italic;">Mechanic inspection required</div>`}
+              ${scheduledStr}
+            </div>
+
+            <!-- Pickup address if pick & drop -->
+            ${b.pickup_address
+          ? `<div class="d-flex align-items-start gap-2 mb-3 p-2 bg-light rounded-3" style="font-size:12px;">
+                  <svg viewBox="0 0 24 24" fill="var(--color-text-muted)" width="14" height="14" class="flex-shrink-0 mt-1"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  <span class="text-muted">${b.pickup_address}</span>
+                </div>`
+          : ''}
+
+            <!-- Description -->
+            ${b.description
+          ? `<div class="text-muted mb-3 p-2 bg-light rounded-3" style="font-size:12px;font-style:italic;">"${b.description}"</div>`
+          : ''}
+
+            <!-- Estimate sent -->
+            ${estimateSection}
+
+            <!-- CTA -->
+            <div class="d-flex gap-2 mt-auto">
+              <a href="job-detail.html?id=${b.id}"
+                 class="btn text-white flex-grow-1 fw-bold rounded-pill"
+                 style="background:var(--color-primary);">
+                ${b.status === 'pending' ? 'Review & Accept' : b.status === 'accepted' ? 'Send Estimate' : 'View Details'}
+              </a>
+            </div>
+
+          </div>
+        </div>`;
+    }
+
+    // ── Skeletons ──
+    function showSkeletons() {
+      document.getElementById('bookings-container').innerHTML = [1, 2, 3, 4].map(() => `
+        <div class="col-12 col-xl-6">
+          <div class="bg-white rounded-4 p-4" style="border:1px solid var(--color-border);">
+            <div class="d-flex justify-content-between mb-3">
+              <div class="skeleton" style="height:22px;width:100px;"></div>
+              <div class="skeleton" style="height:22px;width:70px;"></div>
+            </div>
+            <div class="skeleton mb-2" style="height:22px;width:60%;"></div>
+            <div class="skeleton mb-2" style="height:16px;width:45%;"></div>
+            <div class="skeleton mb-4" style="height:16px;width:55%;"></div>
+            <div class="skeleton" style="height:40px;border-radius:20px;"></div>
+          </div>
+        </div>`).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', loadBookings);
+  </script>
+</body>
+
+</html>

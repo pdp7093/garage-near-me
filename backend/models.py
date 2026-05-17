@@ -2,6 +2,7 @@ from sqlalchemy import (
     Column, Integer, String, DateTime, Float,
     Boolean, ForeignKey, Text, Time, Numeric, Enum
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -57,6 +58,26 @@ class Customer(Base):
 
     bookings        = relationship("Booking", back_populates="customer", cascade="all, delete-orphan")
     vehicles        = relationship("Vehicle", back_populates="customer", cascade="all, delete-orphan")
+    addresses       = relationship("CustomerAddress", back_populates="customer", cascade="all, delete-orphan")
+
+# ──────────────────────────────────────────
+# CUSTOMER ADDRESS
+# ──────────────────────────────────────────
+
+class CustomerAddress(Base):
+    __tablename__ = "customer_addresses"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
+    title       = Column(String(50), nullable=True) # e.g. "Home", "Office"
+    address     = Column(Text, nullable=False)
+    latitude    = Column(Float, nullable=True)
+    longitude   = Column(Float, nullable=True)
+    is_default  = Column(Boolean, default=False)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+
+    customer    = relationship("Customer", back_populates="addresses")
+
 
 
 # ──────────────────────────────────────────
@@ -279,6 +300,7 @@ class Booking(Base):
     vehicle_type           = Column(String(50), nullable=False)
     vehicle_model          = Column(String(100), nullable=True)
     vehicle_number         = Column(String(20), nullable=True)
+    service_type           = Column(String(255), nullable=True)
     description            = Column(Text, nullable=True)
     customer_lat           = Column(Float, nullable=True)
     customer_lng           = Column(Float, nullable=True)
@@ -287,11 +309,30 @@ class Booking(Base):
     pickup_address         = Column(String(255), nullable=True)
     pickup_charge          = Column(Numeric(10, 2), nullable=True)
     estimated_amount       = Column(Numeric(10, 2), nullable=True)
+    estimate_details       = Column(JSONB, nullable=True)
     estimate_status        = Column(Enum(EstimateStatus), default=EstimateStatus.not_required)
     scheduled_at           = Column(DateTime(timezone=True), nullable=True)
     responded_at           = Column(DateTime(timezone=True), nullable=True)
     started_at             = Column(DateTime(timezone=True), nullable=True)
     completed_at           = Column(DateTime(timezone=True), nullable=True)
+    garage_note            = Column(Text, nullable=True)
+
+    # OTP 1 — Known estimate confirm karne ke liye
+    has_hidden_issues      = Column(Boolean, default=False)
+    estimate_otp           = Column(String(6), nullable=True)
+    estimate_otp_verified  = Column(Boolean, default=False)
+    estimate_otp_sent_at   = Column(DateTime(timezone=True), nullable=True)
+
+    # Additional estimate — hidden issues mile tab
+    additional_estimate        = Column(Numeric(10, 2), nullable=True)
+    additional_estimate_note   = Column(Text, nullable=True)
+    additional_estimate_details = Column(JSONB, nullable=True)
+
+    # OTP 2 — Additional estimate confirm karne ke liye
+    additional_otp             = Column(String(6), nullable=True)
+    additional_otp_verified    = Column(Boolean, default=False)
+    additional_otp_sent_at     = Column(DateTime(timezone=True), nullable=True)
+
     final_amount           = Column(Numeric(10, 2), nullable=True)
     payment_status         = Column(String(20), default="pending")
     created_at             = Column(DateTime(timezone=True), server_default=func.now())

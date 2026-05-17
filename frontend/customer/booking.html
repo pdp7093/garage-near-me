@@ -10,11 +10,60 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
+    <style>
+        @keyframes popIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
+
+        .vehicle-card {
+            cursor: pointer;
+            border: 2px solid var(--color-border) !important;
+            transition: all .15s;
+        }
+
+        .vehicle-card:hover {
+            border-color: var(--color-primary) !important;
+        }
+
+        .vehicle-card.selected {
+            border-color: var(--color-accent) !important;
+            background: #FFF5F1 !important;
+        }
+    </style>
 </head>
 
-<body style="background:var(--color-bg); min-height:100vh; display: flex; flex-direction: column;">
+<body style="background:var(--color-bg); min-height:100vh; display:flex; flex-direction:column;">
 
-    <!-- ═══ NAVBAR (Simplified for Checkout) ═══ -->
+    <!-- NAVBAR -->
     <nav class="gnm-nav sticky-top shadow-sm border-bottom">
         <div class="gnm-nav-inner justify-content-between">
             <a href="index.html" class="gnm-logo text-decoration-none">
@@ -36,12 +85,12 @@
         </div>
     </nav>
 
-    <!-- ═══ MAIN CONTENT ═══ -->
+    <!-- MAIN -->
     <div class="container py-4 py-md-5 flex-grow-1">
 
         <div class="mb-4">
-            <a href="garage-details.html" class="text-decoration-none text-muted d-inline-flex align-items-center gap-2"
-                style="font-size:14px;">
+            <a id="back-link" href="garage-details.html"
+                class="text-decoration-none text-muted d-inline-flex align-items-center gap-2" style="font-size:14px;">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                     <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
                 </svg>
@@ -53,248 +102,242 @@
 
         <div class="row g-4 g-lg-5">
 
-            <!-- ── LEFT: BOOKING FORM ── -->
+            <!-- ── LEFT: FORM ── -->
             <div class="col-lg-8">
 
-                <!-- Step 1: Vehicle Details -->
+                <!-- Step 1: Select Vehicle -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                    <div class="card-header bg-white border-bottom p-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                                    style="width:32px;height:32px;background:var(--color-primary);font-size:14px;">1
+                                </div>
+                                <h5 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-text);">
+                                    Select Vehicle</h5>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                style="font-size:12px;" onclick="showAddVehicleModal()">+ Add Vehicle</button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+
+                        <!-- Vehicles from API -->
+                        <div id="vehicles-container">
+                            <!-- Skeleton -->
+                            <div class="row g-3" id="vehicles-skeleton">
+                                <div class="col-md-6">
+                                    <div class="skeleton" style="height:90px;border-radius:12px;"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="skeleton" style="height:90px;border-radius:12px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manual entry fallback -->
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="text-muted mb-3" style="font-size:13px;">Ya manually enter karo:</div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label text-muted small fw-semibold">Vehicle Type</label>
+                                    <select id="manual-type" class="form-select border-2 shadow-none bg-light"
+                                        style="font-size:14px;" onchange="clearVehicleSelection()">
+                                        <option value="">Select type</option>
+                                        <option value="four_wheeler">4 Wheeler (Car)</option>
+                                        <option value="two_wheeler">2 Wheeler (Bike)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-muted small fw-semibold">Reg. Number</label>
+                                    <input type="text" id="manual-reg"
+                                        class="form-control border-2 shadow-none bg-light text-uppercase fw-bold"
+                                        placeholder="GJ01AB1234" style="font-size:14px;"
+                                        oninput="clearVehicleSelection()">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-muted small fw-semibold">Model</label>
+                                    <input type="text" id="manual-model"
+                                        class="form-control border-2 shadow-none bg-light"
+                                        placeholder="Swift, Splendor..." style="font-size:14px;"
+                                        oninput="clearVehicleSelection()">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Step 2: Pickup Address (Pick & Drop — mandatory) -->
                 <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
                     <div class="card-header bg-white border-bottom p-4">
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                style="width:32px; height:32px; background:var(--color-primary); font-size:14px;">1
+                                style="width:32px;height:32px;background:var(--color-primary);font-size:14px;">2</div>
+                            <div>
+                                <h5 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-text);">
+                                    Pickup Address</h5>
+                                <div class="text-muted" style="font-size:12px;">🚗 Pick &amp; Drop service — mechanic
+                                    aapke ghar se gaadi leke jaayega</div>
                             </div>
-                            <h5 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
-                                Vehicle Details</h5>
                         </div>
                     </div>
                     <div class="card-body p-4">
-                        <div class="row g-4">
+                        <!-- Saved Addresses -->
+                        <div id="addresses-container">
+                            <div class="row g-3" id="addresses-skeleton">
+                                <div class="col-md-6"><div class="skeleton" style="height:70px;border-radius:12px;"></div></div>
+                                <div class="col-md-6"><div class="skeleton" style="height:70px;border-radius:12px;"></div></div>
+                            </div>
+                        </div>
 
-                            <!-- Vehicle Type Selection -->
-                            <div class="col-12">
-                                <label class="form-label text-muted small fw-semibold mb-2">Vehicle Type</label>
-                                <div class="d-flex gap-3 flex-wrap">
-                                    <input type="radio" class="btn-check" name="v_type" id="v_type1" checked>
-                                    <label
-                                        class="btn btn-outline-primary px-4 py-2 rounded-3 d-flex align-items-center gap-2 border text-muted"
-                                        for="v_type1">
-                                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                                            <path
-                                                d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
-                                        </svg>
-                                        4 Wheeler (Car)
-                                    </label>
-
-                                    <input type="radio" class="btn-check" name="v_type" id="v_type2">
-                                    <label
-                                        class="btn btn-outline-primary px-4 py-2 rounded-3 d-flex align-items-center gap-2 border text-muted"
-                                        for="v_type2">
-                                        <!-- Simple motorcycle icon -->
-                                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                                            <path
-                                                d="M19.44 9.03L15.41 5H11v2h3.59l2.28 2.28-1.51 1.51-1.49-1.49H11.5c-.32 0-.63.09-.9.25L8.12 7.08C7.59 6.4 6.74 6 5.82 6H3v2h2.82c.51 0 .98.22 1.28.6l2.48 2.48C9.22 11.4 9 11.83 9 12.33 9 13.99 10.34 15.33 12 15.33s3-1.34 3-3c0-.1-.01-.19-.02-.28l1.45-1.45 2.15 2.15-1.42 1.42.01.01 1.41 1.41 2.86-2.86-1.99-3.7zM12 13.33c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zM15 17h2v5h-2zM7 17h2v5H7z" />
-                                        </svg>
-                                        2 Wheeler (Bike/Scooter)
-                                    </label>
+                        <!-- Manual entry fallback -->
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="text-muted mb-2" style="font-size:13px;">Ya manually address enter karo:</div>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <textarea id="pickup-address"
+                                        class="form-control border-2 shadow-none py-2 px-3 bg-light" rows="3"
+                                        placeholder="Ghar ka pura address likhiye — flat no., society, landmark, city..." oninput="clearAddressSelection()"></textarea>
                                 </div>
                             </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small fw-semibold">Registration Number</label>
-                                <input type="text"
-                                    class="form-control border-2 shadow-none py-2 px-3 bg-light text-uppercase fw-bold"
-                                    placeholder="e.g. DL 01 AB 1234">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small fw-semibold">Vehicle Photo (Optional)</label>
-                                <input class="form-control border-2 shadow-none py-2 bg-light" type="file"
-                                    accept="image/*">
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label text-muted small fw-semibold">Short Description
-                                    (Optional)</label>
-                                <input type="text" class="form-control border-2 shadow-none py-2 px-3 bg-light"
-                                    placeholder="e.g. Red Swift, Black Splendor...">
-                            </div>
-
-                            <!-- Pick & Drop Feature -->
-                            <div class="col-12 mt-4 border-top pt-4">
-                                <div class="form-check form-switch d-flex align-items-center gap-2 m-0 p-0">
-                                    <input class="form-check-input ms-0 mt-0" type="checkbox" role="switch" id="pickDropSwitch" style="width: 40px; height: 20px; cursor: pointer;" onchange="document.getElementById('pickupAddressContainer').style.display = this.checked ? 'block' : 'none';">
-                                    <label class="form-check-label fw-bold text-dark ms-2 cursor-pointer" for="pickDropSwitch">Request Pick & Drop Service</label>
-                                </div>
-                                <div class="text-muted small mt-2" style="margin-left: 50px;">Garage will pick up the vehicle, repair it, and drop it back. Additional charges may apply based on the estimate.</div>
-                            </div>
-
-                            <div class="col-12 mt-3" id="pickupAddressContainer" style="display: none;">
-                                <label class="form-label text-muted small fw-semibold">Pickup Address</label>
-                                <textarea class="form-control border-2 shadow-none py-2 px-3 bg-light" rows="2" placeholder="Enter your full address for pickup..."></textarea>
-                            </div>
-
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 2: Schedule Service -->
+                <!-- Step 3: Problem Description -->
                 <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
                     <div class="card-header bg-white border-bottom p-4">
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                style="width:32px; height:32px; background:var(--color-primary); font-size:14px;">2
+                                style="width:32px;height:32px;background:var(--color-primary);font-size:14px;">3</div>
+                            <div>
+                                <h5 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-text);">
+                                    Problem Description</h5>
+                                <div class="text-muted" style="font-size:12px;">Optional — mechanic baaki inspect karke
+                                    batayega</div>
                             </div>
-                            <h5 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
-                                Schedule Service</h5>
                         </div>
                     </div>
                     <div class="card-body p-4">
-                        <label class="form-label text-muted small fw-semibold mb-3">Select Date</label>
-                        <div class="d-flex flex-wrap gap-2 mb-4">
-                            <input type="radio" class="btn-check" name="date" id="date1" checked>
-                            <label class="btn btn-outline-primary rounded-3 px-4 py-2 text-center" for="date1"
-                                style="min-width:100px;">
-                                <div class="small">Today</div>
-                                <div class="fw-bold fs-5">12</div>
-                            </label>
-
-                            <input type="radio" class="btn-check" name="date" id="date2">
-                            <label class="btn btn-outline-primary rounded-3 px-4 py-2 text-center text-muted border"
-                                for="date2" style="min-width:100px;">
-                                <div class="small">Tomorrow</div>
-                                <div class="fw-bold fs-5">13</div>
-                            </label>
-
-                            <input type="radio" class="btn-check" name="date" id="date3">
-                            <label class="btn btn-outline-primary rounded-3 px-4 py-2 text-center text-muted border"
-                                for="date3" style="min-width:100px;">
-                                <div class="small">Thursday</div>
-                                <div class="fw-bold fs-5">14</div>
-                            </label>
-                        </div>
-
-                        <label class="form-label text-muted small fw-semibold mb-3">Select Time Slot</label>
-                        <div class="row g-2">
-                            <div class="col-6 col-md-4">
-                                <input type="radio" class="btn-check" name="time" id="time1">
-                                <label class="btn btn-outline-primary rounded-pill w-100 py-2 border text-muted"
-                                    for="time1">09:00 AM</label>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <input type="radio" class="btn-check" name="time" id="time2" checked>
-                                <label class="btn btn-outline-primary rounded-pill w-100 py-2" for="time2">11:00
-                                    AM</label>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <input type="radio" class="btn-check" name="time" id="time3">
-                                <label class="btn btn-outline-primary rounded-pill w-100 py-2 border text-muted"
-                                    for="time3">02:00 PM</label>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <input type="radio" class="btn-check" name="time" id="time4">
-                                <label class="btn btn-outline-primary rounded-pill w-100 py-2 border text-muted"
-                                    for="time4">04:30 PM</label>
-                            </div>
-                        </div>
+                        <textarea id="description" class="form-control border-2 shadow-none py-2 px-3 bg-light" rows="3"
+                            placeholder="Kya problem hai? Jitna pata ho utna batao — jaise engine sound, brake issue, oil leak..."></textarea>
                     </div>
                 </div>
 
-                <!-- Step 3: Payment Method -->
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <!-- Step 4: Schedule -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
                     <div class="card-header bg-white border-bottom p-4">
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                style="width:32px; height:32px; background:var(--color-primary); font-size:14px;">3
+                                style="width:32px;height:32px;background:var(--color-primary);font-size:14px;">4</div>
+                            <div>
+                                <h5 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-text);">
+                                    Schedule (Optional)</h5>
+                                <div class="text-muted" style="font-size:12px;">Agar preferred time hai toh batao</div>
                             </div>
-                            <h5 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
-                                Payment Method</h5>
                         </div>
                     </div>
                     <div class="card-body p-4">
-                        <div class="list-group list-group-flush border rounded-4 overflow-hidden">
-
-                            <label class="list-group-item d-flex gap-3 p-3 align-items-center cursor-pointer bg-light">
-                                <input class="form-check-input flex-shrink-0 border-2 mt-0" type="radio" name="payment"
-                                    value="pay_garage" checked style="width:20px; height:20px;">
-                                <div>
-                                    <div class="fw-bold text-dark">Pay at Garage</div>
-                                    <div class="text-muted small">Pay via Cash, UPI, or Card after service is completed.
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="list-group-item d-flex gap-3 p-3 align-items-center cursor-pointer">
-                                <input class="form-check-input flex-shrink-0 border-2 mt-0" type="radio" name="payment"
-                                    value="upi" style="width:20px; height:20px;">
-                                <div>
-                                    <div class="fw-bold text-dark">Pay Now via UPI</div>
-                                    <div class="text-muted small">Google Pay, PhonePe, Paytm</div>
-                                </div>
-                            </label>
-
-                            <label class="list-group-item d-flex gap-3 p-3 align-items-center cursor-pointer">
-                                <input class="form-check-input flex-shrink-0 border-2 mt-0" type="radio" name="payment"
-                                    value="card" style="width:20px; height:20px;">
-                                <div>
-                                    <div class="fw-bold text-dark">Credit / Debit Card</div>
-                                    <div class="text-muted small">Visa, MasterCard, RuPay</div>
-                                </div>
-                            </label>
-
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-semibold">Preferred Date</label>
+                                <input type="date" id="schedule-date"
+                                    class="form-control border-2 shadow-none py-2 bg-light">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-semibold">Preferred Time</label>
+                                <select id="schedule-time" class="form-select border-2 shadow-none py-2 bg-light">
+                                    <option value="">Select date first</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Error -->
+                <div id="booking-error" class="alert alert-danger rounded-3 d-none mb-4" style="font-size:14px;"></div>
 
             </div>
 
-            <!-- ── RIGHT: BOOKING DETAILS ── -->
+            <!-- ── RIGHT: SUMMARY ── -->
             <div class="col-lg-4">
-                <div class="sticky-top" style="top: 80px;">
+                <div class="sticky-top" style="top:80px;">
                     <div class="card border rounded-4 shadow-sm overflow-hidden">
                         <div class="card-header bg-light border-bottom p-4">
-                            <h5 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
-                                Booking Request Details</h5>
+                            <h5 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-text);">
+                                Booking Summary</h5>
                         </div>
                         <div class="card-body p-4">
 
+                            <!-- Garage info -->
                             <div class="d-flex align-items-center gap-3 mb-4">
-                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-                                    style="width:40px; height:40px; font-size:16px;">SA</div>
+                                <div class="rounded-circle bg-dark d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                                    style="width:44px;height:44px;font-size:16px;" id="garage-initials">—</div>
                                 <div>
-                                    <div class="fw-bold text-dark"
-                                        style="font-size:14px; font-family:var(--font-head);">Sharma Auto Garage</div>
-                                    <div class="text-muted" style="font-size:12px;">Connaught Place, New Delhi</div>
+                                    <div class="fw-bold text-dark" id="summary-garage-name"
+                                        style="font-size:14px;font-family:var(--font-head);">Loading...</div>
+                                    <div class="text-muted" id="summary-garage-address" style="font-size:12px;"></div>
                                 </div>
                             </div>
 
                             <hr>
 
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted" style="font-size:14px;">Service Category</span>
-                                <span class="fw-medium text-dark" style="font-size:14px;">General / Repair</span>
+                            <!-- Selected services -->
+                            <div id="selected-services-section" style="display:none;" class="mb-3">
+                                <div class="text-muted mb-2"
+                                    style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Selected
+                                    Services</div>
+                                <div id="summary-services"></div>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
+
+                            <!-- No service note -->
+                            <div id="no-service-note" class="bg-light rounded-3 p-3 mb-3"
+                                style="font-size:12px;color:var(--color-text-muted);">
+                                ℹ️ Koi service select nahi ki — mechanic inspect karke estimate batayega.
+                            </div>
+
+                            <hr>
+
+                            <!-- Pick & Drop badge -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted" style="font-size:14px;">Service Type</span>
+                                <span class="badge rounded-pill px-3 py-2"
+                                    style="background:#EFF6FF;color:#2563EB;font-size:12px;">🚗 Pick &amp; Drop</span>
+                            </div>
+
+                            <!-- Visiting charge -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="text-muted" style="font-size:14px;">Visiting Charge</span>
-                                <span class="fw-medium text-dark" style="font-size:14px;">₹150</span>
+                                <span class="fw-semibold text-dark" id="summary-visiting-charge"
+                                    style="font-size:14px;">—</span>
                             </div>
-                            <div class="small text-muted mb-4 mt-3 p-3 bg-light rounded" style="font-size:12px; line-height: 1.5;">
-                                <strong class="text-dark">Note:</strong> Final repair cost and pick & drop charges will be estimated after the mechanic inspects the vehicle. Visiting charge is only payable if you reject the estimate.
+
+                            <div class="small text-muted my-3 p-3 bg-light rounded-3"
+                                style="font-size:12px;line-height:1.6;">
+                                <strong class="text-dark">Note:</strong> Visiting charge sirf tab lagega agar aap
+                                mechanic ka estimate reject karo. Repair cost aur pick &amp; drop charges estimate mein
+                                bataye jaayenge.
                             </div>
 
                             <hr>
 
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <span class="fw-bold text-dark" style="font-size:16px;">Estimated Total</span>
-                                <span class="fw-bold text-end" style="color:var(--color-primary); font-size:16px;">To be estimated<br><span class="text-muted fw-normal" style="font-size:12px;">after inspection</span></span>
+                                <span class="fw-bold text-dark" style="font-size:15px;">Estimated Total</span>
+                                <span class="fw-bold text-end" style="color:var(--color-primary);font-size:14px;">
+                                    Inspection ke<br>
+                                    <span class="text-muted fw-normal" style="font-size:11px;">baad batayenge</span>
+                                </span>
                             </div>
 
-                            <button onclick="document.getElementById('successModal').style.display='flex';"
+                            <button onclick="submitBooking()" id="submit-btn"
                                 class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm"
-                                style="background:var(--color-primary); font-size:16px;">
-                                Request Booking & Estimate
+                                style="background:var(--color-primary);font-size:16px;">
+                                Request Booking &amp; Estimate
                             </button>
-                            <p class="text-center text-muted mt-3 mb-0" style="font-size:11px;">By clicking, you agree
-                                to our Terms of Service & Privacy Policy.</p>
+                            <p class="text-center text-muted mt-3 mb-0" style="font-size:11px;">
+                                By clicking, you agree to our Terms of Service &amp; Privacy Policy.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -303,48 +346,560 @@
         </div>
     </div>
 
-    <!-- ═══ SUCCESS MODAL (Hidden by default) ═══ -->
+    <!-- ADD VEHICLE MODAL -->
+    <div id="addVehicleModal"
+        style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-4 shadow-lg p-4 mx-3"
+            style="max-width:400px;width:100%;animation:popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-text);">Add New Vehicle</h5>
+                <button type="button" class="btn-close shadow-none" onclick="hideAddVehicleModal()"></button>
+            </div>
+            <form id="add-vehicle-form" onsubmit="submitAddVehicle(event)">
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Vehicle Type <span class="text-danger">*</span></label>
+                    <select id="new-vehicle-type" class="form-select border-2 shadow-none bg-light" required>
+                        <option value="">Select type</option>
+                        <option value="four_wheeler">4 Wheeler (Car)</option>
+                        <option value="two_wheeler">2 Wheeler (Bike)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Reg. Number <span class="text-danger">*</span></label>
+                    <input type="text" id="new-vehicle-reg" class="form-control border-2 shadow-none bg-light text-uppercase" placeholder="GJ01AB1234" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Model / Description</label>
+                    <input type="text" id="new-vehicle-desc" class="form-control border-2 shadow-none bg-light" placeholder="e.g. Red Swift Dzire">
+                </div>
+                <div id="add-vehicle-error" class="alert alert-danger d-none py-2" style="font-size:13px;"></div>
+                <button type="submit" id="add-vehicle-btn" class="btn w-100 text-white rounded-pill py-2 fw-bold shadow-sm mt-2" style="background:var(--color-primary);">
+                    Save Vehicle
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SUCCESS MODAL -->
     <div id="successModal"
-        style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-        <div class="bg-white rounded-4 shadow-lg p-5 text-center position-relative mx-3"
-            style="max-width:400px; width:100%; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+        <div class="bg-white rounded-4 shadow-lg p-5 text-center mx-3"
+            style="max-width:400px;width:100%;animation:popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
             <div class="rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center"
-                style="width:80px; height:80px; background:#D1FAE5; color:#10B981;">
+                style="width:80px;height:80px;background:#D1FAE5;color:#10B981;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="40" height="40"
                     stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
             </div>
-            <h3 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Booking Confirmed!
+            <h3 class="fw-bold mb-2" style="font-family:var(--font-head);color:var(--color-text);">Booking Request Sent!
             </h3>
-            <p class="text-muted mb-4" style="font-size:15px;">Your appointment at <strong>Sharma Auto Garage</strong>
-                is confirmed for <strong>11:00 AM Today</strong>.</p>
-            <a href="dashboard.html" class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm"
-                style="background:var(--color-primary); font-size:15px;">
-                View Details in Dashboard
+            <p class="text-muted mb-1" style="font-size:15px;">
+                <strong id="modal-garage-name"></strong> has received your request.
+            </p>
+            <p class="text-muted mb-4" style="font-size:13px;">You will receive a notification once the garage accepts it.
+            </p>
+            <a href="my-bookings.html" class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm mb-2"
+                style="background:var(--color-primary);font-size:15px;">
+                View My Bookings
+            </a>
+            <a href="dashboard.html" class="btn w-100 btn-outline-secondary rounded-pill py-2" style="font-size:14px;">
+                Go to Dashboard
             </a>
         </div>
     </div>
 
-    <style>
-        @keyframes popIn {
-            0% {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .cursor-pointer {
-            cursor: pointer;
-        }
-    </style>
-
     <script src="../js/bootstrap.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        const BK_API = 'http://localhost:8000/api';
+
+        const params = new URLSearchParams(location.search);
+        const garageId = params.get('garage_id');
+        const garageNameParam = params.get('garage_name');
+        const garageAddr = params.get('garage_address');
+        const visitCharge = params.get('visiting_charge') || '0';
+        const servicesParam = params.get('services');
+
+        let selectedServices = [];
+        let selectedVehicleId = null; // from my-vehicles
+        let selectedAddress = null; // from my-addresses
+        let garageWorkingHours = []; // to store fetched working hours
+
+        // ── Boot ──
+        window.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = `login.html?redirect=${encodeURIComponent(location.href)}`;
+                return;
+            }
+
+            // Back link
+            if (garageId) document.getElementById('back-link').href = `garage-details.html?id=${garageId}`;
+
+            // Garage info
+            if (garageNameParam) {
+                const name = decodeURIComponent(garageNameParam);
+                document.getElementById('summary-garage-name').textContent = name;
+                document.getElementById('modal-garage-name').textContent = name;
+                document.getElementById('garage-initials').textContent = getInitials(name);
+            }
+            if (garageAddr) {
+                document.getElementById('summary-garage-address').textContent = decodeURIComponent(garageAddr);
+            }
+
+            // Visiting charge
+            const vc = parseFloat(visitCharge);
+            document.getElementById('summary-visiting-charge').textContent = vc > 0 ? `₹${vc}` : 'Free';
+
+            // Selected services from garage-details
+            if (servicesParam) {
+                try {
+                    selectedServices = JSON.parse(decodeURIComponent(servicesParam));
+                    if (selectedServices.length > 0) {
+                        document.getElementById('selected-services-section').style.display = '';
+                        document.getElementById('no-service-note').style.display = 'none';
+                        document.getElementById('summary-services').innerHTML = selectedServices.map(s => `
+                            <div class="d-flex justify-content-between py-1 border-bottom" style="font-size:13px;">
+                                <span>• ${s.name}</span>
+                                <span class="fw-semibold">${s.price ? '₹' + s.price : '—'}</span>
+                            </div>`).join('');
+                    }
+                } catch (e) { }
+            }
+
+            // Min date = today
+            document.getElementById('schedule-date').min = new Date().toISOString().split('T')[0];
+
+            // Attach listener to date picker
+            document.getElementById('schedule-date').addEventListener('change', generateTimeSlots);
+
+            // Fetch user vehicles, addresses, and garage working hours
+            await Promise.all([
+                fetchVehicles(token),
+                fetchAddresses(token),
+                fetchGarageWorkingHours(garageId)
+            ]);
+        });
+
+        // ── Fetch Vehicles ──
+        async function fetchVehicles(token) {
+            const container = document.getElementById('vehicles-container');
+            try {
+                const res = await fetch(`${BK_API}/vehicles/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error();
+                const vehicles = await res.json();
+
+                if (vehicles.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-muted p-3 bg-light rounded-3 text-center" style="font-size:13px;">
+                            Koi vehicle add nahi hai. <span class="fw-semibold cursor-pointer" style="color:var(--color-accent);" onclick="showAddVehicleModal()">+ Add Vehicle</span>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="row g-3" id="vehicle-cards">
+                        ${vehicles.map(v => `
+                        <div class="col-md-6">
+                            <div class="vehicle-card card rounded-3 p-3" id="vc-${v.id}"
+                                 onclick="selectVehicle(${v.id}, '${escJs(v.vehicle_type)}', '${escJs(v.vehicle_number || '')}', '${escJs(v.description || '')}')">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="font-size:28px;">${v.vehicle_type === 'two_wheeler' ? '🏍️' : '🚗'}</div>
+                                    <div>
+                                        <div class="fw-bold" style="font-size:14px;color:var(--color-text);">${v.description || (v.vehicle_type === 'two_wheeler' ? '2 Wheeler' : '4 Wheeler')}</div>
+                                        <div class="text-muted" style="font-size:12px;">${v.vehicle_number || 'No reg. number'}</div>
+                                        <div style="font-size:11px;color:var(--color-text-muted);">${v.vehicle_type === 'two_wheeler' ? '2 Wheeler' : '4 Wheeler'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`).join('')}
+                    </div>
+                    <div class="mt-3" id="selected-vehicle-info" style="display:none;">
+                        <div class="alert alert-success py-2 mb-0 rounded-3" style="font-size:13px;" id="selected-vehicle-text"></div>
+                    </div>`;
+
+            } catch (e) {
+                container.innerHTML = `
+                    <div class="text-muted p-3 bg-light rounded-3" style="font-size:13px;">
+                        Failed to load vehicles.
+                    </div>`;
+            }
+        }
+
+        function selectVehicle(id, type, reg, model) {
+            // Deselect all
+            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`vc-${id}`)?.classList.add('selected');
+            selectedVehicleId = { id, type, reg, model };
+
+            // Clear manual fields
+            document.getElementById('manual-type').value = '';
+            document.getElementById('manual-reg').value = '';
+            document.getElementById('manual-model').value = '';
+
+            // Show selected info
+            const info = document.getElementById('selected-vehicle-info');
+            const text = document.getElementById('selected-vehicle-text');
+            if (info && text) {
+                info.style.display = '';
+                text.textContent = `✓ Selected: ${model || type} ${reg ? '(' + reg + ')' : ''}`;
+            }
+        }
+
+        function clearVehicleSelection() {
+            selectedVehicleId = null;
+            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+            const info = document.getElementById('selected-vehicle-info');
+            if (info) info.style.display = 'none';
+        }
+
+        // ── Fetch Addresses ──
+        async function fetchAddresses(token) {
+            const container = document.getElementById('addresses-container');
+            try {
+                const res = await fetch(`${BK_API}/addresses/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error();
+                const addresses = await res.json();
+
+                if (addresses.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-muted p-3 bg-light rounded-3 text-center" style="font-size:13px;">
+                            No saved addresses found. Please add an address from your profile.
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="row g-3" id="address-cards">
+                        ${addresses.map(a => `
+                        <div class="col-md-6">
+                            <div class="vehicle-card card rounded-3 p-3" id="ac-${a.id}"
+                                 onclick="selectAddress(${a.id}, '${escJs(a.address)}', ${a.latitude}, ${a.longitude})">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="font-size:24px;">📍</div>
+                                    <div>
+                                        <div class="fw-bold" style="font-size:14px;color:var(--color-text);">${a.title || 'Address'}</div>
+                                        <div class="text-muted text-truncate" style="font-size:12px;max-width:200px;">${a.address}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`).join('')}
+                    </div>
+                    <div class="mt-3" id="selected-address-info" style="display:none;">
+                        <div class="alert alert-success py-2 mb-0 rounded-3" style="font-size:13px;" id="selected-address-text"></div>
+                    </div>`;
+
+            } catch (e) {
+                container.innerHTML = `
+                    <div class="text-muted p-3 bg-light rounded-3" style="font-size:13px;">
+                        Failed to load addresses.
+                    </div>`;
+            }
+        }
+
+        function selectAddress(id, address, lat, lng) {
+            // Deselect all
+            document.querySelectorAll('#address-cards .vehicle-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`ac-${id}`)?.classList.add('selected');
+            selectedAddress = { id, address, lat, lng };
+
+            // Clear manual field
+            document.getElementById('pickup-address').value = '';
+
+            // Show selected info
+            const info = document.getElementById('selected-address-info');
+            const text = document.getElementById('selected-address-text');
+            if (info && text) {
+                info.style.display = '';
+                text.textContent = `✓ Selected: ${address.substring(0, 50)}...`;
+            }
+        }
+
+        function clearAddressSelection() {
+            selectedAddress = null;
+            document.querySelectorAll('#address-cards .vehicle-card').forEach(c => c.classList.remove('selected'));
+            const info = document.getElementById('selected-address-info');
+            if (info) info.style.display = 'none';
+        }
+
+        // ── Fetch Garage Working Hours ──
+        async function fetchGarageWorkingHours(id) {
+            if (!id) return;
+            try {
+                const res = await fetch(`${BK_API}/garage/${id}/public`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.working_hours) {
+                        garageWorkingHours = data.working_hours;
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load working hours", e);
+            }
+        }
+
+        // ── Generate Time Slots ──
+        function generateTimeSlots() {
+            const dateInput = document.getElementById('schedule-date').value;
+            const timeSelect = document.getElementById('schedule-time');
+            
+            if (!dateInput) {
+                timeSelect.innerHTML = '<option value="">Select date first</option>';
+                return;
+            }
+
+            // Parse selected date keeping local timezone
+            const parts = dateInput.split('-');
+            const selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+            const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            const dayOfWeek = dayNames[selectedDate.getDay()];
+
+            const daySchedule = garageWorkingHours.find(wh => wh.day === dayOfWeek);
+
+            if (!daySchedule || !daySchedule.is_open || !daySchedule.open_time || !daySchedule.close_time) {
+                timeSelect.innerHTML = '<option value="">Garage is closed on this day</option>';
+                timeSelect.disabled = true;
+                return;
+            }
+
+            timeSelect.disabled = false;
+            timeSelect.innerHTML = '<option value="">Select time slot</option>';
+
+            const openTimeParts = daySchedule.open_time.split(':');
+            const closeTimeParts = daySchedule.close_time.split(':');
+            
+            let currentHour = parseInt(openTimeParts[0]);
+            let currentMinute = parseInt(openTimeParts[1]);
+            const endHour = parseInt(closeTimeParts[0]);
+            const endMinute = parseInt(closeTimeParts[1]);
+
+            const now = new Date();
+            // Checking if selected date is today
+            const isToday = (selectedDate.getDate() === now.getDate() && 
+                             selectedDate.getMonth() === now.getMonth() && 
+                             selectedDate.getFullYear() === now.getFullYear());
+            const currentRealHour = now.getHours();
+
+            while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
+                // If it's today, filter out past hours.
+                if (!isToday || currentHour > currentRealHour) {
+                    const ampm = currentHour >= 12 ? 'PM' : 'AM';
+                    const displayHour = currentHour % 12 === 0 ? 12 : currentHour % 12;
+                    const displayMin = currentMinute === 0 ? '00' : currentMinute.toString().padStart(2, '0');
+                    
+                    const valueHour = currentHour.toString().padStart(2, '0');
+                    const valueTime = `${valueHour}:${displayMin}`;
+                    
+                    timeSelect.innerHTML += `<option value="${valueTime}">${displayHour}:${displayMin} ${ampm}</option>`;
+                }
+                currentHour += 1; // 1 hour interval
+            }
+
+            if (timeSelect.options.length === 1) { // Only the default option
+                timeSelect.innerHTML = '<option value="">No slots available for today</option>';
+                timeSelect.disabled = true;
+            }
+        }
+
+        // ── Submit ──
+        async function submitBooking() {
+            const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = `login.html?redirect=${encodeURIComponent(location.href)}`;
+                return;
+            }
+
+            const pickupAddress = document.getElementById('pickup-address').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const scheduleDate = document.getElementById('schedule-date').value;
+            const scheduleTime = document.getElementById('schedule-time').value;
+            const errorEl = document.getElementById('booking-error');
+            const submitBtn = document.getElementById('submit-btn');
+
+            errorEl.classList.add('d-none');
+
+            // Validations
+            if (!garageId) { showError('Garage ID is missing. Please go back and try again.'); return; }
+
+            // Vehicle info — saved vehicle ya manual
+            let vehicleType = null;
+            let vehicleNumber = null;
+            let vehicleModel = null;
+
+            if (selectedVehicleId) {
+                vehicleType = selectedVehicleId.type;
+                vehicleNumber = selectedVehicleId.reg || null;
+                vehicleModel = selectedVehicleId.model || null;
+            } else {
+                vehicleType = document.getElementById('manual-type').value || null;
+                vehicleNumber = document.getElementById('manual-reg').value.trim() || null;
+                vehicleModel = document.getElementById('manual-model').value.trim() || null;
+            }
+
+            if (!vehicleType) {
+                showError('Please select a saved vehicle or provide vehicle type manually.');
+                return;
+            }
+
+            // Scheduled at
+            let scheduledAt = null;
+            if (scheduleDate && scheduleTime) {
+                scheduledAt = new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString();
+            } else if (scheduleDate) {
+                scheduledAt = new Date(`${scheduleDate}T09:00:00`).toISOString();
+            }
+
+            const serviceType = selectedServices.length > 0
+                ? selectedServices.map(s => s.name).join(', ')
+                : null;
+
+            // Determine final address and lat/lng
+            let finalAddress = pickupAddress;
+            let finalLat = null;
+            let finalLng = null;
+
+            if (selectedAddress) {
+                finalAddress = selectedAddress.address;
+                finalLat = selectedAddress.lat;
+                finalLng = selectedAddress.lng;
+            } else if (!pickupAddress) {
+                showError('Pickup address zaroori hai.'); 
+                return;
+            }
+
+            const body = {
+                garage_id: parseInt(garageId),
+                booking_type: 'normal',
+                vehicle_type: vehicleType,
+                vehicle_number: vehicleNumber,
+                vehicle_model: vehicleModel,
+                service_type: serviceType,
+                description: description || null,
+                requires_pick_and_drop: true,   // always true
+                pickup_address: finalAddress,
+                customer_address: finalAddress,
+                customer_lat: finalLat,
+                customer_lng: finalLng,
+                scheduled_at: scheduledAt,
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Booking ho rahi hai...';
+
+            try {
+                const res = await fetch(`${BK_API}/bookings/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (res.status === 401) {
+                    window.location.href = `login.html?redirect=${encodeURIComponent(location.href)}`;
+                    return;
+                }
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Booking failed');
+                }
+
+                document.getElementById('successModal').style.display = 'flex';
+
+            } catch (e) {
+                showError(e.message || 'Kuch gadbad ho gayi. Dobara try karo.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Request Booking & Estimate';
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('booking-error');
+            el.textContent = msg;
+            el.classList.remove('d-none');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // ── Add Vehicle Modal Logic ──
+        function showAddVehicleModal() {
+            document.getElementById('addVehicleModal').style.display = 'flex';
+        }
+
+        function hideAddVehicleModal() {
+            document.getElementById('addVehicleModal').style.display = 'none';
+            document.getElementById('add-vehicle-form').reset();
+            document.getElementById('add-vehicle-error').classList.add('d-none');
+        }
+
+        async function submitAddVehicle(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+            if (!token) return;
+
+            const type = document.getElementById('new-vehicle-type').value;
+            const reg = document.getElementById('new-vehicle-reg').value.trim();
+            const desc = document.getElementById('new-vehicle-desc').value.trim();
+            const errorEl = document.getElementById('add-vehicle-error');
+            const btn = document.getElementById('add-vehicle-btn');
+
+            errorEl.classList.add('d-none');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const res = await fetch(`${BK_API}/vehicles/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        vehicle_type: type,
+                        vehicle_number: reg,
+                        description: desc || null
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Failed to add vehicle');
+                }
+
+                const newVehicle = await res.json();
+                hideAddVehicleModal();
+                
+                // Refresh vehicle list and select the new one
+                await fetchVehicles(token);
+                selectVehicle(newVehicle.id, newVehicle.vehicle_type, newVehicle.vehicle_number, newVehicle.description);
+
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.classList.remove('d-none');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Vehicle';
+            }
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(/\s+/);
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        function escJs(str) {
+            return (str || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+    </script>
+
 </body>
 
 </html>

@@ -7,41 +7,103 @@
     <title>Garage Details — GarageNearMe</title>
     <link rel="stylesheet" href="../css/bootstrap.css" />
     <link rel="stylesheet" href="../css/style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
         /* Service selection */
-        .service-row { cursor: pointer; transition: background .15s; border-radius: 8px; }
-        .service-row:hover { background: #F9FAFB; }
-        .service-row.selected { background: #FFF5F1; }
-        .service-row.selected .svc-check { opacity: 1; }
-        .svc-check { opacity: 0; transition: opacity .15s; color: var(--color-accent); font-weight: 700; }
+        .service-row {
+            cursor: pointer;
+            transition: background .15s;
+            border-radius: 8px;
+        }
+
+        .service-row:hover {
+            background: #F9FAFB;
+        }
+
+        .service-row.selected {
+            background: #FFF5F1;
+        }
+
+        .service-row.selected .svc-check {
+            opacity: 1;
+        }
+
+        .svc-check {
+            opacity: 0;
+            transition: opacity .15s;
+            color: var(--color-accent);
+            font-weight: 700;
+        }
 
         /* Sticky booking bar (mobile) */
         #booking-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 1030;
-            background: white; border-top: 1px solid var(--color-border);
-            box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: white;
+            border-top: 1px solid var(--color-border);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, .08);
             padding: 12px 20px;
             transform: translateY(100%);
             transition: transform .3s ease;
         }
-        #booking-bar.visible { transform: translateY(0); }
+
+        #booking-bar.visible {
+            transform: translateY(0);
+        }
 
         /* Skeleton */
-        .skeleton { background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
-        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0
+            }
+
+            100% {
+                background-position: -200% 0
+            }
+        }
 
         /* Mini map */
-        #mini-map { height: 180px; border-radius: 12px; overflow: hidden; }
+        #mini-map {
+            height: 180px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
 
         /* Working hours */
-        .hours-row { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--color-border); font-size:14px; }
-        .hours-row:last-child { border-bottom: none; }
-        .hours-row.today { font-weight:700; color:var(--color-primary); }
+        .hours-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 14px;
+        }
 
-        body { padding-bottom: 80px; }
+        .hours-row:last-child {
+            border-bottom: none;
+        }
+
+        .hours-row.today {
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        body {
+            padding-bottom: 80px;
+        }
     </style>
 </head>
 
@@ -80,23 +142,32 @@
                     <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3">
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-2">
-                                <span id="badge-open" class="badge text-white rounded-pill px-2 py-1" style="font-size:12px;"></span>
-                                <span id="badge-type" class="badge bg-white text-dark rounded-pill px-2 py-1" style="font-size:12px; display:none;"></span>
-                                <span id="badge-sos"  class="badge text-white rounded-pill px-2 py-1" style="font-size:12px; background:#EF4444; display:none;">🆘 SOS Available</span>
+                                <span id="badge-open" class="badge text-white rounded-pill px-2 py-1"
+                                    style="font-size:12px;"></span>
+                                <span id="badge-type" class="badge bg-white text-dark rounded-pill px-2 py-1"
+                                    style="font-size:12px; display:none;"></span>
+                                <span id="badge-sos" class="badge text-white rounded-pill px-2 py-1"
+                                    style="font-size:12px; background:#EF4444; display:none;">🆘 SOS Available</span>
                             </div>
-                            <h1 id="garage-name" class="text-white fw-bold mb-1" style="font-family:var(--font-head); font-size:32px;"></h1>
-                            <p id="garage-address" class="text-white-50 mb-0 d-flex align-items-center gap-1" style="font-size:14px;">
+                            <h1 id="garage-name" class="text-white fw-bold mb-1"
+                                style="font-family:var(--font-head); font-size:32px;"></h1>
+                            <p id="garage-address" class="text-white-50 mb-0 d-flex align-items-center gap-1"
+                                style="font-size:14px;">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                    <path
+                                        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                                 </svg>
                                 <span id="address-text"></span>
                             </p>
                         </div>
                         <div class="d-flex align-items-center gap-3 bg-white p-2 pe-4 rounded-pill shadow-lg">
                             <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                                style="width:48px;height:48px;background:var(--color-primary);font-size:18px;" id="rating-circle">—</div>
+                                style="width:48px;height:48px;background:var(--color-primary);font-size:18px;"
+                                id="rating-circle">—</div>
                             <div>
-                                <div class="fw-bold" style="font-family:var(--font-head);font-size:15px;color:var(--color-text);" id="rating-label">Rating</div>
+                                <div class="fw-bold"
+                                    style="font-family:var(--font-head);font-size:15px;color:var(--color-text);"
+                                    id="rating-label">Rating</div>
                                 <div class="text-muted" style="font-size:12px;">GarageNearMe</div>
                             </div>
                         </div>
@@ -114,11 +185,13 @@
 
                     <!-- About -->
                     <div class="bg-white rounded-4 p-4 p-md-5 shadow-sm border mb-4">
-                        <h4 class="fw-bold mb-3" style="font-family:var(--font-head);color:var(--color-text);">About this Garage</h4>
+                        <h4 class="fw-bold mb-3" style="font-family:var(--font-head);color:var(--color-text);">About
+                            this Garage</h4>
                         <p id="garage-about" class="text-muted mb-0" style="line-height:1.7;font-size:15px;"></p>
                         <div id="amenities-section" style="display:none;">
                             <hr class="my-4">
-                            <h5 class="fw-bold mb-3" style="font-family:var(--font-head);color:var(--color-text);">Features</h5>
+                            <h5 class="fw-bold mb-3" style="font-family:var(--font-head);color:var(--color-text);">
+                                Features</h5>
                             <div id="amenities-list" class="d-flex flex-wrap gap-2"></div>
                         </div>
                     </div>
@@ -126,8 +199,10 @@
                     <!-- Services -->
                     <div class="bg-white rounded-4 p-4 p-md-5 shadow-sm border mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h4 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-text);">Services Offered</h4>
-                            <span id="selected-count" class="badge rounded-pill px-3 py-2 text-white" style="background:var(--color-accent);display:none;font-size:13px;">0 selected</span>
+                            <h4 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-text);">
+                                Services Offered</h4>
+                            <span id="selected-count" class="badge rounded-pill px-3 py-2 text-white"
+                                style="background:var(--color-accent);display:none;font-size:13px;">0 selected</span>
                         </div>
                         <p class="text-muted mb-4" style="font-size:13px;">Service select karo phir Book karo</p>
                         <div id="services-container" class="list-group list-group-flush border-top"></div>
@@ -135,7 +210,8 @@
 
                     <!-- Working Hours -->
                     <div class="bg-white rounded-4 p-4 p-md-5 shadow-sm border mb-4">
-                        <h4 class="fw-bold mb-4" style="font-family:var(--font-head);color:var(--color-text);">Business Hours</h4>
+                        <h4 class="fw-bold mb-4" style="font-family:var(--font-head);color:var(--color-text);">Business
+                            Hours</h4>
                         <div id="working-hours-list"></div>
                     </div>
 
@@ -148,16 +224,21 @@
                         <!-- Booking Card -->
                         <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
                             <div class="card-body p-4 p-md-5">
-                                <h5 class="fw-bold mb-3 text-center" style="font-family:var(--font-head);color:var(--color-text);">Book a Service</h5>
-                                <p class="text-muted text-center mb-3" style="font-size:13px;">Neeche se services select karo</p>
+                                <h5 class="fw-bold mb-3 text-center"
+                                    style="font-family:var(--font-head);color:var(--color-text);">Book a Service</h5>
+                                <p class="text-muted text-center mb-3" style="font-size:13px;">Neeche se services select
+                                    karo</p>
 
                                 <!-- Selected summary -->
                                 <div id="booking-summary" class="mb-3" style="display:none;">
                                     <div id="booking-summary-items"></div>
-                                    <div id="booking-total" class="d-flex justify-content-between fw-bold pt-2 mt-1 border-top" style="font-size:14px; display:none !important;"></div>
+                                    <div id="booking-total"
+                                        class="d-flex justify-content-between fw-bold pt-2 mt-1 border-top"
+                                        style="font-size:14px; display:none !important;"></div>
                                 </div>
 
-                                <button onclick="proceedBooking()" class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm"
+                                <button onclick="proceedBooking()"
+                                    class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm"
                                     style="background:var(--color-primary);font-size:16px;">
                                     Book Service Now
                                 </button>
@@ -167,19 +248,22 @@
                         <!-- Contact & Info Card -->
                         <div class="card border rounded-4 shadow-sm">
                             <div class="card-body p-4">
-                                <h6 class="fw-bold mb-3" style="font-family:var(--font-head);color:var(--color-text);">Contact Garage</h6>
+                                <h6 class="fw-bold mb-3" style="font-family:var(--font-head);color:var(--color-text);">
+                                    Contact Garage</h6>
                                 <button id="contact-btn" onclick="showContact()"
                                     class="btn btn-outline-dark w-100 rounded-pill py-2 fw-medium d-flex align-items-center justify-content-center gap-2"
                                     style="font-size:14px;">
                                     <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                                        <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                                        <path
+                                            d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z" />
                                     </svg>
                                     Show Contact Number
                                 </button>
 
                                 <!-- Mini Map -->
                                 <div class="mt-4" id="map-section" style="display:none;">
-                                    <h6 class="fw-bold mb-2" style="font-family:var(--font-head);color:var(--color-text);">Location</h6>
+                                    <h6 class="fw-bold mb-2"
+                                        style="font-family:var(--font-head);color:var(--color-text);">Location</h6>
                                     <div id="mini-map" class="mb-2"></div>
                                     <p id="map-address" class="text-muted mb-0" style="font-size:12px;"></p>
                                 </div>
@@ -198,7 +282,9 @@
         <div class="d-flex align-items-center justify-content-between">
             <div>
                 <div style="font-size:11px;color:var(--color-text-muted);">Selected Services</div>
-                <div id="bar-services" class="fw-bold" style="font-size:13px;color:var(--color-text);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+                <div id="bar-services" class="fw-bold"
+                    style="font-size:13px;color:var(--color-text);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                </div>
             </div>
             <button onclick="proceedBooking()" class="btn text-white rounded-pill px-4 py-2 fw-bold flex-shrink-0"
                 style="background:var(--color-primary);">Book Now</button>
@@ -217,12 +303,14 @@
 
                     <!-- Selected services -->
                     <div class="mb-3">
-                        <div class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Selected Services</div>
+                        <div class="text-muted mb-2"
+                            style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Selected Services</div>
                         <div id="modal-services"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:14px;">Vehicle Type <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold" style="font-size:14px;">Vehicle Type <span
+                                class="text-danger">*</span></label>
                         <select id="modal-vehicle-type" class="form-select rounded-3" style="font-size:14px;">
                             <option value="">Select vehicle type</option>
                             <option value="two_wheeler">Two Wheeler</option>
@@ -237,15 +325,18 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:14px;">Problem describe karo (optional)</label>
+                        <label class="form-label fw-semibold" style="font-size:14px;">Problem describe karo
+                            (optional)</label>
                         <textarea id="modal-description" class="form-control rounded-3" rows="3"
                             placeholder="Kya problem hai gaadi mein..." style="font-size:14px;"></textarea>
                     </div>
 
-                    <div id="booking-error" class="alert alert-danger rounded-3 py-2 d-none" style="font-size:13px;"></div>
+                    <div id="booking-error" class="alert alert-danger rounded-3 py-2 d-none" style="font-size:13px;">
+                    </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancel</button>
                     <button type="button" id="submit-btn" onclick="submitBooking()"
                         class="btn text-white rounded-pill px-4 fw-bold" style="background:var(--color-primary);">
                         Confirm Booking
@@ -271,17 +362,17 @@
 
     <script>
         const GNM_DETAIL_API = 'http://localhost:8000/api';
-        const DAYS_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
-        const DAY_LABELS  = { monday:'Monday', tuesday:'Tuesday', wednesday:'Wednesday', thursday:'Thursday', friday:'Friday', saturday:'Saturday', sunday:'Sunday' };
+        const DAYS_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const DAY_LABELS = { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' };
 
-        let garageData       = null;
+        let garageData = null;
         let selectedServices = [];
-        let miniMap          = null;
-        let phoneRevealed    = false;
+        let miniMap = null;
+        let phoneRevealed = false;
 
         // ── Boot ──
         window.addEventListener('DOMContentLoaded', async () => {
-            const params   = new URLSearchParams(location.search);
+            const params = new URLSearchParams(location.search);
             const garageId = params.get('id');
             if (!garageId) { window.location.href = 'search-results.html'; return; }
             await loadGarage(garageId);
@@ -315,15 +406,15 @@
 
             // Open badge
             const openBadge = document.getElementById('badge-open');
-            openBadge.textContent       = g.is_open_now ? 'Open Now' : 'Closed';
-            openBadge.style.background  = g.is_open_now ? '#22C55E' : '#EF4444';
+            openBadge.textContent = g.is_open_now ? 'Open Now' : 'Closed';
+            openBadge.style.background = g.is_open_now ? '#22C55E' : '#EF4444';
 
             // Type badge
             if (g.garage_type) {
                 const tb = document.getElementById('badge-type');
                 const label = g.garage_type === 'both' ? 'Multi-Brand Service'
-                    : g.garage_type.replace('_',' ').replace(/\b\w/g, c => c.toUpperCase());
-                tb.textContent   = label;
+                    : g.garage_type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+                tb.textContent = label;
                 tb.style.display = '';
             }
 
@@ -334,26 +425,26 @@
             document.getElementById('garage-name').textContent = g.name;
             const addr = [g.location?.street, g.location?.city, g.location?.pincode].filter(Boolean).join(', ');
             document.getElementById('address-text').textContent = addr || 'Ahmedabad';
-            document.getElementById('map-address').textContent  = addr || 'Ahmedabad';
+            document.getElementById('map-address').textContent = addr || 'Ahmedabad';
 
             // Rating (placeholder — ratings feature baad mein)
             document.getElementById('rating-circle').textContent = g.is_verified ? '✓' : '—';
-            document.getElementById('rating-label').textContent  = g.is_verified ? 'Verified' : 'GNM';
+            document.getElementById('rating-label').textContent = g.is_verified ? 'Verified' : 'GNM';
 
             // About text
             const hoursStr = g.todays_hours?.is_open
-                ? `${g.todays_hours.open_time?.slice(0,5) || ''} – ${g.todays_hours.close_time?.slice(0,5) || ''}`
+                ? `${g.todays_hours.open_time?.slice(0, 5) || ''} – ${g.todays_hours.close_time?.slice(0, 5) || ''}`
                 : 'aaj band hai';
             document.getElementById('garage-about').textContent =
                 `${g.name} ek ${g.is_verified ? 'GarageNearMe verified' : ''} garage hai jo ${g.location?.city || 'Ahmedabad'} mein located hai. ` +
-                `Garage type: ${g.garage_type?.replace('_',' ') || 'General'}. Aaj ke hours: ${hoursStr}.`;
+                `Garage type: ${g.garage_type?.replace('_', ' ') || 'General'}. Aaj ke hours: ${hoursStr}.`;
 
             // Amenities / features
             const features = [];
             if (g.offers_pick_and_drop) features.push('🚗 Pick & Drop Available');
-            if (g.is_sos_available)     features.push('🆘 SOS Service');
-            if (g.is_verified)          features.push('✓ GNM Verified');
-            if (g.visiting_charge > 0)  features.push(`💰 Visiting Charge: ₹${g.visiting_charge}`);
+            if (g.is_sos_available) features.push('🆘 SOS Service');
+            if (g.is_verified) features.push('✓ GNM Verified');
+            if (g.visiting_charge > 0) features.push(`💰 Visiting Charge: ₹${g.visiting_charge}`);
 
             if (features.length > 0) {
                 document.getElementById('amenities-section').style.display = '';
@@ -376,13 +467,13 @@
 
             // Show page
             document.getElementById('page-skeleton').style.display = 'none';
-            document.getElementById('page-content').style.display  = '';
+            document.getElementById('page-content').style.display = '';
         }
 
         // ── Services ──
         function renderServices(grouped) {
             const container = document.getElementById('services-container');
-            const cats      = Object.keys(grouped);
+            const cats = Object.keys(grouped);
 
             if (cats.length === 0) {
                 container.innerHTML = `<div class="py-3 text-muted" style="font-size:14px;">Koi service available nahi hai.</div>`;
@@ -410,11 +501,11 @@
                 </div>`).join('');
         }
 
-        function esc(str) { return (str||'').replace(/'/g,"\\'"); }
+        function esc(str) { return (str || '').replace(/'/g, "\\'"); }
 
         function toggleService(id, name, price) {
             const idx = selectedServices.findIndex(s => s.id === id);
-            const el  = document.getElementById(`svc-${id}`);
+            const el = document.getElementById(`svc-${id}`);
             if (idx === -1) {
                 selectedServices.push({ id, name, price });
                 el?.classList.add('selected');
@@ -426,24 +517,22 @@
         }
 
         function updateBookingUI() {
-            const count   = selectedServices.length;
+            const count = selectedServices.length;
             const countEl = document.getElementById('selected-count');
-            const bar     = document.getElementById('booking-bar');
+            const bar = document.getElementById('booking-bar');
             const summary = document.getElementById('booking-summary');
             const sumItems = document.getElementById('booking-summary-items');
-            const total   = selectedServices.reduce((s, x) => s + (x.price || 0), 0);
+            const total = selectedServices.reduce((s, x) => s + (x.price || 0), 0);
 
             // Count badge
-            countEl.textContent  = `${count} selected`;
+            countEl.textContent = `${count} selected`;
             countEl.style.display = count > 0 ? '' : 'none';
 
-            // Mobile sticky bar
-            if (count > 0) {
-                bar.classList.add('visible');
-                document.getElementById('bar-services').textContent = selectedServices.map(s => s.name).join(', ');
-            } else {
-                bar.classList.remove('visible');
-            }
+            // Mobile sticky bar - hamesha visible
+            bar.classList.add('visible');
+            document.getElementById('bar-services').textContent = count > 0
+                ? selectedServices.map(s => s.name).join(', ')
+                : 'Mechanic inspect karega';
 
             // Desktop summary
             if (count > 0) {
@@ -451,7 +540,7 @@
                 sumItems.innerHTML = selectedServices.map(s => `
                     <div class="d-flex justify-content-between py-1 border-bottom" style="font-size:13px;">
                         <span>• ${s.name}</span>
-                        <span class="fw-semibold">${s.price ? '₹'+s.price : '—'}</span>
+                        <span class="fw-semibold">${s.price ? '₹' + s.price : '—'}</span>
                     </div>`).join('');
                 if (total > 0) {
                     document.getElementById('booking-total').style.display = 'flex';
@@ -465,16 +554,16 @@
 
         // ── Working Hours ──
         function renderWorkingHours(hours) {
-            const today = new Date().toLocaleDateString('en-US',{weekday:'long'}).toLowerCase();
-            const map   = {};
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+            const map = {};
             hours.forEach(h => { map[h.day] = h; });
 
             document.getElementById('working-hours-list').innerHTML = DAYS_ORDER.map(day => {
-                const h       = map[day];
+                const h = map[day];
                 const isToday = day === today;
-                let timeStr   = '<span class="text-danger">Closed</span>';
+                let timeStr = '<span class="text-danger">Closed</span>';
                 if (h?.is_open && h.open_time && h.close_time) {
-                    timeStr = `${h.open_time.slice(0,5)} – ${h.close_time.slice(0,5)}`;
+                    timeStr = `${h.open_time.slice(0, 5)} – ${h.close_time.slice(0, 5)}`;
                 }
                 return `
                 <div class="hours-row ${isToday ? 'today' : ''}">
@@ -487,9 +576,9 @@
         // ── Mini Map ──
         function initMiniMap(lat, lng) {
             if (miniMap) return;
-            miniMap = L.map('mini-map', { zoomControl:false, scrollWheelZoom:false }).setView([lat, lng], 15);
+            miniMap = L.map('mini-map', { zoomControl: false, scrollWheelZoom: false }).setView([lat, lng], 15);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution:'© OpenStreetMap'
+                attribution: '© OpenStreetMap'
             }).addTo(miniMap);
             L.marker([lat, lng]).addTo(miniMap).bindPopup(garageData?.name || 'Garage').openPopup();
         }
@@ -504,24 +593,19 @@
 
         // ── Booking ──
         function proceedBooking() {
-            if (selectedServices.length === 0) {
-                document.getElementById('services-container').scrollIntoView({behavior:'smooth', block:'center'});
-                return;
-            }
+            // Bina service select kiye bhi booking allowed hai
+            const addr = [garageData.location?.street, garageData.location?.city]
+                .filter(Boolean).join(', ');
 
-            // Populate modal
-            document.getElementById('modal-services').innerHTML = selectedServices.map(s => `
-                <div class="d-flex justify-content-between py-1" style="font-size:14px;">
-                    <span>• ${s.name}</span>
-                    <span class="text-muted">${s.price ? '₹'+s.price : 'Price on visit'}</span>
-                </div>`).join('');
+            const params = new URLSearchParams({
+                garage_id: garageData.id,
+                garage_name: garageData.name,
+                garage_address: addr,
+                visiting_charge: garageData.visiting_charge || 0,
+                services: JSON.stringify(selectedServices),
+            });
 
-            document.getElementById('booking-error').classList.add('d-none');
-            document.getElementById('modal-vehicle-type').value   = '';
-            document.getElementById('modal-vehicle-number').value = '';
-            document.getElementById('modal-description').value    = '';
-
-            new bootstrap.Modal(document.getElementById('bookingModal')).show();
+            window.location.href = `booking.html?${params.toString()}`;
         }
 
         async function submitBooking() {
@@ -531,11 +615,11 @@
                 return;
             }
 
-            const vehicleType   = document.getElementById('modal-vehicle-type').value;
+            const vehicleType = document.getElementById('modal-vehicle-type').value;
             const vehicleNumber = document.getElementById('modal-vehicle-number').value.trim();
-            const description   = document.getElementById('modal-description').value.trim();
-            const errorEl       = document.getElementById('booking-error');
-            const submitBtn     = document.getElementById('submit-btn');
+            const description = document.getElementById('modal-description').value.trim();
+            const errorEl = document.getElementById('booking-error');
+            const submitBtn = document.getElementById('submit-btn');
 
             if (!vehicleType) {
                 errorEl.textContent = 'Vehicle type select karo.';
@@ -544,23 +628,23 @@
             }
 
             errorEl.classList.add('d-none');
-            submitBtn.disabled    = true;
+            submitBtn.disabled = true;
             submitBtn.textContent = 'Booking ho rahi hai...';
 
             try {
                 const body = {
-                    garage_id:      garageData.id,
-                    booking_type:   'normal',
-                    vehicle_type:   vehicleType,
+                    garage_id: garageData.id,
+                    booking_type: 'normal',
+                    vehicle_type: vehicleType,
                     vehicle_number: vehicleNumber || null,
-                    service_type:   selectedServices.map(s => s.name).join(', '),
-                    description:    description || null,
+                    service_type: selectedServices.map(s => s.name).join(', '),
+                    description: description || null,
                 };
 
                 const res = await fetch(`${GNM_DETAIL_API}/bookings/`, {
-                    method:  'POST',
-                    headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
-                    body:    JSON.stringify(body)
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
                 });
 
                 if (res.status === 401) {
@@ -579,7 +663,7 @@
                 errorEl.textContent = e.message || 'Kuch gadbad ho gayi. Dobara try karo.';
                 errorEl.classList.remove('d-none');
             } finally {
-                submitBtn.disabled    = false;
+                submitBtn.disabled = false;
                 submitBtn.textContent = 'Confirm Booking';
             }
         }
@@ -588,4 +672,5 @@
     <script src="../js/bootstrap.js"></script>
     <script src="../js/script.js"></script>
 </body>
+
 </html>

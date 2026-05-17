@@ -124,6 +124,40 @@ def ensure_schema_updates():
                 "ADD COLUMN profile_image VARCHAR(500)"
             )
 
+    if "bookings" in table_names:
+        booking_columns = {
+            column["name"] for column in inspector.get_columns("bookings")
+        }
+
+        if "service_type" not in booking_columns:
+            updates.append(
+                "ALTER TABLE bookings "
+                "ADD COLUMN service_type VARCHAR(255)"
+            )
+        
+        if "estimate_details" not in booking_columns:
+            updates.append(
+                "ALTER TABLE bookings "
+                "ADD COLUMN estimate_details JSONB"
+            )
+
+        new_booking_cols = {
+            "garage_note":                  "ALTER TABLE bookings ADD COLUMN garage_note TEXT NULL",
+            "has_hidden_issues":            "ALTER TABLE bookings ADD COLUMN has_hidden_issues BOOLEAN NOT NULL DEFAULT FALSE",
+            "estimate_otp":                 "ALTER TABLE bookings ADD COLUMN estimate_otp VARCHAR(6) NULL",
+            "estimate_otp_verified":        "ALTER TABLE bookings ADD COLUMN estimate_otp_verified BOOLEAN NOT NULL DEFAULT FALSE",
+            "estimate_otp_sent_at":         "ALTER TABLE bookings ADD COLUMN estimate_otp_sent_at TIMESTAMP NULL",
+            "additional_estimate":          "ALTER TABLE bookings ADD COLUMN additional_estimate NUMERIC(10,2) NULL",
+            "additional_estimate_note":     "ALTER TABLE bookings ADD COLUMN additional_estimate_note TEXT NULL",
+            "additional_estimate_details":  "ALTER TABLE bookings ADD COLUMN additional_estimate_details JSONB NULL",
+            "additional_otp":               "ALTER TABLE bookings ADD COLUMN additional_otp VARCHAR(6) NULL",
+            "additional_otp_verified":      "ALTER TABLE bookings ADD COLUMN additional_otp_verified BOOLEAN NOT NULL DEFAULT FALSE",
+            "additional_otp_sent_at":       "ALTER TABLE bookings ADD COLUMN additional_otp_sent_at TIMESTAMP NULL",
+        }
+        for col_name, sql in new_booking_cols.items():
+            if col_name not in booking_columns:
+                updates.append(sql)
+
     if not updates:
         return
 
