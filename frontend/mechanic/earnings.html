@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Earnings & Bills - Mechanic Dashboard</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <div class="mechanic-layout">
+    <div id="sidebar-container"></div>
+    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
+      style="z-index: 1030;"></div>
+
+    <main class="mechanic-main">
+      <div id="topbar-container"></div>
+
+      <div class="mechanic-content">
+        <div class="mb-4">
+          <h4 class="fw-bold mb-1" style="font-family: var(--font-head);">Earnings & Bills</h4>
+          <p class="text-muted small mb-0">Track your completed jobs, total revenue, and platform commissions transparently.</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="row g-4 mb-4">
+          <div class="col-md-4">
+            <div class="stat-card bg-success bg-opacity-10 border-success border-opacity-25 border">
+              <div class="text-success fw-bold mb-2 small text-uppercase tracking-wider">Net Garage Earnings</div>
+              <h2 class="fw-bold text-success mb-0" id="totalGarageEarnings">₹0</h2>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card bg-white border shadow-sm">
+              <div class="text-muted fw-bold mb-2 small text-uppercase tracking-wider">Total Gross Revenue</div>
+              <h2 class="fw-bold text-dark mb-0" id="totalGrossRevenue">₹0</h2>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card bg-white border shadow-sm">
+              <div class="text-muted fw-bold mb-2 small text-uppercase tracking-wider">Platform Cut</div>
+              <h2 class="fw-bold text-danger mb-0" id="totalCommission">₹0</h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paid Bills Table -->
+        <div class="bg-white rounded-4 border p-4 shadow-sm">
+          <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Completed Bills</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="text-muted small">
+                <tr>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Booking ID</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Customer</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Date Completed</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Gross Total</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Platform Cut</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Net Earnings</th>
+                </tr>
+              </thead>
+              <tbody class="border-top-0" id="billsBody">
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">Loading data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/mechanic-auth.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/bootstrap.js"></script>
+  <script>
+    initMechanicChrome('Earnings & Bills', null, 'earnings.html');
+    const API = getApiBase();
+
+    async function loadEarningsData() {
+      const token = localStorage.getItem('garage_token');
+      if (!token) return;
+
+      try {
+        const response = await fetch(`${API}/api/bookings/garage/all`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error();
+
+        const bookings = await response.json();
+        
+        // Filter for paid/completed bookings
+        const paidBookings = bookings.filter(b => b.payment_status === 'paid' && b.final_amount);
+        
+        // Sort descending by completion date
+        paidBookings.sort((a, b) => new Date(b.completed_at || b.updated_at) - new Date(a.completed_at || a.updated_at));
+
+        let totalGross = 0;
+        let totalComm = 0;
+        let totalNet = 0;
+
+        const tbody = document.getElementById('billsBody');
+        if (paidBookings.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No completed bills yet.</td></tr>';
+        } else {
+          tbody.innerHTML = paidBookings.map(b => {
+            const finalAmt = parseFloat(b.final_amount) || 0;
+            const comm = parseFloat(b.platform_commission) || 0;
+            const net = parseFloat(b.garage_earnings) || (finalAmt - comm);
+
+            totalGross += finalAmt;
+            totalComm += comm;
+            totalNet += net;
+
+            const dateStr = b.completed_at ? new Date(b.completed_at).toLocaleDateString('en-IN') : '-';
+
+            return `
+              <tr>
+                <td class="fw-bold text-dark">#GNM-${b.id}</td>
+                <td>
+                  <div class="fw-bold text-dark">${b.customer_name || 'Customer'}</div>
+                  <div class="text-muted small">${b.vehicle_model || b.vehicle_type}</div>
+                </td>
+                <td class="text-muted">${dateStr}</td>
+                <td class="text-end fw-bold">₹${finalAmt.toFixed(2)}</td>
+                <td class="text-end text-danger small">- ₹${comm.toFixed(2)}</td>
+                <td class="text-end fw-bold text-success">₹${net.toFixed(2)}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        document.getElementById('totalGrossRevenue').innerText = `₹${totalGross.toFixed(2)}`;
+        document.getElementById('totalCommission').innerText = `₹${totalComm.toFixed(2)}`;
+        document.getElementById('totalGarageEarnings').innerText = `₹${totalNet.toFixed(2)}`;
+
+      } catch (err) {
+        console.error('Error fetching earnings:', err);
+        document.getElementById('billsBody').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Failed to load earnings data.</td></tr>';
+      }
+    }
+
+    loadEarningsData();
+  </script>
+</body>
+</html>

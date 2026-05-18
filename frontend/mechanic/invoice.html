@@ -16,7 +16,7 @@
       background-color: #f8f9fa;
     }
     .invoice-card {
-      border-top: 6px solid var(--color-primary);
+      border-top: none; /* Dark header section provides the top accent */
     }
     .dotted-divider {
       border-top: 2px dashed #dee2e6;
@@ -38,97 +38,96 @@
         </a>
 
         <!-- Invoice Card -->
-        <div class="bg-white rounded-4 shadow-sm p-4 p-md-5 invoice-card position-relative overflow-hidden">
-          
-          <!-- Header -->
-          <div class="d-flex justify-content-between align-items-start mb-4">
-            <div>
-              <h3 class="fw-bold mb-1" style="font-family: var(--font-head);">Final Invoice</h3>
-              <div class="text-muted small">Job ID: #GNM-1042</div>
-              <div class="text-muted small">Date: 26 Apr 2026</div>
-            </div>
-            <div class="text-end">
-              <h5 class="fw-bold mb-0 text-dark">Sharma Auto</h5>
-              <div class="text-muted small">S.G. Highway, Ahmedabad</div>
-            </div>
-          </div>
+        <div class="bg-white rounded-4 shadow overflow-hidden invoice-card" id="invoiceCard" style="display: none;">
 
-          <!-- Customer Info -->
-          <div class="bg-light rounded-3 p-3 mb-4 border">
-            <h6 class="fw-bold text-muted mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 1px;">Billed To</h6>
-            <h6 class="fw-bold mb-1">Rahul Verma</h6>
-            <div class="text-muted small">Honda City (White) • GJ01 AB 1234</div>
-            <div class="text-muted small mt-1">Service: General Maintenance</div>
-          </div>
+          <!-- ── Dark Branded Header ── -->
+          <div class="p-4 p-md-5" style="background: var(--color-primary);">
+            <div class="d-flex justify-content-between align-items-start gap-3">
 
-          <!-- Items Table -->
-          <div class="table-responsive mb-2">
-            <table class="table table-borderless mb-0">
-              <thead class="text-muted small border-bottom">
-                <tr>
-                  <th scope="col" class="ps-0 fw-medium pb-2">Description</th>
-                  <th scope="col" class="fw-medium pb-2 text-center">Qty</th>
-                  <th scope="col" class="pe-0 fw-medium pb-2 text-end">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="ps-0 py-3">
-                    <div class="fw-bold text-dark">Engine Oil Change (Synthetic)</div>
-                  </td>
-                  <td class="py-3 text-center text-muted">1</td>
-                  <td class="pe-0 py-3 text-end fw-bold">₹1,200</td>
-                </tr>
-                <tr>
-                  <td class="ps-0 py-3 border-top border-light">
-                    <div class="fw-bold text-dark">Oil Filter Replacement</div>
-                  </td>
-                  <td class="py-3 text-center text-muted border-top border-light">1</td>
-                  <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹350</td>
-                </tr>
-                <tr>
-                  <td class="ps-0 py-3 border-top border-light">
-                    <div class="fw-bold text-dark">Labour Charges</div>
-                  </td>
-                  <td class="py-3 text-center text-muted border-top border-light">-</td>
-                  <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹400</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="dotted-divider"></div>
-
-          <!-- Totals -->
-          <div class="row justify-content-end mb-4">
-            <div class="col-8 col-sm-6">
-              <div class="d-flex justify-content-between mb-2 text-muted">
-                <span>Subtotal</span>
-                <span class="fw-bold text-dark">₹1,950</span>
+              <!-- Left: Brand mark + Title + Badge -->
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                    style="background: var(--color-accent); width: 28px; height: 28px;">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="white">
+                      <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-5h14v5z"/>
+                    </svg>
+                  </div>
+                  <span class="fw-bold" style="font-family: var(--font-head); color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;">GarageNearMe</span>
+                </div>
+                <h2 class="fw-bold text-white mb-2" style="font-family: var(--font-head);">Final Invoice</h2>
+                <span class="badge rounded-pill px-3 py-1 d-inline-block"
+                  style="background: var(--color-accent); font-size: 12px;" id="invJobId">Job ID: #---</span>
+                <div class="mt-2" style="color: rgba(255,255,255,0.45); font-size: 13px;" id="invDate">Date: ---</div>
               </div>
-              <div class="d-flex justify-content-between mb-2 text-muted">
-                <span>Taxes (18% GST)</span>
-                <span class="fw-bold text-dark">₹351</span>
+
+              <!-- Right: Garage Info -->
+              <div class="text-end">
+                <h5 class="fw-bold text-white mb-1" id="invGarageName" style="font-family: var(--font-head);">---</h5>
+                <div style="color: rgba(255,255,255,0.5); font-size: 13px;" id="invGarageAddress">---</div>
+                <div class="fw-bold mt-1 d-none" style="color: var(--color-accent); font-size: 13px;" id="invGarageGst">GST: ---</div>
               </div>
-              <div class="d-flex justify-content-between mt-3 pt-3 border-top align-items-center">
-                <span class="fw-bold text-dark fs-5">Total Due</span>
-                <span class="fw-bold fs-4" style="color: var(--color-primary);">₹2,301</span>
-              </div>
+
             </div>
           </div>
 
-          <!-- Payment Actions -->
-          <div class="d-flex flex-column flex-sm-row gap-3">
-            <a href="dashboard.html" class="btn btn-success flex-grow-1 fw-bold rounded-pill py-3 shadow-sm d-flex justify-content-center align-items-center gap-2 text-decoration-none">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              Mark as Paid (Cash/UPI)
-            </a>
-            <a href="dashboard.html" class="btn btn-outline-primary rounded-pill px-4 py-3 fw-bold d-flex justify-content-center align-items-center gap-2 text-decoration-none">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-              Send Link
-            </a>
-          </div>
+          <!-- ── Card Body ── -->
+          <div class="p-4 p-md-5">
 
+            <!-- Customer Info -->
+            <div class="mb-4 p-3 rounded-3"
+              style="background: rgba(27,31,46,0.04); border-left: 3px solid var(--color-accent);">
+              <div class="fw-bold text-uppercase mb-2"
+                style="font-size: 10px; letter-spacing: 1.5px; color: var(--color-text-muted);">Billed To</div>
+              <h6 class="fw-bold mb-1" id="invCustomerName" style="font-size: 15px;">---</h6>
+              <div class="text-muted small" id="invVehicleInfo">---</div>
+              <div class="text-muted small mt-1" id="invServiceType">Service: ---</div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="table-responsive mb-2">
+              <table class="table table-hover table-borderless mb-0 align-middle">
+                <thead>
+                  <tr class="border-bottom">
+                    <th scope="col" class="ps-0 fw-semibold pb-3 text-uppercase"
+                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);">Description</th>
+                    <th scope="col" class="fw-semibold pb-3 text-center text-uppercase"
+                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);">Qty</th>
+                    <th scope="col" class="pe-0 fw-semibold pb-3 text-end text-uppercase"
+                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);">Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="invItemsBody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="dotted-divider"></div>
+
+            <!-- Totals — full width -->
+            <div class="mb-4" id="invTotalsBox">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Payment Actions -->
+            <div class="d-flex flex-column flex-sm-row gap-3 mt-1" id="invActions">
+              <button onclick="markAsPaid()" id="markPaidBtn"
+                class="btn btn-success flex-grow-1 fw-bold rounded-pill py-3 shadow-sm d-flex justify-content-center align-items-center gap-2">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                Mark as Paid (Cash/UPI)
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-5">
+          <div class="spinner-border" style="color: var(--color-primary);" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3 fw-medium" style="color: var(--color-text-muted);">Loading invoice details...</p>
         </div>
 
       </div>
@@ -137,6 +136,191 @@
 
   <script src="../js/mechanic-auth.js"></script>
   <script src="../js/bootstrap.js"></script>
+  <script>
+    // Get booking ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookingId = urlParams.get('id');
+
+    let currentBooking = null;
+    let currentGarage = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (!bookingId) {
+            alert('No Booking ID provided');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
+        // Set Back button href
+        document.querySelector('a.btn-light').href = `job-detail.html?id=${bookingId}`;
+
+        try {
+            // Fetch Garage Profile for location & GST
+            const gRes = await fetch(`${getApiBase()}/api/garage/me`, {
+                headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+            });
+            if (gRes.ok) {
+                currentGarage = await gRes.json();
+            }
+
+            // Fetch Booking
+            const bRes = await fetch(`${getApiBase()}/api/bookings/garage/${bookingId}`, {
+                headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+            });
+            if (!bRes.ok) throw new Error('Failed to load booking');
+            currentBooking = await bRes.json();
+
+            renderInvoice();
+        } catch (err) {
+            console.error(err);
+            alert('Error loading invoice details');
+        }
+    });
+
+    function renderInvoice() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('invoiceCard').style.display = 'block';
+
+        // Header
+        const bookingNoStr = currentBooking.booking_number || ('BK-' + currentBooking.id);
+        document.getElementById('invJobId').textContent = `Job Ref: ${bookingNoStr}`;
+        const date = currentBooking.completed_at ? new Date(currentBooking.completed_at) : new Date();
+        document.getElementById('invDate').textContent = `Date: ${date.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})}`;
+
+        // Garage Info
+        if (currentGarage) {
+            document.getElementById('invGarageName').textContent = currentGarage.name || 'Garage';
+            const loc = currentGarage.location;
+            if (loc) {
+                const addrParts = [loc.shop_number, loc.street, loc.city].filter(Boolean);
+                document.getElementById('invGarageAddress').textContent = addrParts.join(', ') || 'Address not available';
+            }
+            if (currentGarage.has_gst && currentGarage.gst_number) {
+                const gstEl = document.getElementById('invGarageGst');
+                gstEl.textContent = `GST: ${currentGarage.gst_number}`;
+                gstEl.classList.remove('d-none');
+            }
+        }
+
+        // Customer Info
+        const custName = currentBooking.customer_name || `Customer #${currentBooking.customer_id}`;
+        const custPhone = currentBooking.customer_phone ? ` (+91 ${currentBooking.customer_phone})` : '';
+        document.getElementById('invCustomerName').textContent = custName + custPhone;
+        
+        const vInfo = [currentBooking.vehicle_model || currentBooking.vehicle_type, currentBooking.vehicle_number].filter(Boolean).join(' • ');
+        document.getElementById('invVehicleInfo').textContent = vInfo || 'Vehicle details not available';
+        
+        document.getElementById('invServiceType').textContent = `Service: ${currentBooking.service_type || (currentBooking.booking_type === 'sos' ? 'SOS Assistance' : 'General')}`;
+
+        // Items Table
+        let itemsHtml = '';
+        let itemIndex = 0;
+
+        function addRow(name, price) {
+            itemsHtml += `
+                <tr>
+                  <td class="ps-0 py-3">
+                    <div class="fw-semibold text-dark" style="font-size: 14px;">${name}</div>
+                  </td>
+                  <td class="py-3 text-center">
+                    <span class="badge rounded-pill bg-light border text-secondary" style="font-size: 12px; padding: 5px 12px;">1</span>
+                  </td>
+                  <td class="pe-0 py-3 text-end">
+                    <span class="fw-bold" style="font-size: 15px; color: var(--color-primary);">₹${price.toLocaleString()}</span>
+                  </td>
+                </tr>
+            `;
+            itemIndex++;
+        }
+
+        if (currentBooking.estimate_details) {
+            currentBooking.estimate_details.forEach(item => addRow(item.item_name, item.price));
+        }
+
+        if (currentBooking.additional_estimate_details) {
+            currentBooking.additional_estimate_details.forEach(item => addRow(item.item_name, item.price));
+        }
+
+        if (currentBooking.pickup_charge && currentBooking.pickup_charge > 0) {
+            addRow('Pick & Drop / Visiting Charge', currentBooking.pickup_charge);
+        }
+
+        if (itemIndex === 0) {
+            itemsHtml = '<tr><td colspan="3" class="text-center text-muted py-3">No items found</td></tr>';
+        }
+
+        document.getElementById('invItemsBody').innerHTML = itemsHtml;
+
+        // Totals
+        const finalAmount = currentBooking.final_amount || 0;
+        let totalsHtml = '';
+
+        if (currentGarage && currentGarage.has_gst) {
+            // Inclusive GST calculation (18%)
+            const subtotal = finalAmount / 1.18;
+            const tax = finalAmount - subtotal;
+            totalsHtml = `
+              <div class="d-flex justify-content-between align-items-center py-2" style="font-size: 14px;">
+                <span class="text-muted">Subtotal</span>
+                <span class="fw-bold text-dark">₹${subtotal.toFixed(2)}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center py-2 mb-3" style="font-size: 14px; border-bottom: 1px dashed #dee2e6;">
+                <span class="text-muted">Taxes (18% GST)</span>
+                <span class="fw-bold text-dark">₹${tax.toFixed(2)}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center rounded-3 p-4" style="background: var(--color-primary);">
+                <span class="fw-bold text-white" style="font-size: 16px;">Total Due</span>
+                <span class="fw-bold text-white" style="font-size: 28px; font-family: var(--font-head);">₹${finalAmount.toLocaleString()}</span>
+              </div>
+            `;
+        } else {
+            totalsHtml = `
+              <div class="d-flex justify-content-between align-items-center py-2 mb-3" style="font-size: 14px; border-bottom: 1px dashed #dee2e6;">
+                <span class="text-muted">Subtotal</span>
+                <span class="fw-bold text-dark">₹${finalAmount.toLocaleString()}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center rounded-3 p-4" style="background: var(--color-primary);">
+                <span class="fw-bold text-white" style="font-size: 16px;">Total Due</span>
+                <span class="fw-bold text-white" style="font-size: 28px; font-family: var(--font-head);">₹${finalAmount.toLocaleString()}</span>
+              </div>
+            `;
+        }
+        document.getElementById('invTotalsBox').innerHTML = totalsHtml;
+
+        // Payment status
+        if (currentBooking.payment_status === 'paid') {
+            document.getElementById('markPaidBtn').outerHTML = `
+                <div class="btn btn-success flex-grow-1 fw-bold rounded-pill py-3 shadow-sm d-flex justify-content-center align-items-center gap-2" style="cursor: default; opacity: 0.85; pointer-events: none;">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  Payment Received ✓
+                </div>
+            `;
+        }
+    }
+
+    async function markAsPaid() {
+        if (!confirm('Are you sure you want to mark this invoice as paid?')) return;
+        
+        try {
+            const res = await fetch(`${getApiBase()}/api/bookings/garage/${bookingId}/payment`, {
+                method: 'PATCH',
+                headers: { 
+                    'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ payment_status: 'paid' })
+            });
+
+            if (!res.ok) throw new Error('Failed to update payment status');
+            
+            alert('Payment marked successfully. Bill has been saved for customer.');
+            location.reload();
+        } catch (err) {
+            console.error(err);
+            alert(err.message);
+        }
+    }
+  </script>
 </body>
 
 </html>

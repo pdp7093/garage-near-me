@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base, ensure_schema_updates
 from routers import auth, garage, booking, vehicles, addresses, garage_requests, garage_auth
-from routers import default_services
+from routers import default_services, commission, payout
 import os
 
 Base.metadata.create_all(bind=engine)
@@ -32,9 +32,11 @@ app.include_router(addresses.router,        prefix="/api/addresses",        tags
 app.include_router(garage_requests.router,  prefix="/api/garage-requests",  tags=["Garage Onboarding"])
 app.include_router(garage_auth.router,      prefix="/api/garage-auth",      tags=["Garage Auth (OTP)"])
 app.include_router(garage.router,           prefix="/api/garage",           tags=["Garage Profile"])
+app.include_router(payout.router,           prefix="/api/payouts",          tags=["Payouts"])
 
 #admin
 app.include_router(default_services.router, prefix="/api/default-services", tags=["Default Services"])
+app.include_router(commission.router,       prefix="/api/commissions",      tags=["Commissions"])
 @app.get("/")
 def read_root():
     return {"message": "Welcome to GarageNearMe API"}

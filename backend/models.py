@@ -121,6 +121,10 @@ class GarageRequest(Base):
     city         = Column(String(100), nullable=False, default="Ahmedabad")
     pincode      = Column(String(10), nullable=True)
 
+    # GST
+    has_gst      = Column(Boolean, default=False)
+    gst_number   = Column(String(50), nullable=True)
+
     visit_date = Column(DateTime, nullable=True)
     visit_notes = Column(Text, nullable=True)
 
@@ -181,6 +185,15 @@ class Garage(Base):
     is_sos_available     = Column(Boolean, default=True)
     offers_pick_and_drop = Column(Boolean, default=False)
     visiting_charge      = Column(Numeric(10, 2), default=0.0)
+
+    # GST
+    has_gst              = Column(Boolean, default=False)
+    gst_number           = Column(String(50), nullable=True)
+
+    # Credit lock & platform dues system
+    pending_platform_dues = Column(Numeric(10, 2), default=0.0)
+    is_credit_locked      = Column(Boolean, default=False)
+    grace_period_ends_at  = Column(DateTime(timezone=True), nullable=True)
 
     created_at           = Column(DateTime(timezone=True), server_default=func.now())
     updated_at           = Column(DateTime(timezone=True), onupdate=func.now())
@@ -293,6 +306,7 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     id                     = Column(Integer, primary_key=True, index=True)
+    booking_number         = Column(String(50), unique=True, index=True, nullable=True)
     customer_id            = Column(Integer, ForeignKey("customers.id"), nullable=False)
     garage_id              = Column(Integer, ForeignKey("garages.id"), nullable=False)
     booking_type           = Column(Enum(BookingType), nullable=False)
@@ -334,12 +348,64 @@ class Booking(Base):
     additional_otp_sent_at     = Column(DateTime(timezone=True), nullable=True)
 
     final_amount           = Column(Numeric(10, 2), nullable=True)
+    platform_commission    = Column(Numeric(10, 2), nullable=True)
+    garage_earnings        = Column(Numeric(10, 2), nullable=True)
     payment_status         = Column(String(20), default="pending")
     created_at             = Column(DateTime(timezone=True), server_default=func.now())
     updated_at             = Column(DateTime(timezone=True), onupdate=func.now())
 
     customer               = relationship("Customer", back_populates="bookings")
     garage                 = relationship("Garage", back_populates="bookings")
+
+    @property
+    def customer_name(self):
+        return self.customer.name if self.customer else None
+
+    @property
+    def customer_phone(self):
+        return self.customer.phone if self.customer else None
+
+# ──────────────────────────────────────────
+# BILL / INVOICE (Bill storage for customers)
+# Customer ko booking history mein bill dikhegi
+# ──────────────────────────────────────────
+
+class Bill(Base):
+    __tablename__ = "bills"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    booking_id      = Column(Integer, ForeignKey("bookings.id"), nullable=False, unique=True)
+    customer_id     = Column(Integer, ForeignKey("customers.id"), nullable=False)
+    garage_id       = Column(Integer, ForeignKey("garages.id"), nullable=False)
+    
+    # Bill details
+    bill_number     = Column(String(50), nullable=True)  # e.g., "GNM-1042-BILL"
+    bill_date       = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Amount breakdown
+    subtotal        = Column(Numeric(10, 2), nullable=False)  # Amount before tax
+    tax_amount      = Column(Numeric(10, 2), default=0)       # GST/Tax
+    total_amount    = Column(Numeric(10, 2), nullable=False)  # Final amount
+    platform_commission = Column(Numeric(10, 2), nullable=True)
+    garage_earnings     = Column(Numeric(10, 2), nullable=True)
+    
+    # Items (stored as JSON)
+    items           = Column(JSONB, nullable=True)  # List of {item_name, price, qty}
+    
+    # Notes & details
+    garage_name     = Column(String(255), nullable=True)
+    garage_address  = Column(Text, nullable=True)
+    garage_gst      = Column(String(50), nullable=True)
+    
+    customer_name   = Column(String(255), nullable=True)
+    vehicle_info    = Column(String(255), nullable=True)
+    service_type    = Column(String(255), nullable=True)
+    
+    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    
+    booking         = relationship("Booking", foreign_keys=[booking_id])
+    customer        = relationship("Customer", foreign_keys=[customer_id])
+    garage          = relationship("Garage", foreign_keys=[garage_id])
 
 # ──────────────────────────────────────────
 # DEFAULT SERVICES (Admin creates these)
@@ -357,3 +423,37 @@ class DefaultService(Base):
     price_type      = Column(String(20), default="fixed")  # fixed | starting | estimate | quote
     is_active       = Column(Boolean, default=True)
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
+
+# ──────────────────────────────────────────
+# COMMISSION RULES (Admin Sets These)
+# ──────────────────────────────────────────
+
+class CommissionRule(Base):
+    __tablename__ = "commission_rules"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    min_amount      = Column(Numeric(10, 2), nullable=False)
+    max_amount      = Column(Numeric(10, 2), nullable=True)  # Null means infinity
+    percentage      = Column(Numeric(5, 2), nullable=False)  # e.g. 10.00 for 10%
+    is_active       = Column(Boolean, default=True)
+    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at      = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+# ──────────────────────────────────────────
+# PLATFORM PAYOUT REQUESTS (Ledger / Proofs)
+# ──────────────────────────────────────────
+
+class PlatformPayoutRequest(Base):
+    __tablename__ = "platform_payout_requests"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    garage_id      = Column(Integer, ForeignKey("garages.id"), nullable=False)
+    amount         = Column(Numeric(10, 2), nullable=False)
+    utr_number     = Column(String(50), nullable=False)
+    screenshot_url = Column(Text, nullable=True)
+    status         = Column(String(50), default="pending")  # pending, approved, rejected
+    created_at     = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at     = Column(DateTime(timezone=True), onupdate=func.now())
+
+    garage = relationship("Garage")

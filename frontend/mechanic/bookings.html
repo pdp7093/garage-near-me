@@ -119,6 +119,10 @@
               onclick="setFilter('all', this)">
               All <span class="badge bg-secondary ms-1 rounded-pill" id="count-all">0</span>
             </button>
+            <button class="btn btn-outline-secondary filter-btn rounded-pill px-4"
+              onclick="setFilter('today', this)" style="border-color: #EF4444; color: #EF4444;">
+              ⚡ Today's Jobs <span class="badge bg-danger ms-1 rounded-pill" id="count-today">0</span>
+            </button>
             <button class="btn btn-outline-secondary filter-btn rounded-pill px-4" onclick="setFilter('pending', this)">
               New <span class="badge bg-primary ms-1 rounded-pill" id="count-pending">0</span>
             </button>
@@ -188,8 +192,20 @@
 
     // ── Update filter counts ──
     function updateCounts() {
-      const counts = { all: allBookings.length, pending: 0, accepted: 0, ongoing: 0, completed: 0 };
-      allBookings.forEach(b => { if (counts[b.status] !== undefined) counts[b.status]++; });
+      const counts = { all: allBookings.length, pending: 0, accepted: 0, ongoing: 0, completed: 0, today: 0 };
+      const todayStr = new Date().toDateString();
+      
+      allBookings.forEach(b => {
+        if (counts[b.status] !== undefined) counts[b.status]++;
+        
+        // Count for today
+        const cDate = new Date(b.created_at).toDateString();
+        const sDate = b.scheduled_at ? new Date(b.scheduled_at).toDateString() : null;
+        if (cDate === todayStr || sDate === todayStr) {
+          counts.today++;
+        }
+      });
+      
       Object.keys(counts).forEach(k => {
         const el = document.getElementById(`count-${k}`);
         if (el) el.textContent = counts[k];
@@ -207,9 +223,17 @@
     // ── Render ──
     function renderBookings() {
       const container = document.getElementById('bookings-container');
+      const todayStr = new Date().toDateString();
+      
       let data = currentFilter === 'all'
         ? allBookings
-        : allBookings.filter(b => b.status === currentFilter);
+        : currentFilter === 'today'
+          ? allBookings.filter(b => {
+              const cDate = new Date(b.created_at).toDateString();
+              const sDate = b.scheduled_at ? new Date(b.scheduled_at).toDateString() : null;
+              return cDate === todayStr || sDate === todayStr;
+            })
+          : allBookings.filter(b => b.status === currentFilter);
 
       // Sort — pending first, then by date
       data.sort((a, b) => {
@@ -255,71 +279,65 @@
         : '';
 
       const scheduledStr = b.scheduled_at
-        ? `<div class="text-muted" style="font-size:12px;">📅 ${new Date(b.scheduled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} ${new Date(b.scheduled_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>`
+        ? `<span class="text-muted ms-2" style="font-size:12px;">📅 ${new Date(b.scheduled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} ${new Date(b.scheduled_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>`
         : '';
 
       const estimateSection = b.estimated_amount
-        ? `<div class="d-flex justify-content-between align-items-center px-3 py-2 rounded-3 mb-3" style="background:#F0FDF4;">
-              <span class="text-muted" style="font-size:13px;">Estimate Sent</span>
-              <span class="fw-bold" style="color:#16A34A;font-size:16px;">₹${b.estimated_amount}</span>
-           </div>`
+        ? `<span class="badge bg-light text-success border fw-bold px-2.5 py-1" style="font-size:12px;">Est: ₹${b.estimated_amount}</span>`
         : '';
 
       const borderStyle = b.status === 'ongoing'
         ? 'border-left: 4px solid #F59E0B;'
         : b.status === 'pending'
           ? 'border-left: 4px solid #2563EB;'
-          : '';
+          : 'border-left: 4px solid var(--color-border);';
+
+      const bookingNoDisplay = b.booking_number || `BK-${b.id}`;
 
       return `
-        <div class="col-12 col-xl-6">
-          <div class="bg-white rounded-4 p-4 request-card h-100 d-flex flex-column" style="${borderStyle}">
-
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <span class="status-badge ${sc.cls}">${sc.label}</span>
+        <div class="col-12">
+          <div class="bg-white rounded-4 p-3 request-card d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 shadow-sm border" style="${borderStyle}">
+            
+            <!-- Left Info Panel -->
+            <div class="d-flex flex-column gap-1 flex-grow-1">
+              
+              <!-- Row 1: Booking ID, Status, Badges -->
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                <span class="badge bg-dark text-white font-monospace px-2.5 py-1 rounded-3" style="font-size:12px; font-weight:600; letter-spacing:0.5px;">${bookingNoDisplay}</span>
+                <span class="status-badge ${sc.cls} py-0.5 px-2 small">${sc.label}</span>
                 ${pickDrop}
+                ${estimateSection}
               </div>
-              <div class="text-end text-muted" style="font-size:11px;">${date}<br>${time}</div>
+
+              <!-- Row 2: Customer Name, Phone, and Vehicle Reg Details -->
+              <div class="d-flex align-items-center gap-3 flex-wrap text-dark" style="font-size:13px;">
+                <span class="fw-bold">${b.customer_name || `Customer #${b.customer_id}`} ${b.customer_phone ? `(+91 ${b.customer_phone})` : ''}</span>
+                <span class="text-muted">•</span>
+                <span class="fw-medium text-secondary">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" class="me-1"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+                  ${b.vehicle_model || (b.vehicle_type === 'two_wheeler' ? '2 Wheeler' : '4 Wheeler')}
+                  ${b.vehicle_number ? `(${b.vehicle_number})` : ''}
+                </span>
+              </div>
+
+              <!-- Row 3: Requested Services, Date, Scheduled -->
+              <div class="d-flex align-items-center gap-2 flex-wrap text-muted mt-1" style="font-size:12px;">
+                <span class="badge bg-light text-dark border px-2 py-0.5 rounded-3 fw-normal">
+                  ${b.service_type || (b.booking_type === 'sos' ? 'SOS Assistance' : 'Inspection Required')}
+                </span>
+                <span>•</span>
+                <span>Booking: ${date} at ${time}</span>
+                ${scheduledStr ? `<span>•</span> ${scheduledStr}` : ''}
+              </div>
+
             </div>
 
-            <!-- Booking ID & Vehicle -->
-            <div class="mb-3">
-              <h5 class="fw-bold mb-1" style="font-family:var(--font-head);color:var(--color-text);">Booking #${b.id}</h5>
-              <div class="d-flex align-items-center gap-2 text-muted mb-1" style="font-size:13px;">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-                <span>${b.vehicle_model || (b.vehicle_type === 'two_wheeler' ? '2 Wheeler' : b.vehicle_type === 'four_wheeler' ? '4 Wheeler' : 'Vehicle')}</span>
-                ${b.vehicle_number ? `<span class="badge bg-light text-dark border fw-normal" style="font-size:11px;">${b.vehicle_number}</span>` : ''}
-              </div>
-              ${b.service_type
-          ? `<div class="text-dark fw-medium" style="font-size:13px;"><span class="text-muted">Service:</span> ${b.service_type}</div>`
-          : `<div class="text-muted" style="font-size:13px;font-style:italic;">Mechanic inspection required</div>`}
-              ${scheduledStr}
-            </div>
-
-            <!-- Pickup address if pick & drop -->
-            ${b.pickup_address
-          ? `<div class="d-flex align-items-start gap-2 mb-3 p-2 bg-light rounded-3" style="font-size:12px;">
-                  <svg viewBox="0 0 24 24" fill="var(--color-text-muted)" width="14" height="14" class="flex-shrink-0 mt-1"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                  <span class="text-muted">${b.pickup_address}</span>
-                </div>`
-          : ''}
-
-            <!-- Description -->
-            ${b.description
-          ? `<div class="text-muted mb-3 p-2 bg-light rounded-3" style="font-size:12px;font-style:italic;">"${b.description}"</div>`
-          : ''}
-
-            <!-- Estimate sent -->
-            ${estimateSection}
-
-            <!-- CTA -->
-            <div class="d-flex gap-2 mt-auto">
+            <!-- Right CTA Panel -->
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
               <a href="job-detail.html?id=${b.id}"
-                 class="btn text-white flex-grow-1 fw-bold rounded-pill"
-                 style="background:var(--color-primary);">
-                ${b.status === 'pending' ? 'Review & Accept' : b.status === 'accepted' ? 'Send Estimate' : 'View Details'}
+                 class="btn text-white fw-bold rounded-pill px-4"
+                 style="background:var(--color-primary); font-size:13px; min-width:140px;">
+                ${b.status === 'pending' ? 'Review &amp; Accept' : b.status === 'accepted' ? 'Send Estimate' : 'View Details'}
               </a>
             </div>
 
@@ -330,16 +348,17 @@
     // ── Skeletons ──
     function showSkeletons() {
       document.getElementById('bookings-container').innerHTML = [1, 2, 3, 4].map(() => `
-        <div class="col-12 col-xl-6">
-          <div class="bg-white rounded-4 p-4" style="border:1px solid var(--color-border);">
-            <div class="d-flex justify-content-between mb-3">
-              <div class="skeleton" style="height:22px;width:100px;"></div>
-              <div class="skeleton" style="height:22px;width:70px;"></div>
+        <div class="col-12">
+          <div class="bg-white rounded-4 p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border shadow-sm">
+            <div class="d-flex flex-column gap-2 flex-grow-1">
+              <div class="d-flex gap-2">
+                <div class="skeleton" style="height:22px;width:100px;"></div>
+                <div class="skeleton" style="height:22px;width:70px;"></div>
+              </div>
+              <div class="skeleton" style="height:16px;width:40%;"></div>
+              <div class="skeleton" style="height:14px;width:55%;"></div>
             </div>
-            <div class="skeleton mb-2" style="height:22px;width:60%;"></div>
-            <div class="skeleton mb-2" style="height:16px;width:45%;"></div>
-            <div class="skeleton mb-4" style="height:16px;width:55%;"></div>
-            <div class="skeleton" style="height:40px;border-radius:20px;"></div>
+            <div class="skeleton rounded-pill" style="height:38px;width:140px;"></div>
           </div>
         </div>`).join('');
     }

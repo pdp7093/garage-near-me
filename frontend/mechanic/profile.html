@@ -162,9 +162,18 @@
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="visitingChargeInput">Visiting
-                    Charge</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="visitingChargeInput">Visiting Charge</label>
                   <input type="number" class="form-control" id="visitingChargeInput" min="0" step="1" placeholder="0">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-medium text-muted mb-1">GST Registration</label>
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="form-check form-switch mb-0">
+                      <input class="form-check-input" type="checkbox" role="switch" id="hasGstInput">
+                      <label class="form-check-label small fw-medium" for="hasGstInput">Registered</label>
+                    </div>
+                    <input type="text" class="form-control form-control-sm w-auto flex-grow-1" id="gstNumberInput" placeholder="GST Number" disabled>
+                  </div>
                 </div>
                 <div class="col-md-6">
                   <div class="profile-kv h-100">
@@ -326,9 +335,21 @@
       initProfileTabs();
       renderWorkingHours([]);
       bindSaveButtons();
+      bindGstToggle();
       loadGarageProfile();
       fetchMyDocuments();
     });
+
+    function bindGstToggle() {
+      const hasGst = document.getElementById('hasGstInput');
+      const gstNumber = document.getElementById('gstNumberInput');
+      if (hasGst && gstNumber) {
+        hasGst.addEventListener('change', () => {
+          gstNumber.disabled = !hasGst.checked;
+          if (!hasGst.checked) gstNumber.value = '';
+        });
+      }
+    }
 
     function initProfileTabs() {
       const tabs = document.querySelectorAll('.profile-nav-link');
@@ -402,6 +423,11 @@
       setValue('visitingChargeInput', garage.visiting_charge);
       setChecked('sosAvailableInput', garage.is_sos_available);
       setChecked('pickDropInput', garage.offers_pick_and_drop);
+      
+      setChecked('hasGstInput', garage.has_gst);
+      setValue('gstNumberInput', garage.gst_number);
+      const gstNumber = document.getElementById('gstNumberInput');
+      if (gstNumber) gstNumber.disabled = !garage.has_gst;
 
       setValue('shopNumberInput', location.shop_number);
       setValue('streetInput', location.street);
@@ -539,7 +565,9 @@
         garage_type: getValue('garageTypeInput') || null,
         is_sos_available: getChecked('sosAvailableInput'),
         offers_pick_and_drop: getChecked('pickDropInput'),
-        visiting_charge: getNumberOrNull('visitingChargeInput')
+        visiting_charge: getNumberOrNull('visitingChargeInput'),
+        has_gst: getChecked('hasGstInput'),
+        gst_number: getChecked('hasGstInput') ? (getValue('gstNumberInput') || null) : null
       };
 
       await sendJson(`${API}/api/garage/me`, 'PATCH', payload);

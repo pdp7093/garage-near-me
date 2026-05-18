@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_, cast, Date
 from datetime import datetime
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 import os
+import random
+import string
 
 import models, schemas
 from database import get_db
@@ -56,6 +59,16 @@ def get_current_garage(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+def generate_unique_booking_number(db: Session) -> str:
+    """
+    Generates a unique reference code: BK-[6 uppercase alphanumeric characters]
+    """
+    while True:
+        code = "BK-" + "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        exists = db.query(models.Booking).filter(models.Booking.booking_number == code).first()
+        if not exists:
+            return code
+
 
 # ──────────────────────────────────────────
 # CUSTOMER ENDPOINTS
@@ -78,10 +91,14 @@ def create_booking(
     ).first()
     if not garage:
         raise HTTPException(status_code=404, detail="Garage not found or inactive")
+    if garage.is_credit_locked:
+        raise HTTPException(status_code=403, detail="Garage credit limit exceeded. Bookings are temporarily blocked.")
 
     pickup_address = booking_data.pickup_address if booking_data.requires_pick_and_drop else None
+    booking_no = generate_unique_booking_number(db)
 
     booking = models.Booking(
+        booking_number   = booking_no,
         customer_id      = current_customer.id,
         garage_id        = booking_data.garage_id,
         booking_type     = booking_data.booking_type,
@@ -124,10 +141,14 @@ def create_sos_booking(
     ).first()
     if not garage:
         raise HTTPException(status_code=404, detail="No SOS-available garage found")
+    if garage.is_credit_locked:
+        raise HTTPException(status_code=403, detail="Garage credit limit exceeded. SOS requests are temporarily blocked.")
 
     pickup_address = sos_data.pickup_address if sos_data.requires_pick_and_drop else None
+    booking_no = generate_unique_booking_number(db)
 
     booking = models.Booking(
+        booking_number   = booking_no,
         customer_id      = current_customer.id,
         garage_id        = sos_data.garage_id,
         booking_type     = models.BookingType.sos,
@@ -244,6 +265,71 @@ def get_my_bookings(
     return db.query(models.Booking).filter(
         models.Booking.customer_id == current_customer.id
     ).order_by(models.Booking.created_at.desc()).all()
+
+
+@router.get("/my/past", response_model=schemas.PaginatedBookingResponse)
+def get_my_past_bookings(
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer),
+    page: int = Query(1, ge=1),
+    size: int = Query(15, ge=1, le=100),
+    garage_name: str = Query(None),
+    status: str = Query(None),
+    date: str = Query(None)
+):
+    """
+    Customer ki paginated past history bookings (completed / cancelled)
+    GET /api/bookings/my/past
+    """
+    import math
+
+    # Base query: only past bookings
+    query = db.query(models.Booking).join(models.Garage, models.Booking.garage_id == models.Garage.id).filter(
+        models.Booking.customer_id == current_customer.id,
+        models.Booking.status.in_([models.BookingStatus.completed, models.BookingStatus.cancelled])
+    )
+
+    # Filtering
+    if garage_name:
+        query = query.filter(models.Garage.name.ilike(f"%{garage_name}%"))
+        
+    if status:
+        if status.lower() == 'completed':
+            query = query.filter(models.Booking.status == models.BookingStatus.completed)
+        elif status.lower() == 'cancelled':
+            query = query.filter(models.Booking.status == models.BookingStatus.cancelled)
+
+    if date:
+        # Date string usually format YYYY-MM-DD
+        try:
+            filter_date = datetime.strptime(date, '%Y-%m-%d').date()
+            query = query.filter(cast(models.Booking.created_at, Date) == filter_date)
+        except ValueError:
+            pass # ignore invalid date format
+
+    # Sorting
+    query = query.order_by(models.Booking.created_at.desc())
+
+    # Pagination calculation
+    total = query.count()
+    pages = math.ceil(total / size) if total > 0 else 1
+    
+    # Apply offset and limit
+    items = query.offset((page - 1) * size).limit(size).all()
+    
+    # Need to inject garage_name properly since the response model requires it or we already have garage loaded
+    # Wait, in BookingResponse, garage_name is handled in router sometimes but here SQLAlchemy relationship might not auto-populate it if it's not a property. 
+    # Let's populate garage_name explicitly
+    for item in items:
+        item.garage_name = item.garage.name if item.garage else None
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "size": size,
+        "pages": pages
+    }
 
 
 @router.delete("/{booking_id}", status_code=204)
@@ -384,6 +470,119 @@ def update_booking_status(
     db.commit()
     db.refresh(booking)
     return booking
+
+
+@router.patch("/garage/{booking_id}/payment")
+def update_booking_payment_status(
+    booking_id: int,
+    status_update: schemas.PaymentStatusUpdate,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Update payment status (e.g. mark as 'paid').
+    When payment is marked as paid, automatically save bill for customer.
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id        == booking_id,
+        models.Booking.garage_id == current_garage.id
+    ).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    booking.payment_status = status_update.payment_status
+    db.commit()
+    db.refresh(booking)
+    
+    # If payment is marked as paid, save bill for customer
+    if status_update.payment_status == 'paid':
+        # Calculate amounts
+        final_amount = float(booking.final_amount) if booking.final_amount else 0
+        
+        # Calculate subtotal and tax (assuming 18% GST)
+        if current_garage.has_gst:
+            subtotal = final_amount / 1.18
+            tax_amount = final_amount - subtotal
+        else:
+            subtotal = final_amount
+            tax_amount = 0
+        
+        # Collect all items for the bill
+        items = []
+        if booking.estimate_details:
+            items.extend(booking.estimate_details)
+        if booking.additional_estimate_details:
+            items.extend(booking.additional_estimate_details)
+        if booking.pickup_charge and float(booking.pickup_charge) > 0:
+            items.append({
+                "item_name": "Pick & Drop / Visiting Charge",
+                "price": float(booking.pickup_charge),
+                "qty": 1
+            })
+        
+        # Garage location address
+        garage_address = ""
+        if current_garage.location:
+            addr_parts = [
+                current_garage.location.shop_number,
+                current_garage.location.street,
+                current_garage.location.city
+            ]
+            garage_address = ", ".join([p for p in addr_parts if p])
+        
+        # Vehicle info
+        vehicle_info = " • ".join([p for p in [booking.vehicle_model or booking.vehicle_type, booking.vehicle_number] if p])
+        
+        # Calculate platform commission
+        commission_rule = db.query(models.CommissionRule).filter(
+            models.CommissionRule.is_active == True,
+            models.CommissionRule.min_amount <= final_amount,
+            (models.CommissionRule.max_amount >= final_amount) | (models.CommissionRule.max_amount == None)
+        ).first()
+
+        platform_commission = 0.0
+        if commission_rule:
+            platform_commission = (final_amount * float(commission_rule.percentage)) / 100.0
+
+        garage_earnings = final_amount - platform_commission
+
+        # Save to booking
+        booking.platform_commission = platform_commission
+        booking.garage_earnings = garage_earnings
+
+        # Create bill
+        bill = models.Bill(
+            booking_id=booking.id,
+            customer_id=booking.customer_id,
+            garage_id=current_garage.id,
+            bill_number=f"GNM-{booking.id}-BILL",
+            subtotal=subtotal,
+            tax_amount=tax_amount,
+            total_amount=final_amount,
+            platform_commission=platform_commission,
+            garage_earnings=garage_earnings,
+            items=items,
+            garage_name=current_garage.name,
+            garage_address=garage_address,
+            garage_gst=current_garage.gst_number if current_garage.has_gst else None,
+            customer_name=booking.customer_name,
+            vehicle_info=vehicle_info,
+            service_type=booking.service_type or (models.BookingType.sos.value if booking.booking_type == models.BookingType.sos else "General Service")
+        )
+        # Update outstanding platform dues (dues accumulate; weekly billing manages lockouts)
+        if current_garage.pending_platform_dues is None:
+            current_garage.pending_platform_dues = 0.0
+        current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
+
+        db.add(bill)
+        db.commit()
+    
+    # Return as dict and inject garage info
+    booking_data = schemas.BookingResponse.model_validate(booking).model_dump()
+    booking_data['garage_visiting_charge'] = float(current_garage.visiting_charge) if current_garage.visiting_charge else None
+    booking_data['garage_name'] = current_garage.name
+    return booking_data
 
 
 # ──────────────────────────────────────────
@@ -556,3 +755,37 @@ def verify_additional_otp(
     db.commit()
     db.refresh(booking)
     return booking
+
+
+# ──────────────────────────────────────────
+# GET BILL (Customer → View Bill)
+# GET /api/bookings/{booking_id}/bill
+# ──────────────────────────────────────────
+
+@router.get("/{booking_id}/bill", response_model=schemas.BillResponse)
+def get_booking_bill(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    """
+    Customer apne booking ka bill dekh sakta hai.
+    Bill sirf paid bookings mein hoga.
+    GET /api/bookings/{booking_id}/bill
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id           == booking_id,
+        models.Booking.customer_id  == current_customer.id
+    ).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    bill = db.query(models.Bill).filter(
+        models.Bill.booking_id == booking_id
+    ).first()
+
+    if not bill:
+        raise HTTPException(status_code=404, detail="Bill not found. Payment may not have been marked as paid yet.")
+
+    return bill

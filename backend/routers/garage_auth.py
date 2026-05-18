@@ -176,12 +176,23 @@ def verify_otp(
 
 @router.get("/me", response_model=schemas.GarageResponse)
 def get_my_profile(
-    current_garage: models.Garage = Depends(get_current_garage)
+    current_garage: models.Garage = Depends(get_current_garage),
+    db: Session = Depends(get_db)
 ):
     """
     Token se apna profile fetch karo.
     Dashboard load hote waqt yahi call hoga.
+    Checks if grace period has expired and auto-locks if unpaid.
     """
+    from datetime import datetime
+    if current_garage.grace_period_ends_at:
+        grace_naive = current_garage.grace_period_ends_at.replace(tzinfo=None)
+        if grace_naive < datetime.utcnow() and current_garage.pending_platform_dues >= 500.0:
+            if not current_garage.is_credit_locked:
+                current_garage.is_credit_locked = True
+                db.commit()
+                db.refresh(current_garage)
+
     return current_garage
 
 

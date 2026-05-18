@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Commission Rules - Admin</title>
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="admin-layout">
+    <div id="sidebar-container"></div>
+    <main class="admin-content">
+      <div id="topbar-container"></div>
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 class="fw-bold mb-1" style="font-family: var(--font-head);">Commission Rules</h4>
+          <p class="text-muted small mb-0">Set dynamic percentage cuts based on bill total amounts.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#ruleModal">
+          + Add New Rule
+        </button>
+      </div>
+
+      <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
+        <div class="table-responsive">
+          <table class="admin-table table table-hover align-middle mb-0">
+            <thead class="text-muted small">
+              <tr>
+                <th>Min Amount (₹)</th>
+                <th>Max Amount (₹)</th>
+                <th>Commission %</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody id="rulesBody">
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">Loading rules...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Rule Modal -->
+  <div class="modal fade" id="ruleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 rounded-4 shadow">
+        <div class="modal-header border-bottom-0 pb-0">
+          <h5 class="fw-bold" style="font-family: var(--font-head);">Add Commission Rule</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="ruleForm">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Min Amount</label>
+              <input type="number" class="form-control" id="minAmount" required min="0" step="0.01">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Max Amount (Leave empty for infinity)</label>
+              <input type="number" class="form-control" id="maxAmount" min="0" step="0.01">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Percentage (%)</label>
+              <input type="number" class="form-control" id="percentage" required min="0" max="100" step="0.01">
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="isActive" checked>
+              <label class="form-check-label small fw-bold">Is Active</label>
+            </div>
+            <div class="mt-4 text-end">
+              <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary rounded-pill px-4">Save Rule</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/bootstrap.js"></script>
+  <script src="../js/components.js"></script>
+  <script>
+    initAdminChrome('Commission Rules');
+
+    const API_URL = 'http://localhost:8000/api/commissions';
+    const ADMIN_KEY = 'gnm_admin_secret_2026';
+
+    async function loadRules() {
+      try {
+        const response = await fetch(API_URL, {
+          headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const rules = await response.json();
+        
+        const tbody = document.getElementById('rulesBody');
+        if (rules.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No rules defined.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = rules.map(rule => `
+          <tr>
+            <td class="fw-medium">₹${rule.min_amount}</td>
+            <td class="text-muted">${rule.max_amount ? `₹${rule.max_amount}` : 'Infinity'}</td>
+            <td><span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">${rule.percentage}%</span></td>
+            <td>
+              ${rule.is_active ? '<span class="badge bg-primary bg-opacity-10 text-primary">Active</span>' : '<span class="badge bg-secondary bg-opacity-10 text-secondary">Inactive</span>'}
+            </td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="deleteRule(${rule.id})">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+        document.getElementById('rulesBody').innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Error loading rules.</td></tr>';
+      }
+    }
+
+    document.getElementById('ruleForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const maxAmt = document.getElementById('maxAmount').value;
+
+      const data = {
+        min_amount: parseFloat(document.getElementById('minAmount').value),
+        max_amount: maxAmt ? parseFloat(maxAmt) : null,
+        percentage: parseFloat(document.getElementById('percentage').value),
+        is_active: document.getElementById('isActive').checked
+      };
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-Admin-Key': ADMIN_KEY 
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          alert(err.detail || 'Failed to add rule');
+          return;
+        }
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('ruleModal'));
+        modal.hide();
+        document.getElementById('ruleForm').reset();
+        loadRules();
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred.');
+      }
+    });
+
+    async function deleteRule(id) {
+      if (!confirm("Are you sure you want to delete this rule?")) return;
+      try {
+        await fetch(`${API_URL}/${id}`, {
+          method: 'DELETE',
+          headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        loadRules();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadRules();
+  </script>
+</body>
+</html>

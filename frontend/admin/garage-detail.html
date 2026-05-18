@@ -516,6 +516,12 @@
                                             class="detail-val" id="visitingCharge">—</span></div>
                                     <div class="detail-row"><span class="detail-lbl">Pick & Drop</span><span
                                             class="detail-val" id="pickDrop">—</span></div>
+                                    <div class="detail-row"><span class="detail-lbl">GST</span><span
+                                            class="detail-val" id="gstInfo">—</span></div>
+                                    <div class="detail-row"><span class="detail-lbl">Outstanding Dues</span><span
+                                            class="detail-val text-danger fw-bold" id="platformDuesInfo">—</span></div>
+                                    <div class="detail-row"><span class="detail-lbl">Account Status</span><span
+                                            class="detail-val" id="creditLockInfo">—</span></div>
                                 </div>
                             </div>
 
@@ -770,6 +776,16 @@
             document.getElementById('ownerEmail').textContent = g.email || '—';
             document.getElementById('visitingCharge').textContent = g.visiting_charge ? `₹${g.visiting_charge}` : 'Free';
             document.getElementById('pickDrop').textContent = g.offers_pick_and_drop ? '✓ Available' : '✗ Not Available';
+            
+            const gstInfo = g.has_gst ? `Yes (${g.gst_number || 'N/A'})` : 'No';
+            document.getElementById('gstInfo').textContent = gstInfo;
+
+            const outstandingDues = parseFloat(g.pending_platform_dues) || 0;
+            document.getElementById('platformDuesInfo').textContent = `₹${outstandingDues.toFixed(2)}`;
+            
+            document.getElementById('creditLockInfo').innerHTML = g.is_credit_locked
+                ? '<span class="badge bg-danger rounded-pill px-2.5 py-1 text-white">Credit Locked</span>'
+                : '<span class="badge bg-success rounded-pill px-2.5 py-1 text-white">Good Standing</span>';
 
             // Location
             const loc = g.location || {};

@@ -101,6 +101,10 @@
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
                                 My Vehicles
                             </a>
+                            <a class="nav-link d-flex align-items-center gap-3" href="past-history.html">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                                Past History
+                            </a>
                             <a class="nav-link d-flex align-items-center gap-3" href="profile.html">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                 Profile Settings
@@ -121,10 +125,10 @@
                 <!-- Booking Tabs -->
                 <ul class="nav nav-pills mb-4" id="bookingTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-medium border shadow-sm me-2" id="active-tab" data-bs-toggle="pill" data-bs-target="#active" type="button" role="tab">Active</button>
+                        <button class="nav-link active fw-medium border shadow-sm me-2" id="active-tab" data-bs-toggle="pill" data-bs-target="#active" type="button" role="tab">Active Bookings</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-medium border shadow-sm bg-white" id="past-tab" data-bs-toggle="pill" data-bs-target="#past" type="button" role="tab">Past History</button>
+                        <a class="nav-link fw-medium border shadow-sm me-2" href="past-history.html">Past History</a>
                     </li>
                 </ul>
 
@@ -132,84 +136,13 @@
                     
                     <!-- ACTIVE BOOKINGS -->
                     <div class="tab-pane fade show active" id="active" role="tabpanel">
-                        
-                        <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-4">
-                            <div class="card-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
-                                <div class="fw-medium">Booking ID: #GNM-8492</div>
-                                <span class="badge bg-white text-primary rounded-pill px-3 py-1">In Progress</span>
-                            </div>
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">AC Repair</h5>
-                                        <p class="text-muted small mb-0">Sharma Auto Garage • 15, Connaught Place</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold fs-5 text-dark">₹1,498</div>
-                                        <div class="text-muted small">Via UPI</div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
-                                    <span>Date & Time: <strong class="text-dark">Today, 11:00 AM</strong></span>
-                                    <span>Vehicle: <strong class="text-dark">Red Swift Dzire</strong></span>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-4">Track Status</button>
-                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-4">Cancel</button>
-                                </div>
+                        <div id="activeBookingsContainer">
+                            <div class="text-center py-5 text-muted">
+                                <p>Loading active bookings...</p>
                             </div>
                         </div>
-
                     </div>
 
-                    <!-- PAST BOOKINGS -->
-                    <div class="tab-pane fade" id="past" role="tabpanel">
-                        
-                        <!-- Past Item 1 -->
-                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">Wheel Alignment</h5>
-                                        <p class="text-muted small mb-0">Speedy Wheels Care • Block A, Karol Bagh</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold fs-5 text-dark">₹799</div>
-                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill mt-1">Completed</span>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
-                                    <span>Date: <strong class="text-dark">15 Mar 2026</strong></span>
-                                    <span>Booking ID: <strong class="text-dark">#GNM-7210</strong></span>
-                                </div>
-                                <button class="btn btn-sm btn-outline-secondary rounded-pill px-4">Download Invoice</button>
-                            </div>
-                        </div>
-
-                        <!-- Past Item 2 -->
-                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">Emergency SOS</h5>
-                                        <p class="text-muted small mb-0">AutoFix Pro • South Ex</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold fs-5 text-dark">₹500</div>
-                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill mt-1">Completed</span>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-flex align-items-center justify-content-between text-muted small">
-                                    <span>Date: <strong class="text-dark">02 Feb 2026</strong></span>
-                                    <span>Booking ID: <strong class="text-dark">#GNM-6502</strong></span>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
                 </div>
 
             </div>
@@ -221,7 +154,7 @@
         &copy; 2026 GarageNearMe. All rights reserved.
     </footer>
 
-    <script src="../js/bootstrap.bundle.min.js"></script>
+    <script src="../js/bootstrap.js"></script>
     <script src="../js/script.js"></script>
     <script>
         const API_BASE = "http://127.0.0.1:8000";
@@ -281,7 +214,114 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadUserInfo);
+
+        async function loadActiveBookings() {
+            try {
+                if (!token) {
+                    console.error('No token found');
+                    document.getElementById('activeBookingsContainer').innerHTML = '<div class="text-center py-5 text-danger"><p>Not authenticated. Please login.</p></div>';
+                    return;
+                }
+
+                console.log('Fetching bookings from:', `${API_BASE}/api/bookings/my`);
+                const response = await fetch(`${API_BASE}/api/bookings/my`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const bookings = await response.json();
+                console.log('All bookings:', bookings);
+
+                const activeBookings = bookings.filter(b => b.status === 'pending' || b.status === 'accepted' || b.status === 'ongoing');
+                console.log('Active bookings:', activeBookings);
+
+                const container = document.getElementById('activeBookingsContainer');
+
+                if (activeBookings.length === 0) {
+                    container.innerHTML = '<div class="text-center py-5 text-muted"><p>No active bookings at the moment.</p></div>';
+                    return;
+                }
+
+                let html = '';
+                activeBookings.forEach(booking => {
+                    const date = new Date(booking.created_at).toLocaleDateString('en-IN');
+                    const amount = booking.final_amount ? `₹${parseFloat(booking.final_amount).toLocaleString()}` : 'Estimating...';
+                    const serviceName = booking.service_type || (booking.booking_type === 'sos' ? 'Emergency SOS' : 'General Service');
+
+                    // Status badge for active
+                    let statusBadge = '';
+                    if (booking.status === 'pending') {
+                        statusBadge = '<span class="badge bg-info text-white rounded-pill px-3 py-1">Waiting for Garage</span>';
+                    } else if (booking.status === 'accepted') {
+                        statusBadge = '<span class="badge bg-primary text-white rounded-pill px-3 py-1">Accepted</span>';
+                    } else if (booking.status === 'ongoing') {
+                        statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3 py-1">In Progress</span>';
+                    }
+
+                    // Payment status
+                    const paymentBadge = booking.payment_status === 'paid'
+                        ? '<span class="badge bg-success rounded-pill ms-2">Paid ✓</span>'
+                        : '<span class="badge bg-light border border-secondary rounded-pill ms-2" style="color: #666;">Pending</span>';
+
+                    html += `
+                        <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-4">
+                            <div class="card-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+                                <div class="fw-medium">Booking ID: #GNM-${booking.id}</div>
+                                <div>${statusBadge}${paymentBadge}</div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">${serviceName}</h5>
+                                        <p class="text-muted small mb-0">${booking.garage_name || 'Searching for garage...'}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold fs-5 text-dark">${amount}</div>
+                                        <div class="text-muted small">${booking.payment_status === 'paid' ? 'Paid' : 'Pending'}</div>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                                    <span>Date: <strong class="text-dark">${date}</strong></span>
+                                    <span>Vehicle: <strong class="text-dark">${booking.vehicle_number || 'N/A'}</strong></span>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-4" onclick="trackBooking(${booking.id})">Track Status</button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="cancelBooking(${booking.id})">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            } catch (err) {
+                console.error('Error loading active bookings:', err);
+                document.getElementById('activeBookingsContainer').innerHTML = `<div class="text-center py-5"><div class="text-danger"><p><strong>Error loading active bookings.</strong></p><p style="font-size: 12px;">${err.message}</p></div><button class="btn btn-sm btn-outline-primary mt-3" onclick="location.reload()">Retry</button></div>`;
+            }
+        }
+
+        function trackBooking(bookingId) {
+            alert('Track Status feature coming soon!');
+        }
+
+        function cancelBooking(bookingId) {
+            if (confirm('Are you sure you want to cancel this booking?')) {
+                alert('Cancellation feature coming soon!');
+            }
+        }
+
+        function rebook(bookingId) {
+            alert('Rebook feature coming soon!');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            loadActiveBookings();
+        });
     </script>
 </body>
 

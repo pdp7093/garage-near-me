@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
+from sqlalchemy import Date, cast, func
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
@@ -264,7 +265,8 @@ def search_garages(
     """
     query = db.query(models.Garage).filter(
         models.Garage.is_active == True,
-        models.Garage.is_verified == True
+        models.Garage.is_verified == True,
+        models.Garage.is_credit_locked == False
     )
 
     if vehicle_type:
@@ -478,20 +480,36 @@ def get_dashboard_summary(
 
 
     # ─────────────────────────────
-    # TEMP BUSINESS METRICS
-    # (Until booking system is built)
+    # BOOKING METRICS
     # ─────────────────────────────
 
-    todays_earnings = services_count * 250
+    today = datetime.utcnow().date()
 
-    jobs_completed = services_count
+    todays_earnings = db.query(
+        func.coalesce(func.sum(models.Booking.final_amount), 0)
+    ).filter(
+        models.Booking.garage_id == current_garage.id,
+        models.Booking.status == models.BookingStatus.completed,
+        cast(models.Booking.completed_at, Date) == today
+    ).scalar() or 0
 
-    active_sos = 1 if current_garage.is_sos_available else 0
+    jobs_completed = db.query(models.Booking).filter(
+        models.Booking.garage_id == current_garage.id,
+        models.Booking.status == models.BookingStatus.completed
+    ).count()
 
-    customer_rating = round(
-        3.5 + (profile_completion / 100) * 1.5,
-        1
-    )
+    active_sos = db.query(models.Booking).filter(
+        models.Booking.garage_id == current_garage.id,
+        models.Booking.booking_type == models.BookingType.sos,
+        models.Booking.status.in_([
+            models.BookingStatus.pending,
+            models.BookingStatus.accepted,
+            models.BookingStatus.ongoing
+        ])
+    ).count()
+
+    # Rating model abhi codebase mein nahi hai, isliye fake rating return nahi karte.
+    customer_rating = None
 
 
     # ─────────────────────────────
@@ -509,7 +527,7 @@ def get_dashboard_summary(
         ),
 
         # Business Metrics
-        "todays_earnings": todays_earnings,
+        "todays_earnings": float(todays_earnings),
         "jobs_completed": jobs_completed,
         "active_sos": active_sos,
         "customer_rating": customer_rating,
@@ -633,6 +651,7 @@ def get_nearby_garages(lat: float,lng: float,radius: float = 2.0,service_name: O
         .filter(
             models.Garage.is_active   == True,
             models.Garage.is_verified == True,
+            models.Garage.is_credit_locked == False,
             models.GarageLocation.latitude  != None,
             models.GarageLocation.longitude != None,
         )

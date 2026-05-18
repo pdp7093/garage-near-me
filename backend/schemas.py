@@ -115,6 +115,8 @@ class GarageRequestCreate(BaseModel):
     address:     Optional[str] = None
     city:        str = "Ahmedabad"
     pincode:     Optional[str] = None
+    has_gst:     bool = False
+    gst_number:  Optional[str] = None
 
 class GarageRequestResponse(BaseModel):
     id:                    int
@@ -126,6 +128,8 @@ class GarageRequestResponse(BaseModel):
     address:               Optional[str] = None
     city:                  str
     pincode:               Optional[str] = None
+    has_gst:               bool
+    gst_number:            Optional[str] = None
     status:                GarageRequestStatus
     admin_note:            Optional[str] = None
     visit_date:            Optional[datetime] = None
@@ -268,6 +272,8 @@ class GarageUpdate(BaseModel):
     is_sos_available:     Optional[bool]  = None
     offers_pick_and_drop: Optional[bool]  = None
     visiting_charge:      Optional[float] = None
+    has_gst:              Optional[bool]  = None
+    gst_number:           Optional[str]   = None
 
 class GarageResponse(BaseModel):
     id:                   int
@@ -282,6 +288,11 @@ class GarageResponse(BaseModel):
     is_sos_available:     bool
     offers_pick_and_drop: bool
     visiting_charge:      Optional[float] = None
+    has_gst:              bool
+    gst_number:           Optional[str] = None
+    pending_platform_dues: float
+    is_credit_locked:     bool
+    grace_period_ends_at:  Optional[datetime] = None
     created_at:           datetime
     location:             Optional[GarageLocationResponse] = None
     working_hours:        List[WorkingHourResponse] = []
@@ -301,6 +312,8 @@ class GaragePublicResponse(BaseModel):
     is_verified:          bool
     offers_pick_and_drop: bool
     visiting_charge:      Optional[float] = None
+    has_gst:              bool
+    gst_number:           Optional[str] = None
     location:             Optional[GarageLocationResponse] = None
     services:             List[GarageServiceResponse] = []
 
@@ -351,6 +364,9 @@ class BookingStatusUpdate(BaseModel):
     garage_note: Optional[str] = None
     final_amount: Optional[float] = None
 
+class PaymentStatusUpdate(BaseModel):
+    payment_status: str
+
 class EstimateItem(BaseModel):
     item_name: str
     price: float
@@ -366,7 +382,10 @@ class EstimateApproval(BaseModel):
 
 class BookingResponse(BaseModel):
     id:                     int
+    booking_number:         Optional[str] = None
     customer_id:            int
+    customer_name:          Optional[str] = None
+    customer_phone:         Optional[str] = None
     garage_id:              int
     booking_type:           BookingType
     status:                 BookingStatus
@@ -394,11 +413,23 @@ class BookingResponse(BaseModel):
     started_at:             Optional[datetime] = None
     completed_at:           Optional[datetime] = None
     final_amount:           Optional[float] = None
+    platform_commission:    Optional[float] = None
+    garage_earnings:        Optional[float] = None
     payment_status:         Optional[str] = None
     created_at:             datetime
+    # Garage info — visiting_charge ke liye (booking router inject karta hai)
+    garage_visiting_charge: Optional[float] = None
+    garage_name:            Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
+
+class PaginatedBookingResponse(BaseModel):
+    items: List[BookingResponse]
+    total: int
+    page: int
+    size: int
+    pages: int
+
 
 
 # ──────────────────────────────────────────
@@ -444,3 +475,99 @@ class GarageServiceUpdate(BaseModel):
     category:     Optional[str]   = None
     price:        Optional[float] = None
     is_available: Optional[bool]  = None
+
+
+# ──────────────────────────────────────────
+# BILL / INVOICE
+# ──────────────────────────────────────────
+
+class BillCreate(BaseModel):
+    booking_id:      int
+    subtotal:        float
+    tax_amount:      float = 0
+    total_amount:    float
+    items:           Optional[list] = None
+    garage_name:     Optional[str]  = None
+    garage_address:  Optional[str]  = None
+    garage_gst:      Optional[str]  = None
+    customer_name:   Optional[str]  = None
+    vehicle_info:    Optional[str]  = None
+    service_type:    Optional[str]  = None
+
+class BillResponse(BaseModel):
+    id:              int
+    booking_id:      int
+    customer_id:     int
+    garage_id:       int
+    bill_number:     Optional[str]
+    bill_date:       datetime
+    subtotal:        float
+    tax_amount:      float
+    total_amount:    float
+    platform_commission: Optional[float] = None
+    garage_earnings:     Optional[float] = None
+    items:           Optional[list] = None
+    garage_name:     Optional[str]
+    garage_address:  Optional[str]
+    garage_gst:      Optional[str]
+    customer_name:   Optional[str]
+    vehicle_info:    Optional[str]
+    service_type:    Optional[str]
+    created_at:      datetime
+
+    class Config:
+        from_attributes = True
+
+# ──────────────────────────────────────────
+# COMMISSION RULES
+# ──────────────────────────────────────────
+
+class CommissionRuleCreate(BaseModel):
+    min_amount: float
+    max_amount: Optional[float] = None
+    percentage: float
+    is_active:  bool = True
+
+class CommissionRuleUpdate(BaseModel):
+    min_amount: Optional[float] = None
+    max_amount: Optional[float] = None
+    percentage: Optional[float] = None
+    is_active:  Optional[bool] = None
+
+class CommissionRuleResponse(BaseModel):
+    id:         int
+    min_amount: float
+    max_amount: Optional[float] = None
+    percentage: float
+    is_active:  bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ──────────────────────────────────────────
+# PLATFORM PAYOUT REQUESTS
+# ──────────────────────────────────────────
+
+class PlatformPayoutRequestCreate(BaseModel):
+    amount:     float
+    utr_number: str
+
+class PlatformPayoutRequestAction(BaseModel):
+    action:     str  # "approve" | "reject"
+
+class PlatformPayoutRequestResponse(BaseModel):
+    id:             int
+    garage_id:      int
+    amount:         float
+    utr_number:     str
+    screenshot_url: Optional[str] = None
+    status:         str
+    created_at:     datetime
+    updated_at:     Optional[datetime] = None
+    garage_name:    Optional[str] = None
+
+    class Config:
+        from_attributes = True

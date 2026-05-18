@@ -128,3 +128,18 @@ def save_customer_profile_image(file: UploadFile, customer_id: int) -> str:
         shutil.copyfileobj(file.file, buffer)
 
     return f"/{file_path.as_posix()}"
+
+
+PAYOUT_SCREENSHOT_ROOT = Path("uploads") / "payout_screenshots"
+
+def save_payout_screenshot(file: UploadFile, garage_id: int) -> str:
+    upload_dir = PAYOUT_SCREENSHOT_ROOT / str(garage_id)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}{_safe_extension(file.filename)}"
+    file_path = upload_dir / filename
+
+    with file_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return f"/{file_path.as_posix()}"

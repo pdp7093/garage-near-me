@@ -347,6 +347,7 @@
     let otpAction = null; // 'estimate' | 'additional'
     let myGarageServices = [];
     let selectedGarageServices = new Set();
+    let garageServicesContext = 'estimate'; // 'estimate' | 'additional'
 
     // ── Load ──
     async function loadJob() {
@@ -358,22 +359,19 @@
         if (!res.ok) throw new Error();
         booking = await res.json();
 
+        // Garage visiting_charge ab directly booking response mein aata hai
+        if (booking.requires_pick_and_drop && 
+            booking.garage_visiting_charge && 
+            (booking.pickup_charge === null || booking.pickup_charge === undefined)) {
+            booking.pickup_charge = booking.garage_visiting_charge;
+        }
+
         try {
             const sRes = await fetch(`${getApiBase()}/api/garage/me/services`, {
                 headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
             });
             if (sRes.ok) myGarageServices = await sRes.json();
-            
-            const gRes = await fetch(`${getApiBase()}/api/garage/me`, {
-                headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
-            });
-            if (gRes.ok) {
-                const me = await gRes.json();
-                if (booking.requires_pick_and_drop && me.visiting_charge && (booking.pickup_charge === null || booking.pickup_charge === undefined)) {
-                    booking.pickup_charge = me.visiting_charge;
-                }
-            }
-        } catch (e) { console.error('Failed to load garage services or profile'); }
+        } catch (e) { console.error('Failed to load garage services'); }
 
         if (booking.estimate_details) {
             estimateItems = booking.estimate_details;
@@ -412,7 +410,15 @@
       document.getElementById('page-content').style.display = '';
 
       // Booking ID
-      document.getElementById('booking-id-display').textContent = booking.id;
+      const bookingNo = booking.booking_number || ('BK-' + booking.id);
+      document.getElementById('booking-id-display').textContent = bookingNo;
+
+      // Update chrome title dynamically
+      const chromeTitle = document.getElementById('topbar-title');
+      if (chromeTitle) {
+        chromeTitle.textContent = `Job #${bookingNo}`;
+      }
+      document.title = `Job #${bookingNo} - GarageNearMe`;
 
       // Status badge
       const sc = {
@@ -437,7 +443,9 @@
 
       // Customer
       document.getElementById('customer-initial').textContent = `C${booking.customer_id}`;
-      document.getElementById('customer-name').textContent = `Customer #${booking.customer_id}`;
+      const custName = booking.customer_name || `Customer #${booking.customer_id}`;
+      const custPhone = booking.customer_phone ? ` (+91 ${booking.customer_phone})` : '';
+      document.getElementById('customer-name').textContent = custName + custPhone;
       document.getElementById('customer-phone').textContent = 'Booking se linked';
 
       // Vehicle
@@ -554,7 +562,7 @@
             <div class="col-3"><input type="number" id="est-item-price" class="form-control form-control-sm rounded-3" placeholder="₹"></div>
             <div class="col-2"><button onclick="addEstItem()" class="btn btn-sm w-100 rounded-3 text-white" style="background:var(--color-primary);">+</button></div>
           </div>
-          <button onclick="openGarageServices()" class="btn btn-sm btn-outline-secondary rounded-3 w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
+          <button onclick="openGarageServices('estimate')" class="btn btn-sm btn-outline-secondary rounded-3 w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H6v-2h4v2zm0-4H6v-2h4v2zm0-4H6V7h4v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg>
             Select from Garage Services
           </button>
@@ -635,6 +643,10 @@
               <div class="col-3"><input type="number" id="add-item-price" class="form-control form-control-sm rounded-3" placeholder="₹"></div>
               <div class="col-2"><button onclick="addAddItem()" class="btn btn-sm w-100 rounded-3 text-white" style="background:var(--color-primary);">+</button></div>
             </div>
+            <button onclick="openGarageServices('additional')" class="btn btn-sm btn-outline-secondary rounded-3 w-100 mb-2 d-flex align-items-center justify-content-center gap-2">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H6v-2h4v2zm0-4H6v-2h4v2zm0-4H6V7h4v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg>
+              Select from Garage Services
+            </button>
             <div class="mb-3">
               <input type="text" id="add-note" class="form-control form-control-sm rounded-3" placeholder="Note (optional)">
             </div>
@@ -839,8 +851,16 @@
     }
 
     // ── Garage Services Modal Logic ──
-    function openGarageServices() {
+    function openGarageServices(context = 'estimate') {
+        garageServicesContext = context;
         selectedGarageServices.clear();
+        // Modal title update karo
+        const modalTitle = document.querySelector('#garageServicesModal .modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = context === 'additional' 
+                ? 'Additional Items — Garage Services' 
+                : 'Select Predefined Services';
+        }
         const container = document.getElementById('garage-services-list');
         
         if (myGarageServices.length === 0) {
@@ -885,11 +905,20 @@
         if (selectedGarageServices.size > 0) {
             myGarageServices.forEach(s => {
                 if (selectedGarageServices.has(s.id)) {
-                    estimateItems.push({ item_name: s.service_name, price: s.price || 0 });
+                    if (garageServicesContext === 'additional') {
+                        additionalItems.push({ item_name: s.service_name, price: s.price || 0 });
+                    } else {
+                        estimateItems.push({ item_name: s.service_name, price: s.price || 0 });
+                    }
                 }
             });
-            document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
-            updateEstTotal();
+            if (garageServicesContext === 'additional') {
+                const listEl = document.getElementById('add-items-list');
+                if (listEl) listEl.innerHTML = renderEstimateItems(additionalItems, true, true);
+            } else {
+                document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
+                updateEstTotal();
+            }
         }
         bootstrap.Modal.getInstance(document.getElementById('garageServicesModal')).hide();
     }

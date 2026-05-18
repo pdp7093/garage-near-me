@@ -132,31 +132,9 @@
                   <th scope="col" class="fw-medium pb-3 border-bottom text-end">Action</th>
                 </tr>
               </thead>
-              <tbody class="border-top-0">
-
-
-                <!-- Normal Booking -->
+              <tbody class="border-top-0" id="recentBookingsBody">
                 <tr>
-                  <td>
-                    <div class="fw-bold text-dark">Sneha Patel</div>
-                    <div class="text-muted small">Hyundai i20</div>
-                  </td>
-                  <td>
-                    <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">
-                      General Service
-                    </span>
-                  </td>
-                  <td>
-                    <div class="text-dark">Navrangpura</div>
-                    <div class="text-muted small">Today, 4:00 PM</div>
-                  </td>
-                  <td>
-                    <span class="text-success fw-bold small">Accepted</span>
-                  </td>
-                  <td class="text-end">
-                    <a href="job-detail.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">View
-                      Details</a>
-                  </td>
+                  <td colspan="5" class="text-center text-muted py-4">Loading recent bookings...</td>
                 </tr>
               </tbody>
             </table>
@@ -176,7 +154,9 @@
   <script src="../js/bootstrap.js"></script>
   <script>
 
-    const API = 'http://localhost:8000';
+    const API = getApiBase();
+    let garageBaseMeta = '';
+    let pendingTodayCount = null;
 
 
     // ─────────────────────────────────────
@@ -235,8 +215,10 @@
         const garageType =
           garage.garage_type || 'Garage';
 
-        document.getElementById('garageMetaInfo').innerText =
+        garageBaseMeta =
           `${garage.owner_name} • ${city} • ${garageType}`;
+
+        renderGarageMeta();
 
 
         // ─────────────────────────
@@ -346,6 +328,7 @@
 
     loadGarageDashboard();
     loadDashboardSummary();
+    loadRecentBookings();
 
     async function loadDashboardSummary() {
 
@@ -375,7 +358,7 @@
         console.log('Dashboard Summary:', data);
 
         document.getElementById('todaysEarningsStat').innerText =
-          `₹${data.todays_earnings}`;
+          `₹${Number(data.todays_earnings || 0).toLocaleString('en-IN')}`;
 
         document.getElementById('jobsCompletedStat').innerText =
           data.jobs_completed;
@@ -384,13 +367,236 @@
           data.active_sos;
 
         document.getElementById('customerRatingStat').innerText =
-          data.customer_rating;
+          data.customer_rating ?? 'N/A';
 
       } catch (err) {
 
         console.error(err);
 
       }
+
+    }
+
+    async function loadRecentBookings() {
+
+      const token = localStorage.getItem('garage_token');
+
+      if (!token) {
+        return;
+      }
+
+      const tbody = document.getElementById('recentBookingsBody');
+
+      try {
+
+        const response = await fetch(
+          `${API}/api/bookings/garage/all`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error();
+        }
+
+        const bookings = await response.json();
+        const latestBookings = bookings
+          .slice()
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 5);
+
+        updatePendingMeta(bookings);
+
+        if (latestBookings.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">Abhi koi booking nahi hai.</td>
+            </tr>`;
+          return;
+        }
+
+        tbody.innerHTML = latestBookings.map(buildRecentBookingRow).join('');
+
+      } catch (err) {
+
+        console.error('Recent bookings error:', err);
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center text-danger py-4">
+              Recent bookings load nahi hue.
+            </td>
+          </tr>`;
+
+      }
+
+    }
+
+    function buildRecentBookingRow(booking) {
+
+      const customerName =
+        escapeHTML(booking.customer_name || `Customer #${booking.customer_id}`);
+
+      const vehicleInfo =
+        escapeHTML([booking.vehicle_model || vehicleTypeLabel(booking.vehicle_type), booking.vehicle_number]
+          .filter(Boolean)
+          .join(' • ') || 'Vehicle details pending');
+
+      const serviceName =
+        escapeHTML(booking.service_type || (booking.booking_type === 'sos' ? 'SOS Assistance' : 'General Service'));
+
+      const location =
+        escapeHTML(shortAddress(booking.pickup_address || booking.customer_address || 'Location not shared'));
+
+      const timeSource =
+        booking.scheduled_at || booking.created_at;
+
+      const timeLabel =
+        formatDateTime(timeSource);
+
+      const status =
+        statusConfig(booking.status);
+
+      return `
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-light text-dark border px-2 py-1 rounded-pill small font-monospace">${booking.booking_number || ('BK-' + booking.id)}</span>
+              <div class="fw-bold text-dark">${customerName}</div>
+            </div>
+            <div class="text-muted small">${vehicleInfo}</div>
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">
+              ${serviceName}
+            </span>
+          </td>
+          <td>
+            <div class="text-dark">${location}</div>
+            <div class="text-muted small">${timeLabel}</div>
+          </td>
+          <td>
+            <span class="${status.className} fw-bold small">${escapeHTML(status.label)}</span>
+          </td>
+          <td class="text-end">
+            <a href="job-detail.html?id=${booking.id}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+              View Details
+            </a>
+          </td>
+        </tr>`;
+
+    }
+
+    function updatePendingMeta(bookings) {
+
+      if (!bookings.length) {
+        pendingTodayCount = 0;
+        renderGarageMeta();
+        return;
+      }
+
+      const today = new Date().toDateString();
+      pendingTodayCount = bookings.filter((booking) =>
+        booking.status === 'pending' &&
+        new Date(booking.created_at).toDateString() === today
+      ).length;
+
+      renderGarageMeta();
+
+    }
+
+    function renderGarageMeta() {
+
+      const metaEl = document.getElementById('garageMetaInfo');
+
+      if (!metaEl) {
+        return;
+      }
+
+      const baseMeta = garageBaseMeta || 'Garage details loading';
+
+      if (pendingTodayCount === null) {
+        metaEl.textContent = baseMeta;
+        return;
+      }
+
+      metaEl.textContent =
+        `${pendingTodayCount} pending request${pendingTodayCount === 1 ? '' : 's'} today • ${baseMeta}`;
+
+    }
+
+    function statusConfig(status) {
+
+      const config = {
+        pending: { label: 'Pending', className: 'text-primary' },
+        accepted: { label: 'Accepted', className: 'text-success' },
+        ongoing: { label: 'In Progress', className: 'text-warning' },
+        completed: { label: 'Completed', className: 'text-success' },
+        rejected: { label: 'Rejected', className: 'text-danger' },
+        cancelled: { label: 'Cancelled', className: 'text-muted' }
+      };
+
+      return config[status] || { label: status || 'Unknown', className: 'text-muted' };
+
+    }
+
+    function formatDateTime(value) {
+
+      if (!value) {
+        return 'Time not set';
+      }
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return 'Time not set';
+      }
+
+      return date.toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+    }
+
+    function vehicleTypeLabel(type) {
+
+      if (type === 'two_wheeler') {
+        return '2 Wheeler';
+      }
+
+      if (type === 'four_wheeler') {
+        return '4 Wheeler';
+      }
+
+      return type || '';
+
+    }
+
+    function shortAddress(address) {
+
+      return String(address)
+        .split(',')
+        .slice(0, 2)
+        .join(',')
+        .trim();
+
+    }
+
+    function escapeHTML(value) {
+
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[char]));
 
     }
   </script>

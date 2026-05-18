@@ -46,6 +46,36 @@ def ensure_schema_updates():
                 "ADD COLUMN visiting_charge NUMERIC(10, 2) NOT NULL DEFAULT 0.0"
             )
 
+        if "has_gst" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN has_gst BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+
+        if "gst_number" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN gst_number VARCHAR(50) NULL"
+            )
+
+        if "pending_platform_dues" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN pending_platform_dues NUMERIC(10, 2) DEFAULT 0.0"
+            )
+
+        if "is_credit_locked" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN is_credit_locked BOOLEAN DEFAULT FALSE"
+            )
+
+        if "grace_period_ends_at" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN grace_period_ends_at TIMESTAMP WITH TIME ZONE NULL"
+            )
+
     if "garage_requests" in table_names:
         request_columns = {
             column["name"] for column in inspector.get_columns("garage_requests")
@@ -85,6 +115,18 @@ def ensure_schema_updates():
             updates.append(
                 "ALTER TABLE garage_requests "
                 "ADD COLUMN is_documents_verified BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+
+        if "has_gst" not in request_columns:
+            updates.append(
+                "ALTER TABLE garage_requests "
+                "ADD COLUMN has_gst BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+
+        if "gst_number" not in request_columns:
+            updates.append(
+                "ALTER TABLE garage_requests "
+                "ADD COLUMN gst_number VARCHAR(50) NULL"
             )
 
     if "garage_documents" in table_names:
@@ -153,9 +195,27 @@ def ensure_schema_updates():
             "additional_otp":               "ALTER TABLE bookings ADD COLUMN additional_otp VARCHAR(6) NULL",
             "additional_otp_verified":      "ALTER TABLE bookings ADD COLUMN additional_otp_verified BOOLEAN NOT NULL DEFAULT FALSE",
             "additional_otp_sent_at":       "ALTER TABLE bookings ADD COLUMN additional_otp_sent_at TIMESTAMP NULL",
+            "platform_commission":          "ALTER TABLE bookings ADD COLUMN platform_commission NUMERIC(10,2) NULL",
+            "garage_earnings":              "ALTER TABLE bookings ADD COLUMN garage_earnings NUMERIC(10,2) NULL",
+            "booking_number":               "ALTER TABLE bookings ADD COLUMN booking_number VARCHAR(50) UNIQUE NULL",
         }
         for col_name, sql in new_booking_cols.items():
             if col_name not in booking_columns:
+                updates.append(sql)
+                if col_name == "booking_number":
+                    updates.append("UPDATE bookings SET booking_number = 'BK-OLD' || id WHERE booking_number IS NULL")
+
+    if "bills" in table_names:
+        bill_columns = {
+            column["name"] for column in inspector.get_columns("bills")
+        }
+        
+        new_bill_cols = {
+            "platform_commission": "ALTER TABLE bills ADD COLUMN platform_commission NUMERIC(10,2) NULL",
+            "garage_earnings":     "ALTER TABLE bills ADD COLUMN garage_earnings NUMERIC(10,2) NULL",
+        }
+        for col_name, sql in new_bill_cols.items():
+            if col_name not in bill_columns:
                 updates.append(sql)
 
     if not updates:
