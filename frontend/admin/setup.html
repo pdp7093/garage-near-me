@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>First-Time Setup - GarageNearMe Admin</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <link rel="stylesheet" href="../css/bootstrap.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="admin-auth-wrapper">
+    <!-- Left Branding Side -->
+    <div class="admin-auth-left">
+      <div class="position-relative z-1">
+        <div class="d-flex align-items-center gap-2 mb-5">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+          </svg>
+          <span class="fs-3 fw-bold" style="font-family: var(--font-head); letter-spacing: -0.5px;">GarageNearMe<span class="text-white-50">Admin</span></span>
+        </div>
+
+        <h1 class="display-5 fw-bold mb-4" style="font-family: var(--font-head);">First-Time System Setup</h1>
+        <p class="fs-5 text-white-50 mb-5" style="max-width: 400px;">
+          Create your primary Superadmin account to configure and initialize the GNM control panel.
+        </p>
+
+        <div class="d-flex align-items-center gap-4 mt-auto pt-5">
+          <div class="d-flex align-items-center gap-2">
+            <div class="bg-white bg-opacity-25 rounded-circle p-2">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            </div>
+            <span class="fw-medium text-white-50">Secured Setup Protocol</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Login Side -->
+    <div class="admin-auth-right">
+      <div class="admin-login-box">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold mb-2" style="font-family: var(--font-head);">Configure Superadmin</h2>
+          <p class="text-muted">Set up your credentials to initialize the server</p>
+        </div>
+
+        <div id="alertBox" class="alert d-none rounded-3 mb-4" role="alert"></div>
+
+        <form id="setupForm">
+          <div class="mb-4">
+            <label class="form-label fw-medium text-dark small">Superadmin Email Address</label>
+            <div class="position-relative">
+              <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              </span>
+              <input id="emailInput" type="email" class="form-control admin-input ps-5" placeholder="e.g. admin@garagenearme.com" required>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-medium text-dark small">Choose Secure Password</label>
+            <div class="position-relative">
+              <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              </span>
+              <input id="passwordInput" type="password" class="form-control admin-input ps-5" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <div class="mb-5">
+            <label class="form-label fw-medium text-dark small">Confirm Password</label>
+            <div class="position-relative">
+              <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              </span>
+              <input id="confirmPasswordInput" type="password" class="form-control admin-input ps-5" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-admin-primary w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm">
+            Complete Setup & Initialize
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/bootstrap.bundle.js"></script>
+  <script>
+    const API_BASE = "http://localhost:8000";
+
+    // Show custom message in alerts
+    function showAlert(msg, isError = true) {
+      const box = document.getElementById("alertBox");
+      box.textContent = msg;
+      box.className = `alert rounded-3 mb-4 ${isError ? 'alert-danger' : 'alert-success'}`;
+      box.classList.remove("d-none");
+    }
+
+    // Check if admin setup is already complete on load
+    async function checkSetup() {
+      try {
+        const response = await fetch(`${API_BASE}/api/admin-auth/has-admin`);
+        const data = await response.json();
+        if (data.has_admin) {
+          // Setup already done, redirect to index login page immediately
+          window.location.href = "index.html";
+        }
+      } catch (err) {
+        console.error("Failed to communicate with auth backend", err);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", checkSetup);
+
+    // Form submission
+    document.getElementById("setupForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById("emailInput").value.trim();
+      const password = document.getElementById("passwordInput").value;
+      const confirmPassword = document.getElementById("confirmPasswordInput").value;
+
+      if (password.length < 6) {
+        showAlert("Password must be at least 6 characters long.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showAlert("Passwords do not match.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/admin-auth/setup`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          showAlert(errData.detail || "Setup initialization failed.");
+          return;
+        }
+
+        showAlert("Platform Superadmin registered successfully! Redirecting to login...", false);
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1800);
+
+      } catch (err) {
+        showAlert("Connection error. Is the backend server running?");
+      }
+    });
+  </script>
+</body>
+</html>

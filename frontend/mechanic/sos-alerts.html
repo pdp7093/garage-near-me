@@ -1,253 +1,300 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Emergency SOS Alerts - GarageNearMe</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css?v=827da5d3" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
-    rel="stylesheet" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
   <style>
-    body {
-      /* Subtle red tint for emergency context */
-      background-color: #FEF2F2;
-    }
+    body { background-color: #FEF2F2; }
+    .mechanic-layout { background-color: transparent; }
 
-    .mechanic-layout {
-      background-color: transparent;
-    }
+    .sos-card { border: 2px solid #EF4444; background: white; transition: all 0.2s ease; box-shadow: 0 10px 25px rgba(239,68,68,0.15); }
+    .sos-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(239,68,68,0.2); }
 
-    .sos-card {
-      border: 2px solid #EF4444;
-      background: white;
-      transition: all 0.2s ease;
-      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15);
-    }
-
-    .sos-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 15px 35px rgba(239, 68, 68, 0.2);
-    }
-
-    .pulse-dot {
-      animation: pulse 1.5s infinite;
-    }
-
+    .pulse-dot { animation: pulse 1.5s infinite; }
     @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
-      }
-
-      70% {
-        box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
-      }
-
-      100% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-      }
+      0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+      70%  { box-shadow: 0 0 0 15px rgba(239,68,68,0); }
+      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
     }
 
-    .radar-bg {
-      position: absolute;
-      top: -50%;
-      right: -10%;
-      width: 400px;
-      height: 400px;
-      border-radius: 50%;
-      border: 1px solid rgba(239, 68, 68, 0.1);
-      z-index: 0;
-      pointer-events: none;
-    }
+    .radar-bg { position:absolute; top:-50%; right:-10%; width:400px; height:400px; border-radius:50%; border:1px solid rgba(239,68,68,0.1); z-index:0; pointer-events:none; }
+    .radar-bg::before { content:''; position:absolute; top:10%; left:10%; right:10%; bottom:10%; border-radius:50%; border:1px solid rgba(239,68,68,0.1); }
+    .radar-bg::after  { content:''; position:absolute; top:20%; left:20%; right:20%; bottom:20%; border-radius:50%; border:1px solid rgba(239,68,68,0.1); }
 
-    .radar-bg::before {
-      content: '';
-      position: absolute;
-      top: 10%;
-      left: 10%;
-      right: 10%;
-      bottom: 10%;
-      border-radius: 50%;
-      border: 1px solid rgba(239, 68, 68, 0.1);
-    }
-
-    .radar-bg::after {
-      content: '';
-      position: absolute;
-      top: 20%;
-      left: 20%;
-      right: 20%;
-      bottom: 20%;
-      border-radius: 50%;
-      border: 1px solid rgba(239, 68, 68, 0.1);
-    }
+    .skeleton { background: linear-gradient(90deg,#fde8e8 25%,#fbd5d5 50%,#fde8e8 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   </style>
 </head>
-
 <body>
+<div class="mechanic-layout">
+  <div id="sidebar-container"></div>
+  <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index:1030;"></div>
 
-  <div class="mechanic-layout">
-    <div id="sidebar-container"></div>
+  <main class="mechanic-main position-relative overflow-hidden">
+    <div class="radar-bg"></div>
+    <div id="topbar-container"></div>
 
-    <!-- Overlay for mobile sidebar -->
-    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
-      style="z-index: 1030;"></div>
+    <div class="mechanic-content position-relative z-1">
 
-    <!-- ═══ MAIN CONTENT ═══ -->
-    <main class="mechanic-main position-relative overflow-hidden">
-      <!-- Background Radar Effect -->
-      <div class="radar-bg"></div>
-      <div id="topbar-container"></div>
+      <!-- Header -->
+      <div class="text-center mb-5" id="header-section">
+        <h2 class="fw-bold text-danger mb-2" style="font-family:var(--font-head);" id="header-title">Checking for SOS alerts...</h2>
+        <p class="text-muted" id="header-sub">Please wait...</p>
+      </div>
 
-      <!-- Content Area -->
-      <div class="mechanic-content position-relative z-1">
-
-        <div class="text-center mb-5">
-          <h2 class="fw-bold text-danger mb-2" style="font-family: var(--font-head);">1 Emergency Request Nearby</h2>
-          <p class="text-muted">Accept fast! First mechanic to accept gets the job.</p>
+      <!-- SOS Cards -->
+      <div class="row justify-content-center" id="sos-container">
+        <!-- Skeleton -->
+        <div class="col-12 col-md-10 col-lg-8">
+          <div class="rounded-4 p-4 sos-card">
+            <div class="skeleton mb-3" style="height:20px;width:40%;"></div>
+            <div class="skeleton mb-2" style="height:28px;width:60%;"></div>
+            <div class="skeleton mb-4" style="height:16px;width:50%;"></div>
+            <div class="skeleton" style="height:80px;border-radius:12px;"></div>
+            <div class="d-flex gap-3 mt-4">
+              <div class="skeleton flex-grow-1" style="height:48px;border-radius:30px;"></div>
+              <div class="skeleton" style="height:48px;width:100px;border-radius:30px;"></div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Request Cards Grid -->
-        <div class="row justify-content-center">
+      <!-- History section -->
+      <div class="bg-white rounded-4 border p-4 shadow-sm mt-5 position-relative z-2" id="history-section" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="fw-bold mb-0 text-dark" style="font-family:var(--font-head);">Recent SOS History</h5>
+          <a href="sos-history.html" class="btn btn-sm btn-outline-danger rounded-pill px-3">View Full History</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="text-muted small">
+              <tr>
+                <th class="fw-medium pb-3 border-bottom">Customer &amp; Vehicle</th>
+                <th class="fw-medium pb-3 border-bottom">Location</th>
+                <th class="fw-medium pb-3 border-bottom">Date &amp; Time</th>
+                <th class="fw-medium pb-3 border-bottom">Status</th>
+                <th class="fw-medium pb-3 border-bottom text-end">Earning</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody"></tbody>
+          </table>
+        </div>
+      </div>
 
-          <!-- SOS Request Card (High Priority) -->
-          <div class="col-12 col-md-10 col-lg-8">
-            <div class="rounded-4 p-4 sos-card position-relative">
+    </div>
+  </main>
+</div>
 
-              <div class="d-flex justify-content-between align-items-start mb-3">
-                <div class="d-flex align-items-center gap-2">
-                  <div class="rounded-circle bg-danger pulse-dot" style="width: 12px; height: 12px;"></div>
-                  <span class="text-danger fw-bold text-uppercase tracking-wider">Breakdown Alert</span>
-                </div>
-                <span class="badge bg-danger">02:45 Mins Ago</span>
+<!-- Persistent SOS Sound (hidden audio) -->
+<audio id="sos-sound" loop>
+  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA..." type="audio/wav">
+</audio>
+
+<script src="../js/mechanic-auth.js"></script>
+<script src="../js/components.js"></script>
+<script src="../js/bootstrap.js"></script>
+<script>
+  initMechanicChrome('Active SOS Radar');
+
+  const API = () => getApiBase();
+  let refreshInterval = null;
+  let alertSound = null;
+
+  // Simple beep using Web Audio API (no file needed)
+  function playBeep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.5);
+    } catch(e) {}
+  }
+
+  async function loadSOSAlerts() {
+    try {
+      const res = await fetch(`${API()}/api/sos/active`, {
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error();
+      const alerts = await res.json();
+      renderAlerts(alerts);
+      loadHistory();
+    } catch {
+      document.getElementById('header-title').textContent = 'SOS load nahi hua';
+      document.getElementById('header-sub').textContent   = 'Server check karo.';
+      document.getElementById('sos-container').innerHTML  = '';
+    }
+  }
+
+  function renderAlerts(alerts) {
+    const container = document.getElementById('sos-container');
+    const title     = document.getElementById('header-title');
+    const sub       = document.getElementById('header-sub');
+
+    if (alerts.length === 0) {
+      title.textContent = 'Koi active SOS nahi hai';
+      sub.textContent   = 'Jab koi SOS aayega, yahan dikhega.';
+      container.innerHTML = `
+        <div class="col-12 text-center py-5">
+          <div style="font-size:60px;">📡</div>
+          <p class="text-muted mt-3">Radar active hai — koi emergency nahi abhi.</p>
+        </div>`;
+      return;
+    }
+
+    title.textContent = `${alerts.length} Emergency Request${alerts.length > 1 ? 's' : ''} Nearby`;
+    sub.textContent   = 'Accept fast! First mechanic to accept gets the job.';
+
+    // Play beep for new alerts
+    playBeep();
+    setTimeout(playBeep, 800);
+
+    container.innerHTML = alerts.map(a => buildSOSCard(a)).join('');
+  }
+
+  function buildSOSCard(a) {
+    const vt = a.vehicle_type === 'two_wheeler' ? '🏍️ 2 Wheeler' : a.vehicle_type === 'four_wheeler' ? '🚗 4 Wheeler' : a.vehicle_type || 'Vehicle';
+    return `
+      <div class="col-12 col-md-10 col-lg-8 mb-4">
+        <div class="rounded-4 p-4 sos-card position-relative">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <div class="rounded-circle bg-danger pulse-dot" style="width:12px;height:12px;"></div>
+              <span class="text-danger fw-bold text-uppercase">Breakdown Alert</span>
+            </div>
+            <span class="badge bg-danger">${a.time_ago}</span>
+          </div>
+
+          <div class="row align-items-center mb-4">
+            <div class="col-sm-8 mb-3 mb-sm-0">
+              <h4 class="fw-bold mb-1">SOS #${a.id}</h4>
+              <div class="text-muted mb-2 d-flex align-items-center gap-2" style="font-size:14px;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/></svg>
+                ${vt} ${a.vehicle_number ? '• ' + a.vehicle_number : ''}
               </div>
-
-              <div class="row align-items-center mb-4">
-                <div class="col-sm-8 mb-3 mb-sm-0">
-                  <h4 class="fw-bold mb-1">Rahul Verma</h4>
-                  <div class="text-muted mb-2 d-flex align-items-center gap-2">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                      <path
-                        d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
-                    </svg>
-                    Honda City (White) • GJ01 AB 1234
-                  </div>
-                  <div class="d-flex align-items-center gap-2 text-dark fw-bold fs-5">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#EF4444">
-                      <path
-                        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                    </svg>
-                    S.G. Highway (Near YMCA Club)
-                  </div>
-                </div>
-                <div class="col-sm-4 text-sm-end text-start">
-                  <div
-                    class="bg-danger bg-opacity-10 d-inline-block rounded-4 p-3 text-center border border-danger border-opacity-25">
-                    <div class="fw-bold" style="font-size: 1.8rem; color: #EF4444; line-height: 1;">2.4</div>
-                    <div class="text-danger fw-medium" style="font-size: 12px; text-transform: uppercase;">km away</div>
-                  </div>
-                </div>
+              <div class="d-flex align-items-center gap-2 text-dark fw-bold" style="font-size:15px;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="#EF4444"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                ${a.customer_address || a.address || 'Location available'}
               </div>
-
-              <div
-                class="p-3 bg-danger bg-opacity-10 rounded-3 mb-4 border border-danger border-opacity-25 text-danger fw-medium">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" class="me-2 mb-1">
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                </svg>
-                "Car engine stopped suddenly in middle of road. Need urgent help!"
-              </div>
-
-              <div class="d-flex flex-column flex-sm-row gap-3">
-                <a href="sos-detail.html" class="btn btn-danger flex-grow-1 fw-bold rounded-pill py-3 shadow fs-5 text-decoration-none text-center">
-                  ACCEPT SOS
-                </a>
-                <button class="btn btn-outline-secondary rounded-pill px-4 py-3 fw-bold">Decline</button>
-              </div>
+            </div>
+            <div class="col-sm-4 text-sm-end text-start">
+              ${a.distance_km ? `
+              <div class="bg-danger bg-opacity-10 d-inline-block rounded-4 p-3 text-center border border-danger border-opacity-25">
+                <div class="fw-bold" style="font-size:1.8rem;color:#EF4444;line-height:1;">${a.distance_km}</div>
+                <div class="text-danger fw-medium" style="font-size:12px;text-transform:uppercase;">km away</div>
+              </div>` : ''}
             </div>
           </div>
 
-        </div>
+          ${a.description ? `
+          <div class="p-3 bg-danger bg-opacity-10 rounded-3 mb-4 border border-danger border-opacity-25 text-danger fw-medium">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="me-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            "${a.description}"
+          </div>` : ''}
 
-        <!-- Recent SOS History Table -->
-        <div class="bg-white rounded-4 border p-4 shadow-sm mt-5 position-relative z-2">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="fw-bold mb-0 text-dark" style="font-family: var(--font-head);">Recent SOS History</h5>
-            <a href="sos-history.html" class="btn btn-sm btn-outline-danger rounded-pill px-3">View Full History</a>
-          </div>
-
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="text-muted small">
-                <tr>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Customer & Vehicle</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Location</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Date & Time</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Status</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Earning</th>
-                </tr>
-              </thead>
-              <tbody class="border-top-0 bg-white">
-                <!-- Completed SOS -->
-                <tr>
-                  <td>
-                    <div class="fw-bold text-dark">Vikas Singh</div>
-                    <div class="text-muted small">Maruti Swift • Flat Tyre</div>
-                  </td>
-                  <td>
-                    <div class="text-dark">Prahlad Nagar</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small">Today, 10:30 AM</div>
-                  </td>
-                  <td>
-                    <span
-                      class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1">Completed</span>
-                  </td>
-                  <td class="text-end fw-bold text-success">
-                    ₹450
-                  </td>
-                </tr>
-
-                <!-- Ignored/Missed SOS -->
-                <tr>
-                  <td>
-                    <div class="fw-bold text-dark">Anjali Desai</div>
-                    <div class="text-muted small">Activa 6G • Battery Dead</div>
-                  </td>
-                  <td>
-                    <div class="text-dark">Satellite Road</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small">Yesterday, 08:15 PM</div>
-                  </td>
-                  <td>
-                    <span
-                      class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1">Missed</span>
-                  </td>
-                  <td class="text-end fw-bold text-muted">
-                    --
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="d-flex flex-column flex-sm-row gap-3">
+            <button onclick="acceptSOS(${a.id})" class="btn btn-danger flex-grow-1 fw-bold rounded-pill py-3 shadow fs-5">
+              ACCEPT SOS
+            </button>
+            <button onclick="rejectSOS(${a.id}, this)" class="btn btn-outline-secondary rounded-pill px-4 py-3 fw-bold">
+              Decline
+            </button>
           </div>
         </div>
+      </div>`;
+  }
 
-      </div>
-    </main>
+  async function acceptSOS(id) {
+    try {
+      const res = await fetch(`${API()}/api/sos/${id}/accept`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+      window.location.href = `sos-detail.html?id=${id}`;
+    } catch(e) {
+      showToast(e.message || 'Accept nahi hua. Try again.', 'danger');
+    }
+  }
 
-  </div>
+  async function rejectSOS(id, btn) {
+    btn.disabled = true; btn.textContent = 'Declining...';
+    try {
+      await fetch(`${API()}/api/sos/${id}/reject`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      loadSOSAlerts();
+    } catch { btn.disabled=false; btn.textContent='Decline'; }
+  }
 
-  <script src="../js/mechanic-auth.js"></script>
-  <script src="../js/components.js"></script>
-  <script src="../js/bootstrap.js"></script>
-  <script>
-    initMechanicChrome('Active SOS Radar');
-  </script>
+  async function loadHistory() {
+    try {
+      const res = await fetch(`${API()}/api/sos/history/all`, {
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) return;
+      const history = await res.json();
+      if (history.length === 0) return;
+
+      const sec  = document.getElementById('history-section');
+      const tbody = document.getElementById('history-tbody');
+      sec.style.display = '';
+
+      tbody.innerHTML = history.slice(0, 5).map(h => {
+        const sc = {
+          completed: `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1">Completed</span>`,
+          rejected:  `<span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1">Missed</span>`,
+          cancelled: `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1">Cancelled</span>`,
+        }[h.status] || `<span class="badge bg-secondary rounded-pill px-2 py-1">${h.status}</span>`;
+
+        const date = new Date(h.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+        const time = new Date(h.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+
+        return `<tr>
+          <td>
+            <div class="fw-bold text-dark">Customer #${h.id}</div>
+            <div class="text-muted small">${h.vehicle_model || h.vehicle_type || 'Vehicle'}${h.vehicle_number ? ' • ' + h.vehicle_number : ''}</div>
+          </td>
+          <td><div class="text-dark">${h.customer_address || '—'}</div></td>
+          <td><div class="text-dark small">${date}, ${time}</div></td>
+          <td>${sc}</td>
+          <td class="text-end fw-bold ${h.final_amount ? 'text-success' : 'text-muted'}">
+            ${h.final_amount ? '₹' + h.final_amount : '--'}
+          </td>
+        </tr>`;
+      }).join('');
+    } catch {}
+  }
+
+  function showToast(msg, type='success') {
+    const t = document.createElement('div');
+    t.className = `alert alert-${type} position-fixed shadow rounded-3`;
+    t.style.cssText = 'top:80px;right:20px;z-index:9999;font-size:14px;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadSOSAlerts();
+    // Auto refresh every 30 seconds
+    refreshInterval = setInterval(loadSOSAlerts, 30000);
+  });
+</script>
 </body>
-
 </html>

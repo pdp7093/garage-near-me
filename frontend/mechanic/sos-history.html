@@ -1,183 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SOS History - GarageNearMe</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css?v=00636e6e" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
-    rel="stylesheet" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    .skeleton { background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:6px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  </style>
 </head>
-
 <body>
+<div class="mechanic-layout">
+  <div id="sidebar-container"></div>
+  <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index:1030;"></div>
 
-  <div class="mechanic-layout">
-    <div id="sidebar-container"></div>
+  <main class="mechanic-main">
+    <div id="topbar-container"></div>
+    <div class="mechanic-content pt-2">
 
-    <!-- Overlay for mobile sidebar -->
-    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index: 1030;"></div>
-
-    <!-- ═══ MAIN CONTENT ═══ -->
-    <main class="mechanic-main">
-      <div id="topbar-container"></div>
-
-      <!-- Content Area -->
-      <div class="mechanic-content pt-2">
-        
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-          <div>
-            <h4 class="fw-bold text-dark mb-1" style="font-family: var(--font-head);">Emergency SOS History</h4>
-            <p class="text-muted mb-0 small">A complete log of all distress calls you've received.</p>
-          </div>
-          
-          <div class="d-flex gap-2">
-            <select class="form-select rounded-pill border shadow-sm w-auto">
-              <option selected>This Month</option>
-              <option value="1">Last Month</option>
-              <option value="2">Last 3 Months</option>
-            </select>
-            <select class="form-select rounded-pill border shadow-sm w-auto">
-              <option selected>All Status</option>
-              <option value="1">Completed</option>
-              <option value="2">Missed/Ignored</option>
-              <option value="3">Cancelled</option>
-            </select>
-          </div>
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+          <h4 class="fw-bold text-dark mb-1" style="font-family:var(--font-head);">Emergency SOS History</h4>
+          <p class="text-muted mb-0 small">Tumhare saare SOS responses ka record.</p>
         </div>
-
-        <!-- Full History Table -->
-        <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th scope="col" class="fw-semibold text-muted py-3 ps-4 border-bottom">Date & Time</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom">Customer Details</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom">Issue / Location</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom text-center">Status</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 pe-4 border-bottom text-end">Earnings</th>
-                </tr>
-              </thead>
-              <tbody class="border-top-0">
-                <!-- Completed SOS -->
-                <tr>
-                  <td class="ps-4 py-3">
-                    <div class="fw-bold text-dark">26 Apr 2026</div>
-                    <div class="text-muted small">10:30 AM</div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">Vikas Singh</div>
-                    <div class="text-muted small">Maruti Swift (GJ01 1234)</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small fw-medium">Flat Tyre</div>
-                    <div class="text-muted small">Prahlad Nagar</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">Completed</span>
-                  </td>
-                  <td class="pe-4 text-end fw-bold text-success">
-                    ₹450
-                  </td>
-                </tr>
-
-                <!-- Ignored/Missed SOS -->
-                <tr>
-                  <td class="ps-4 py-3">
-                    <div class="fw-bold text-dark">25 Apr 2026</div>
-                    <div class="text-muted small">08:15 PM</div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">Anjali Desai</div>
-                    <div class="text-muted small">Activa 6G (GJ27 4321)</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small fw-medium text-truncate" style="max-width: 150px;">Battery Dead / Engine not starting</div>
-                    <div class="text-muted small">Satellite Road</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-1">Missed</span>
-                  </td>
-                  <td class="pe-4 text-end fw-bold text-muted">
-                    --
-                  </td>
-                </tr>
-
-                <!-- Completed SOS -->
-                <tr>
-                  <td class="ps-4 py-3">
-                    <div class="fw-bold text-dark">22 Apr 2026</div>
-                    <div class="text-muted small">11:45 PM</div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">Rajesh Kumar</div>
-                    <div class="text-muted small">Hyundai Verna (GJ01 9999)</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small fw-medium">Engine Overheating</div>
-                    <div class="text-muted small">S.G. Highway</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">Completed</span>
-                  </td>
-                  <td class="pe-4 text-end fw-bold text-success">
-                    ₹1,200
-                  </td>
-                </tr>
-
-                <!-- Cancelled by Customer -->
-                <tr>
-                  <td class="ps-4 py-3">
-                    <div class="fw-bold text-dark">18 Apr 2026</div>
-                    <div class="text-muted small">09:00 AM</div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">Mehul Joshi</div>
-                    <div class="text-muted small">Tata Nexon (GJ18 5555)</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small fw-medium">Key locked inside</div>
-                    <div class="text-muted small">Thaltej</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1">Cancelled</span>
-                  </td>
-                  <td class="pe-4 text-end fw-bold text-muted">
-                    --
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <!-- Pagination -->
-          <div class="p-3 border-top d-flex justify-content-between align-items-center">
-            <span class="text-muted small">Showing 1 to 4 of 4 entries</span>
-            <nav>
-              <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled"><a class="page-link rounded-start-pill" href="#">Previous</a></li>
-                <li class="page-item active"><a class="page-link bg-primary border-primary" href="#">1</a></li>
-                <li class="page-item disabled"><a class="page-link rounded-end-pill" href="#">Next</a></li>
-              </ul>
-            </nav>
-          </div>
+        <div class="d-flex gap-2">
+          <select id="filter-status" class="form-select rounded-pill border shadow-sm w-auto" onchange="applyFilter()">
+            <option value="">All Status</option>
+            <option value="completed">Completed</option>
+            <option value="rejected">Missed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
         </div>
-
       </div>
-    </main>
 
-  </div>
+      <!-- Stats row -->
+      <div class="row g-3 mb-4" id="stats-row" style="display:none!important;">
+        <div class="col-6 col-md-3">
+          <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
+            <div class="fw-bold text-success" style="font-size:22px;" id="stat-total">0</div>
+            <div class="text-muted" style="font-size:12px;">Total SOS</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
+            <div class="fw-bold text-success" style="font-size:22px;" id="stat-completed">0</div>
+            <div class="text-muted" style="font-size:12px;">Completed</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
+            <div class="fw-bold text-muted" style="font-size:22px;" id="stat-missed">0</div>
+            <div class="text-muted" style="font-size:12px;">Missed</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
+            <div class="fw-bold" style="font-size:22px;color:var(--color-primary);" id="stat-earnings">₹0</div>
+            <div class="text-muted" style="font-size:12px;">Total Earned</div>
+          </div>
+        </div>
+      </div>
 
-  <script src="../js/mechanic-auth.js"></script>
-  <script src="../js/components.js"></script>
-  <script src="../js/bootstrap.js"></script>
-  <script>
-    initMechanicChrome('SOS History', null, 'sos-alerts.html');
-  </script>
+      <!-- Table -->
+      <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+              <tr>
+                <th class="fw-semibold text-muted py-3 ps-4 border-bottom">Date &amp; Time</th>
+                <th class="fw-semibold text-muted py-3 border-bottom">Vehicle</th>
+                <th class="fw-semibold text-muted py-3 border-bottom">Issue / Location</th>
+                <th class="fw-semibold text-muted py-3 border-bottom text-center">Status</th>
+                <th class="fw-semibold text-muted py-3 pe-4 border-bottom text-end">Earnings</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <!-- Skeleton rows -->
+              ${[1,2,3,4].map(() => `
+              <tr>
+                <td class="ps-4 py-3"><div class="skeleton mb-1" style="height:16px;width:80px;"></div><div class="skeleton" style="height:12px;width:50px;"></div></td>
+                <td><div class="skeleton mb-1" style="height:16px;width:100px;"></div><div class="skeleton" style="height:12px;width:70px;"></div></td>
+                <td><div class="skeleton mb-1" style="height:16px;width:80px;"></div><div class="skeleton" style="height:12px;width:60px;"></div></td>
+                <td class="text-center"><div class="skeleton mx-auto" style="height:22px;width:80px;border-radius:20px;"></div></td>
+                <td class="pe-4 text-end"><div class="skeleton ms-auto" style="height:16px;width:50px;"></div></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="p-3 border-top d-flex justify-content-between align-items-center" id="pagination-bar">
+          <span class="text-muted small" id="pagination-info"></span>
+          <nav><ul class="pagination pagination-sm mb-0 gap-1" id="pagination"></ul></nav>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="../js/mechanic-auth.js"></script>
+<script src="../js/components.js"></script>
+<script src="../js/bootstrap.js"></script>
+<script>
+  initMechanicChrome('SOS History', null, 'sos-alerts.html');
+
+  const API = () => getApiBase();
+  const PER_PAGE = 10;
+  let allHistory = [];
+  let filtered   = [];
+  let currentPage = 1;
+
+  async function loadHistory() {
+    try {
+      const res = await fetch(`${API()}/api/sos/history/all`, {
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error();
+      allHistory = await res.json();
+      updateStats();
+      applyFilter();
+    } catch {
+      document.getElementById('history-tbody').innerHTML = `
+        <tr><td colspan="5" class="text-center text-muted py-5">History load nahi hua. Server check karo.</td></tr>`;
+    }
+  }
+
+  function updateStats() {
+    const completed = allHistory.filter(h => h.status === 'completed');
+    const missed    = allHistory.filter(h => h.status === 'rejected');
+    const earnings  = completed.reduce((s, h) => s + (h.final_amount || 0), 0);
+
+    document.getElementById('stat-total').textContent     = allHistory.length;
+    document.getElementById('stat-completed').textContent = completed.length;
+    document.getElementById('stat-missed').textContent    = missed.length;
+    document.getElementById('stat-earnings').textContent  = `₹${earnings.toLocaleString('en-IN')}`;
+    document.getElementById('stats-row').style.display    = allHistory.length > 0 ? 'flex' : 'none';
+  }
+
+  function applyFilter() {
+    const status = document.getElementById('filter-status').value;
+    filtered = status ? allHistory.filter(h => h.status === status) : [...allHistory];
+    currentPage = 1;
+    renderTable();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('history-tbody');
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5">Koi record nahi mila.</td></tr>`;
+      document.getElementById('pagination-info').textContent = '';
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+
+    const totalPages = Math.ceil(filtered.length / PER_PAGE);
+    const start      = (currentPage - 1) * PER_PAGE;
+    const pageData   = filtered.slice(start, start + PER_PAGE);
+
+    tbody.innerHTML = pageData.map(h => {
+      const sc = {
+        completed: `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">Completed</span>`,
+        rejected:  `<span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-1">Missed</span>`,
+        cancelled: `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1">Cancelled</span>`,
+      }[h.status] || `<span class="badge bg-secondary rounded-pill px-3 py-1">${h.status}</span>`;
+
+      const date = new Date(h.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      const time = new Date(h.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+      const vt   = h.vehicle_type === 'two_wheeler' ? '2 Wheeler' : h.vehicle_type === 'four_wheeler' ? '4 Wheeler' : h.vehicle_type || '—';
+
+      return `
+        <tr>
+          <td class="ps-4 py-3">
+            <div class="fw-bold text-dark">${date}</div>
+            <div class="text-muted small">${time}</div>
+          </td>
+          <td>
+            <div class="fw-bold text-dark">${h.vehicle_model || vt}</div>
+            <div class="text-muted small">${h.vehicle_number || '—'}</div>
+          </td>
+          <td>
+            <div class="text-dark small fw-medium text-truncate" style="max-width:150px;">${h.description || 'Emergency'}</div>
+            <div class="text-muted small">${h.customer_address || '—'}</div>
+          </td>
+          <td class="text-center">${sc}</td>
+          <td class="pe-4 text-end fw-bold ${h.final_amount ? 'text-success' : 'text-muted'}">
+            ${h.final_amount ? '₹' + parseFloat(h.final_amount).toLocaleString('en-IN') : '--'}
+          </td>
+        </tr>`;
+    }).join('');
+
+    // Pagination
+    const infoEl = document.getElementById('pagination-info');
+    const pagEl  = document.getElementById('pagination');
+    infoEl.textContent = `Showing ${start+1} to ${Math.min(start+PER_PAGE, filtered.length)} of ${filtered.length} entries`;
+
+    if (totalPages <= 1) { pagEl.innerHTML=''; return; }
+    let html = `<li class="page-item ${currentPage===1?'disabled':''}"><a class="page-link rounded-start-pill" href="#" onclick="gotoPage(event,${currentPage-1})">Previous</a></li>`;
+    for (let i=1; i<=totalPages; i++) {
+      html += `<li class="page-item ${i===currentPage?'active':''}"><a class="page-link ${i===currentPage?'bg-primary border-primary':''}" href="#" onclick="gotoPage(event,${i})">${i}</a></li>`;
+    }
+    html += `<li class="page-item ${currentPage===totalPages?'disabled':''}"><a class="page-link rounded-end-pill" href="#" onclick="gotoPage(event,${currentPage+1})">Next</a></li>`;
+    pagEl.innerHTML = html;
+  }
+
+  function gotoPage(e, page) {
+    e.preventDefault();
+    const total = Math.ceil(filtered.length / PER_PAGE);
+    if (page < 1 || page > total) return;
+    currentPage = page;
+    renderTable();
+  }
+
+  document.addEventListener('DOMContentLoaded', loadHistory);
+</script>
 </body>
-
 </html>

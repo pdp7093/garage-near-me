@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Earnings & Bills - Mechanic Dashboard</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/mechanic.css" />
@@ -63,11 +65,12 @@
                   <th scope="col" class="fw-medium pb-3 border-bottom text-end">Gross Total</th>
                   <th scope="col" class="fw-medium pb-3 border-bottom text-end">Platform Cut</th>
                   <th scope="col" class="fw-medium pb-3 border-bottom text-end">Net Earnings</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-center">Status</th>
                 </tr>
               </thead>
               <tbody class="border-top-0" id="billsBody">
                 <tr>
-                  <td colspan="6" class="text-center text-muted py-4">Loading data...</td>
+                  <td colspan="7" class="text-center text-muted py-4">Loading data...</td>
                 </tr>
               </tbody>
             </table>
@@ -97,21 +100,21 @@
 
         const bookings = await response.json();
         
-        // Filter for paid/completed bookings
-        const paidBookings = bookings.filter(b => b.payment_status === 'paid' && b.final_amount);
+        // Filter for completed bookings
+        const completedBookings = bookings.filter(b => b.status === 'completed' && b.final_amount);
         
         // Sort descending by completion date
-        paidBookings.sort((a, b) => new Date(b.completed_at || b.updated_at) - new Date(a.completed_at || a.updated_at));
+        completedBookings.sort((a, b) => new Date(b.completed_at || b.updated_at) - new Date(a.completed_at || a.updated_at));
 
         let totalGross = 0;
         let totalComm = 0;
         let totalNet = 0;
 
         const tbody = document.getElementById('billsBody');
-        if (paidBookings.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No completed bills yet.</td></tr>';
+        if (completedBookings.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No completed bills yet.</td></tr>';
         } else {
-          tbody.innerHTML = paidBookings.map(b => {
+          tbody.innerHTML = completedBookings.map(b => {
             const finalAmt = parseFloat(b.final_amount) || 0;
             const comm = parseFloat(b.platform_commission) || 0;
             const net = parseFloat(b.garage_earnings) || (finalAmt - comm);
@@ -121,6 +124,11 @@
             totalNet += net;
 
             const dateStr = b.completed_at ? new Date(b.completed_at).toLocaleDateString('en-IN') : '-';
+            
+            const isPaid = b.payment_status === 'paid';
+            const statusBadge = isPaid
+              ? `<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1.5 fw-bold border border-success border-opacity-10">Paid</span>`
+              : `<a href="invoice.html?id=${b.id}" class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1.5 fw-bold text-decoration-none border border-warning border-opacity-10" title="Click to mark as Paid">Pending Payment ➔</a>`;
 
             return `
               <tr>
@@ -133,6 +141,7 @@
                 <td class="text-end fw-bold">₹${finalAmt.toFixed(2)}</td>
                 <td class="text-end text-danger small">- ₹${comm.toFixed(2)}</td>
                 <td class="text-end fw-bold text-success">₹${net.toFixed(2)}</td>
+                <td class="text-center">${statusBadge}</td>
               </tr>
             `;
           }).join('');

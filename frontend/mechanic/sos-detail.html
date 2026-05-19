@@ -1,236 +1,408 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Emergency SOS #SOS-991 - GarageNearMe</title>
+  <title>SOS Detail - GarageNearMe</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css?v=3c12d78f" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
-    rel="stylesheet" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
   <style>
-    body {
-      background-color: #FEF2F2; /* Subtle red tint */
-    }
-    
-    /* Timeline Styles */
-    .timeline {
-      position: relative;
-      padding-left: 1.5rem;
-      margin-top: 1.5rem;
-    }
-    .timeline::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 2px;
-      height: 100%;
-      background: #e9ecef;
-      z-index: 1;
-    }
-    .timeline-item {
-      position: relative;
-      margin-bottom: 1.5rem;
-    }
-    .timeline-item:last-child {
-      margin-bottom: 0;
-    }
-    .timeline-item::before {
-      content: '';
-      position: absolute;
-      top: 4px;
-      left: -1.5rem;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #e9ecef;
-      border: 3px solid white;
-      transform: translateX(-6px);
-      z-index: 2;
-    }
-    .timeline-item.active::before {
-      background: #EF4444; /* Red for SOS active */
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-    }
-    .timeline-item.completed::before {
-      background: #10B981;
-    }
-    .timeline-item.completed::after {
-      content: '';
-      position: absolute;
-      top: 4px;
-      left: -1.5rem;
-      width: 2px;
-      height: calc(100% + 1.5rem);
-      background: #10B981;
-      transform: translateX(-0.5px);
-      z-index: 1;
-    }
-    .timeline-item:last-child::after {
-      display: none;
-    }
-    .sos-border {
-      border: 1px solid #EF4444 !important;
-    }
+    body { background-color: #FEF2F2; }
+    .sos-border { border: 1px solid #EF4444 !important; }
+    .timeline { position:relative; padding-left:1.5rem; margin-top:1.5rem; }
+    .timeline::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; background:#e9ecef; z-index:1; }
+    .timeline-item { position:relative; margin-bottom:1.5rem; }
+    .timeline-item:last-child { margin-bottom:0; }
+    .timeline-item::before { content:''; position:absolute; top:4px; left:-1.5rem; width:14px; height:14px; border-radius:50%; background:#e9ecef; border:3px solid white; transform:translateX(-6px); z-index:2; }
+    .timeline-item.active::before   { background:#EF4444; box-shadow:0 0 0 3px rgba(239,68,68,0.2); }
+    .timeline-item.completed::before { background:#10B981; }
+    .timeline-item.completed::after  { content:''; position:absolute; top:4px; left:-1.5rem; width:2px; height:calc(100% + 1.5rem); background:#10B981; transform:translateX(-0.5px); z-index:1; }
+    .timeline-item:last-child::after { display:none; }
+    .otp-input { letter-spacing:6px; font-size:22px; font-weight:700; text-align:center; font-family:monospace; }
+    .skeleton { background: linear-gradient(90deg,#fde8e8 25%,#fbd5d5 50%,#fde8e8 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   </style>
 </head>
-
 <body>
+<div class="mechanic-layout">
+  <div id="sidebar-container"></div>
+  <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index:1030;"></div>
 
-  <div class="mechanic-layout">
-    <div id="sidebar-container"></div>
+  <main class="mechanic-main">
+    <div id="topbar-container"></div>
+    <div class="mechanic-content pb-5">
 
-    <!-- Overlay for mobile sidebar -->
-    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index: 1030;"></div>
+      <!-- Skeleton -->
+      <div id="page-skeleton">
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="skeleton mb-4" style="height:250px;border-radius:16px;"></div>
+            <div class="skeleton" style="height:200px;border-radius:16px;"></div>
+          </div>
+          <div class="col-lg-5">
+            <div class="skeleton" style="height:450px;border-radius:16px;"></div>
+          </div>
+        </div>
+      </div>
 
-    <!-- ═══ MAIN CONTENT ═══ -->
-    <main class="mechanic-main">
-      <div id="topbar-container"></div>
-
-      <!-- Content Area -->
-      <div class="mechanic-content pb-5">
+      <!-- Main content -->
+      <div id="page-content" style="display:none;">
         <div class="row g-4 justify-content-center">
-          
-          <!-- Left Col: Customer & Map -->
+
+          <!-- LEFT: Map + Customer -->
           <div class="col-12 col-lg-7">
-            
+
             <!-- Map Card -->
             <div class="bg-white rounded-4 shadow-sm overflow-hidden mb-4 sos-border">
-              <!-- Google Map Placeholder -->
-              <div class="bg-light position-relative" style="height: 250px;">
-                <img src="https://via.placeholder.com/800x400?text=Live+Map+Tracking" class="w-100 h-100 object-fit-cover opacity-75" alt="Map">
-                <!-- Overlay badge for distance -->
-                <div class="position-absolute bottom-0 start-0 m-3">
-                  <div class="bg-danger text-white rounded-pill px-3 py-2 fw-medium shadow d-flex align-items-center gap-2" style="font-size: 14px;">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    2.4 km away (Approx 8 mins)
-                  </div>
+              <div class="bg-light" style="height:220px;display:flex;align-items:center;justify-content:center;">
+                <div id="map-placeholder" class="text-center text-muted">
+                  <svg viewBox="0 0 24 24" fill="#EF4444" width="48" height="48" class="mb-2">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  <div style="font-size:13px;">Breakdown Location</div>
                 </div>
               </div>
-
-              <!-- Location Details -->
               <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3">
                   <div>
                     <h6 class="fw-bold mb-1">Breakdown Location</h6>
-                    <p class="text-muted mb-0">Opposite YMCA Club, S.G. Highway, Ahmedabad</p>
+                    <p class="text-muted mb-0" id="booking-address" style="font-size:14px;">—</p>
+                    <p class="text-danger fw-semibold mb-0 mt-1" id="booking-distance" style="font-size:13px;"></p>
                   </div>
-                  <!-- Navigate Button triggers native maps app -->
-                  <a href="https://maps.google.com/?q=23.0225,72.5714" target="_blank" class="btn text-white rounded-pill d-flex align-items-center gap-2 flex-shrink-0 shadow-sm" style="background: #EF4444;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-                    Navigate Fast
+                  <a href="#" id="navigate-btn" target="_blank"
+                     class="btn text-white rounded-pill d-flex align-items-center gap-2 flex-shrink-0 shadow-sm"
+                     style="background:#EF4444;display:none!important;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+                    Navigate
                   </a>
                 </div>
               </div>
             </div>
 
-            <!-- Customer Details Card -->
+            <!-- Customer Details -->
             <div class="bg-white rounded-4 shadow-sm p-4 mb-4 sos-border">
-              <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size: 12px; letter-spacing: 1px;">Customer Details</h6>
-              
-              <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center fw-bold text-danger" style="width: 50px; height: 50px; font-size: 20px;">
-                  R
+              <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size:12px;letter-spacing:1px;">Vehicle Details</h6>
+              <div class="row g-3">
+                <div class="col-sm-4">
+                  <div class="bg-light rounded-3 p-3 text-center">
+                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Type</div>
+                    <div class="fw-bold text-dark" id="vehicle-type" style="font-size:13px;">—</div>
+                  </div>
                 </div>
-                <div>
-                  <h5 class="fw-bold mb-1">Rahul Verma</h5>
-                  <div class="text-muted d-flex align-items-center gap-2">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-                    Honda City (White) • GJ01 AB 1234
+                <div class="col-sm-4">
+                  <div class="bg-light rounded-3 p-3 text-center">
+                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Model</div>
+                    <div class="fw-bold text-dark" id="vehicle-model" style="font-size:13px;">—</div>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="bg-light rounded-3 p-3 text-center">
+                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Reg. No.</div>
+                    <div class="fw-bold text-dark" id="vehicle-number" style="font-size:13px;">—</div>
                   </div>
                 </div>
               </div>
-              
-              <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25">
-                <span class="text-danger fw-bold d-block mb-1">Emergency Issue:</span>
-                "Car engine stopped suddenly in middle of road. Need urgent help!"
+              <div class="mt-3" id="desc-section" style="display:none;">
+                <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25 mt-3">
+                  <span class="text-danger fw-bold d-block mb-1">Emergency Issue:</span>
+                  <span id="booking-desc" class="text-dark"></span>
+                </div>
               </div>
             </div>
 
           </div>
 
-          <!-- Right Col: Job Status & Updates -->
+          <!-- RIGHT: Flow -->
           <div class="col-12 col-lg-5">
-            
-            <div class="bg-white rounded-4 shadow-sm p-4 sticky-top sos-border" style="top: 80px;">
-              <h5 class="fw-bold mb-4 border-bottom pb-3" style="font-family: var(--font-head); color: #EF4444;">Live SOS Tracking</h5>
-
-              <!-- Timeline for SOS Booking Flow -->
-              <div class="timeline mb-4">
-                
-                <div class="timeline-item completed">
-                  <div class="fw-bold text-dark">SOS Accepted</div>
-                  <div class="text-muted small">10:45 AM</div>
-                </div>
-
-                <div class="timeline-item active">
-                  <div class="fw-bold text-danger">Inspect & Provide Estimate</div>
-                  <div class="text-muted small mt-1">Once reached, inspect vehicle and quote price</div>
-                  
-                  <!-- Estimate Input Box (Active State) -->
-                  <div class="mt-3 p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25">
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-danger border-opacity-25">
-                      <span class="small fw-bold text-dark">Emergency Visit Charge</span>
-                      <span class="fw-bold text-danger">₹100</span>
-                    </div>
-
-                    <label class="form-label small fw-bold text-dark mb-2">Estimated Repair Cost (₹)</label>
-                    <div class="input-group mb-2">
-                      <span class="input-group-text bg-white">₹</span>
-                      <input type="number" class="form-control" placeholder="e.g. 500">
-                    </div>
-                    <textarea class="form-control mb-3" rows="2" placeholder="Details (e.g. Jump start battery)"></textarea>
-                    
-                    <button class="btn w-100 text-white fw-bold rounded-pill shadow-sm bg-danger border-0">
-                      Send Estimate
-                    </button>
-                  </div>
-                </div>
-
-                <div class="timeline-item">
-                  <div class="text-muted fw-medium">Customer Approval</div>
-                  <div class="text-muted small" style="font-size: 11px;">Waiting for confirmation...</div>
-                </div>
-
-                <div class="timeline-item">
-                  <div class="text-muted fw-medium">Start Fix</div>
-                </div>
-
-                <div class="timeline-item">
-                  <div class="text-muted fw-medium">Repair Completed</div>
-                </div>
-
-              </div>
-
-              <!-- Action Buttons -->
-              <div class="d-flex flex-column gap-3 mt-4 pt-3 border-top">
-                <!-- Final Bill Button -->
-                <a href="invoice-sos.html" class="btn rounded-pill py-3 fw-bold text-center" style="border: 2px solid #EF4444; color: #EF4444; text-decoration: none;">
-                  Generate Final Bill
-                </a>
-              </div>
-
+            <div class="bg-white rounded-4 shadow-sm p-4 sticky-top sos-border" style="top:80px;">
+              <h5 class="fw-bold mb-1 text-danger" style="font-family:var(--font-head);">SOS #<span id="booking-id"></span></h5>
+              <div class="text-muted mb-4 pb-3 border-bottom" style="font-size:13px;" id="booking-time"></div>
+              <div id="flow-section"></div>
             </div>
-
           </div>
 
         </div>
       </div>
-    </main>
+    </div>
+  </main>
+</div>
 
+<!-- OTP Modal -->
+<div class="modal fade" id="otpModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title fw-bold">Customer OTP Verify Karo</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4">
+        <p class="text-muted mb-3" style="font-size:13px;">Customer se OTP lo aur yahan enter karo — kaam shuru hoga:</p>
+        <input type="text" id="otp-input" class="form-control otp-input rounded-3 border-2" maxlength="6" placeholder="------">
+        <div id="otp-error" class="text-danger mt-2 d-none" style="font-size:13px;"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;" id="otp-confirm-btn" onclick="confirmOTP()">Verify</button>
+      </div>
+    </div>
   </div>
+</div>
 
-  <script src="../js/mechanic-auth.js"></script>
-  <script src="../js/components.js"></script>
-  <script src="../js/bootstrap.js"></script>
-  <script>
-    initMechanicChrome('SOS #991', null, 'sos-alerts.html');
-  </script>
+<script src="../js/mechanic-auth.js"></script>
+<script src="../js/components.js"></script>
+<script src="../js/bootstrap.js"></script>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookingId = urlParams.get('id');
+  initMechanicChrome(`SOS #${bookingId}`, null, 'sos-alerts.html');
+
+  const API = () => getApiBase();
+  let booking = null;
+
+  async function loadDetail() {
+    if (!bookingId) { window.location.href = 'sos-alerts.html'; return; }
+    try {
+      const res = await fetch(`${API()}/api/sos/${bookingId}`, {
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error();
+      booking = await res.json();
+      renderPage();
+    } catch {
+      document.getElementById('page-skeleton').innerHTML = `
+        <div class="text-center py-5 text-muted">
+          <h5>SOS load nahi hua</h5>
+          <a href="sos-alerts.html" class="btn btn-sm rounded-pill px-4 text-white mt-2" style="background:#EF4444;">← Wapas Jao</a>
+        </div>`;
+    }
+  }
+
+  function renderPage() {
+    document.getElementById('page-skeleton').style.display = 'none';
+    document.getElementById('page-content').style.display  = '';
+
+    document.getElementById('booking-id').textContent   = booking.id;
+    document.getElementById('booking-time').textContent  = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
+
+    // Location
+    const addr = booking.customer_address || 'Location available on map';
+    document.getElementById('booking-address').textContent = addr;
+    if (booking.distance_km) {
+      document.getElementById('booking-distance').textContent = `📍 ${booking.distance_km} km away`;
+    }
+    if (booking.customer_lat && booking.customer_lng) {
+      const nb = document.getElementById('navigate-btn');
+      nb.href = `https://maps.google.com/?q=${booking.customer_lat},${booking.customer_lng}`;
+      nb.style.display = 'flex';
+    }
+
+    // Vehicle
+    const vt = booking.vehicle_type === 'two_wheeler' ? '2 Wheeler' : booking.vehicle_type === 'four_wheeler' ? '4 Wheeler' : booking.vehicle_type || '—';
+    document.getElementById('vehicle-type').textContent   = vt;
+    document.getElementById('vehicle-model').textContent  = booking.vehicle_model  || '—';
+    document.getElementById('vehicle-number').textContent = booking.vehicle_number || '—';
+
+    if (booking.description) {
+      document.getElementById('desc-section').style.display = '';
+      document.getElementById('booking-desc').textContent   = booking.description;
+    }
+
+    renderFlow();
+  }
+
+  function renderFlow() {
+    const el = document.getElementById('flow-section');
+    const s  = booking.status;
+
+    if (s === 'accepted') {
+      el.innerHTML = renderEstimateFlow();
+    } else if (s === 'ongoing') {
+      el.innerHTML = renderOngoingFlow();
+    } else if (s === 'completed') {
+      el.innerHTML = renderCompletedFlow();
+    } else {
+      el.innerHTML = `<div class="text-center text-muted py-4"><p>Status: ${s}</p><a href="sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill">← Back</a></div>`;
+    }
+  }
+
+  function renderEstimateFlow() {
+    const estSent = booking.estimate_status === 'pending';
+
+    if (estSent) {
+      return `
+        <div class="timeline">
+          <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+          <div class="timeline-item active">
+            <div class="fw-bold text-danger mb-2">Estimate Bheja — OTP Ka Wait</div>
+            <div class="bg-danger bg-opacity-10 rounded-3 p-3 border border-danger border-opacity-25 mb-3">
+              <div class="d-flex justify-content-between" style="font-size:13px;">
+                <span>Estimated Amount</span>
+                <span class="fw-bold">₹${booking.estimated_amount || 0}</span>
+              </div>
+              ${booking.garage_note ? `<div class="text-muted mt-1" style="font-size:12px;">${booking.garage_note}</div>` : ''}
+            </div>
+            <button onclick="openOTP()" class="btn text-white rounded-pill w-100 fw-bold py-2" style="background:#EF4444;">
+              Customer OTP Enter Karo
+            </button>
+          </div>
+          <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
+        </div>`;
+    }
+
+    return `
+      <div class="timeline">
+        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+        <div class="timeline-item active">
+          <div class="fw-bold text-danger mb-3">Estimate Bhejo</div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:13px;">
+              <span class="fw-semibold">Emergency Visiting Charge</span>
+              <span class="fw-bold text-danger">₹100</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Repair Cost (₹) <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text bg-white">₹</span>
+              <input type="number" id="est-amount" class="form-control border-2 shadow-none" placeholder="e.g. 500">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Description</label>
+            <textarea id="est-desc" class="form-control border-2 shadow-none" rows="2" placeholder="e.g. Jump start battery, tyre change..."></textarea>
+          </div>
+          <div id="est-error" class="alert alert-danger py-2 d-none rounded-3 mb-3" style="font-size:13px;"></div>
+          <button onclick="sendEstimate()" id="send-est-btn" class="btn text-white rounded-pill w-100 fw-bold py-2" style="background:#EF4444;">
+            Estimate Bhejo &amp; OTP Maango
+          </button>
+        </div>
+        <div class="timeline-item"><div class="text-muted">Customer Approval</div></div>
+        <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
+      </div>`;
+  }
+
+  function renderOngoingFlow() {
+    return `
+      <div class="timeline">
+        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+        <div class="timeline-item completed">
+          <div class="fw-bold text-success">Estimate Approved ✓</div>
+          <div class="text-muted small">₹${booking.estimated_amount || 0}</div>
+        </div>
+        <div class="timeline-item active">
+          <div class="fw-bold text-danger mb-3">Kaam Jari Hai</div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Final Amount (₹)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white">₹</span>
+              <input type="number" id="final-amount" class="form-control border-2 shadow-none" value="${booking.estimated_amount || ''}">
+            </div>
+          </div>
+          <div id="complete-error" class="alert alert-danger py-2 d-none rounded-3 mb-3" style="font-size:13px;"></div>
+          <button onclick="completeJob()" id="complete-btn" class="btn text-white rounded-pill w-100 fw-bold py-2" style="background:#10B981;">
+            Job Complete Karo ✓
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function renderCompletedFlow() {
+    return `
+      <div class="timeline">
+        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+        <div class="timeline-item completed"><div class="fw-bold text-success">Estimate Approved ✓</div></div>
+        <div class="timeline-item completed">
+          <div class="fw-bold text-success">Job Completed ✓</div>
+          ${booking.completed_at ? `<div class="text-muted small">${new Date(booking.completed_at).toLocaleString('en-IN')}</div>` : ''}
+        </div>
+      </div>
+      <div class="mt-4 p-3 rounded-3" style="background:#F0FDF4;border:1px solid #BBF7D0;">
+        <div class="text-muted small mb-1">Final Amount</div>
+        <div class="fw-bold" style="font-size:22px;color:#15803D;">₹${booking.estimated_amount || 0}</div>
+      </div>
+      <a href="invoice-sos.html?id=${booking.id}" class="btn btn-outline-secondary rounded-pill w-100 mt-3 fw-medium">
+        📄 Invoice Dekho
+      </a>`;
+  }
+
+  async function sendEstimate() {
+    const amount = parseFloat(document.getElementById('est-amount').value);
+    const desc   = document.getElementById('est-desc').value.trim();
+    const btn    = document.getElementById('send-est-btn');
+    const errEl  = document.getElementById('est-error');
+    errEl.classList.add('d-none');
+
+    if (!amount || amount <= 0) { errEl.textContent='Valid amount dalo.'; errEl.classList.remove('d-none'); return; }
+
+    btn.disabled=true; btn.textContent='Bhej raha hai...';
+    try {
+      const res = await fetch(`${API()}/api/sos/${bookingId}/estimate`, {
+        method: 'PATCH',
+        headers: { 'Authorization':`Bearer ${MECHANIC_AUTH.getToken()}`, 'Content-Type':'application/json' },
+        body: JSON.stringify({ estimated_amount: amount, description: desc, visiting_charge: 100 })
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+      const data = await res.json();
+      showToast(`Estimate bheja! OTP: ${data.otp}`, 'success');
+      setTimeout(() => location.reload(), 1500);
+    } catch(e) { errEl.textContent = e.message; errEl.classList.remove('d-none'); }
+    finally { btn.disabled=false; btn.textContent='Estimate Bhejo & OTP Maango'; }
+  }
+
+  function openOTP() {
+    document.getElementById('otp-input').value = '';
+    document.getElementById('otp-error').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('otpModal')).show();
+  }
+
+  async function confirmOTP() {
+    const otp = document.getElementById('otp-input').value.trim();
+    if (otp.length !== 6) { document.getElementById('otp-error').textContent='6 digit OTP dalo.'; document.getElementById('otp-error').classList.remove('d-none'); return; }
+    const btn = document.getElementById('otp-confirm-btn');
+    btn.disabled=true; btn.textContent='Verify ho raha hai...';
+    try {
+      const res = await fetch(`${API()}/api/sos/${bookingId}/verify-otp?otp=${otp}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || 'Invalid OTP');
+      bootstrap.Modal.getInstance(document.getElementById('otpModal')).hide();
+      showToast('OTP verified! Kaam shuru karo 🔧', 'success');
+      setTimeout(() => location.reload(), 1000);
+    } catch(e) { document.getElementById('otp-error').textContent = e.message; document.getElementById('otp-error').classList.remove('d-none'); }
+    finally { btn.disabled=false; btn.textContent='Verify'; }
+  }
+
+  async function completeJob() {
+    const finalAmount = parseFloat(document.getElementById('final-amount').value || 0);
+    const btn = document.getElementById('complete-btn');
+    btn.disabled=true; btn.textContent='Complete ho raha hai...';
+    try {
+      const res = await fetch(`${API()}/api/sos/${bookingId}/complete?final_amount=${finalAmount}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error();
+      showToast('SOS complete! 🎉', 'success');
+      setTimeout(() => location.reload(), 1000);
+    } catch { document.getElementById('complete-error').textContent='Complete nahi hua.'; document.getElementById('complete-error').classList.remove('d-none'); }
+    finally { btn.disabled=false; btn.textContent='Job Complete Karo ✓'; }
+  }
+
+  function showToast(msg, type='success') {
+    const t = document.createElement('div');
+    t.className=`alert alert-${type} position-fixed shadow rounded-3`;
+    t.style.cssText='top:80px;right:20px;z-index:9999;font-size:14px;min-width:220px;';
+    t.textContent=msg;
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(), 3000);
+  }
+
+  document.addEventListener('DOMContentLoaded', loadDetail);
+</script>
 </body>
-
 </html>

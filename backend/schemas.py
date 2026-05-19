@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional, List
 from datetime import datetime, time
 from enum import Enum
@@ -19,6 +19,14 @@ class BookingStatus(str, Enum):
     ongoing   = "ongoing"
     completed = "completed"
     cancelled = "cancelled"
+
+class SOSStatus(str, Enum):
+    broadcasting = "broadcasting"
+    accepted     = "accepted"
+    on_the_way   = "on_the_way"
+    in_progress  = "in_progress"
+    completed    = "completed"
+    cancelled    = "cancelled"
 
 class EstimateStatus(str, Enum):
     not_required = "not_required"
@@ -431,6 +439,64 @@ class PaginatedBookingResponse(BaseModel):
     pages: int
 
 
+# ──────────────────────────────────────────
+# SOS (EMERGENCY BREAKDOWN)
+# ──────────────────────────────────────────
+
+class SOSCreate(BaseModel):
+    # Accept both old (lat/lng) and new (latitude/longitude) formats
+    latitude:          Optional[float] = None
+    longitude:         Optional[float] = None
+    lat:               Optional[float] = None  # Old format from frontend
+    lng:               Optional[float] = None  # Old format from frontend
+    address:           Optional[str] = None
+    vehicle_type:      str  # two_wheeler | four_wheeler
+    vehicle_number:    Optional[str] = None
+    vehicle_model:     Optional[str] = None
+    description:       Optional[str] = None
+    broadcast_radius_km: Optional[float] = 2.0
+    radius_km:         Optional[float] = None  # Old format from frontend
+
+class SOSUpdate(BaseModel):
+    description:       Optional[str] = None
+    address:           Optional[str] = None
+
+class SOSResponse(BaseModel):
+    id:                  int
+    sos_number:          Optional[str] = None
+    customer_id:         int
+    garage_id:           Optional[int] = None
+    latitude:            float
+    longitude:           float
+    address:             Optional[str] = None
+    broadcast_radius_km: float
+    vehicle_type:        str
+    vehicle_number:      Optional[str] = None
+    vehicle_model:       Optional[str] = None
+    description:         Optional[str] = None
+    status:              SOSStatus
+    estimated_charge:    Optional[float] = None
+    visiting_charge:     Optional[float] = None
+    final_charge:        Optional[float] = None
+    platform_commission: Optional[float] = None
+    garage_earnings:     Optional[float] = None
+    created_at:          datetime
+    accepted_at:         Optional[datetime] = None
+    started_at:          Optional[datetime] = None
+    completed_at:        Optional[datetime] = None
+    updated_at:          Optional[datetime] = None
+    distance_km:         Optional[float] = None
+    customer_address:    Optional[str] = None
+    
+    model_config = {"from_attributes": True}
+
+class PaginatedSOSResponse(BaseModel):
+    items: List[SOSResponse]
+    total: int
+    page: int
+    size: int
+    pages: int
+
 
 # ──────────────────────────────────────────
 # DEFAULT SERVICES
@@ -568,6 +634,27 @@ class PlatformPayoutRequestResponse(BaseModel):
     created_at:     datetime
     updated_at:     Optional[datetime] = None
     garage_name:    Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ──────────────────────────────────────────
+# PLATFORM ADMINS
+# ──────────────────────────────────────────
+
+class AdminCreate(BaseModel):
+    email:    str
+    password: str
+
+class AdminLoginRequest(BaseModel):
+    email:    str
+    password: str
+
+class AdminResponse(BaseModel):
+    id:         int
+    email:      str
+    created_at: datetime
 
     class Config:
         from_attributes = True

@@ -1,7 +1,4 @@
-/**
- * components.js
- * Utility to load HTML components dynamically
- */
+const API_BASE = window.API_BASE || ((window.location.protocol === 'http:' || window.location.protocol === 'https:') ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://localhost:8000');
 
 async function loadComponent(elementId, componentPath, callback = null) {
   const container = document.getElementById(elementId);
@@ -57,6 +54,13 @@ function bindAdminSidebarToggle() {
 }
 
 async function initAdminChrome(pageTitle, callback = null) {
+  // Enforce secure administrator session lock
+  const adminKey = localStorage.getItem("gnm_admin_key");
+  if (!adminKey) {
+    window.location.href = "index.html";
+    return;
+  }
+
   const v = new Date().getTime();
 
   await Promise.all([
@@ -128,7 +132,7 @@ async function mechanicCheckLocationSet() {
   }
 
   try {
-    const res = await fetch('http://localhost:8000/api/garage-auth/me', {
+    const res = await fetch(`${API_BASE}/api/garage-auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) {
@@ -394,8 +398,6 @@ function showCreditLockOverlay(duesAmount) {
   });
 }
 
-const API_BASE = window.API_BASE || ((window.location.protocol === 'http:' || window.location.protocol === 'https:') ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://localhost:8000');
-
 function getInitials(name) {
   if (!name) return 'U';
   const parts = name.trim().split(/\s+/);
@@ -500,4 +502,15 @@ async function initCustomerMenu() {
   }
 
   await updateCustomerNav();
+}
+
+
+// App
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker
+            .register('/service-worker.js')
+            .then(() => console.log('PWA ready'))
+            .catch(err => console.log(err));
+    });
 }

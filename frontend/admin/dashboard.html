@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard - GarageNearMe</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/admin.css" />
@@ -214,6 +216,7 @@
 
   <script src="../js/components.js"></script>
   <script src="../js/bootstrap.bundle.js"></script>
+  <script src="../js/config.js"></script>
   <script>
     initAdminChrome('Dashboard');
   </script>
@@ -224,7 +227,7 @@
         'http://localhost:8000/api/garage-requests/admin/dashboard-stats/',
         {
           headers:{
-            "X-Admin-Key":"gnm_admin_secret_2026"
+            "X-Admin-Key": localStorage.getItem("gnm_admin_key") || "gnm_admin_secret_2026"
           }
         }
       );

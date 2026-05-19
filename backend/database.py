@@ -218,12 +218,151 @@ def ensure_schema_updates():
             if col_name not in bill_columns:
                 updates.append(sql)
 
+    if "sos_requests" not in table_names:
+        # Create SOS table if it doesn't exist
+        updates.append("""
+            CREATE TABLE IF NOT EXISTS sos_requests (
+                id SERIAL PRIMARY KEY,
+                sos_number VARCHAR(50) UNIQUE,
+                customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+                garage_id INTEGER REFERENCES garages(id) ON DELETE SET NULL,
+                latitude FLOAT NOT NULL,
+                longitude FLOAT NOT NULL,
+                address VARCHAR(255),
+                broadcast_radius_km FLOAT DEFAULT 2.0,
+                vehicle_type VARCHAR(50) NOT NULL,
+                vehicle_number VARCHAR(20),
+                vehicle_model VARCHAR(100),
+                description TEXT,
+                status VARCHAR(20) DEFAULT 'broadcasting',
+                estimated_charge NUMERIC(10, 2),
+                visiting_charge NUMERIC(10, 2),
+                final_charge NUMERIC(10, 2),
+                platform_commission NUMERIC(10, 2),
+                garage_earnings NUMERIC(10, 2),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                accepted_at TIMESTAMP WITH TIME ZONE,
+                started_at TIMESTAMP WITH TIME ZONE,
+                completed_at TIMESTAMP WITH TIME ZONE,
+                cancelled_at TIMESTAMP WITH TIME ZONE,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
     if not updates:
         return
 
     with engine.begin() as connection:
         for statement in updates:
             connection.execute(text(statement))
+
+def backfill_completed_bookings_and_bills():
+    """
+    Backfills platform_commission, garage_earnings, and Bill records 
+    for completed bookings where they are currently missing,
+    and updates pending platform dues for the respective garages.
+    """
+    import models
+    db = SessionLocal()
+    try:
+        completed_null_bookings = db.query(models.Booking).filter(
+            models.Booking.status == models.BookingStatus.completed,
+            (models.Booking.platform_commission == None) | (models.Booking.garage_earnings == None)
+        ).all()
+
+        if not completed_null_bookings:
+            return
+
+        print(f"Backfill: Found {len(completed_null_bookings)} completed bookings with missing commission details.")
+
+        for booking in completed_null_bookings:
+            final_amount = float(booking.final_amount) if booking.final_amount else 0.0
+            
+            # Find the active commission rule
+            commission_rule = db.query(models.CommissionRule).filter(
+                models.CommissionRule.is_active == True,
+                models.CommissionRule.min_amount <= final_amount,
+                (models.CommissionRule.max_amount >= final_amount) | (models.CommissionRule.max_amount == None)
+            ).first()
+
+            platform_commission = 0.0
+            if commission_rule:
+                platform_commission = (final_amount * float(commission_rule.percentage)) / 100.0
+
+            garage_earnings = final_amount - platform_commission
+
+            booking.platform_commission = platform_commission
+            booking.garage_earnings = garage_earnings
+
+            # Generate / insert Bill record
+            garage = booking.garage
+            if garage:
+                if garage.pending_platform_dues is None:
+                    garage.pending_platform_dues = 0.0
+                
+                # Add the platform commission to their pending platform dues
+                garage.pending_platform_dues = float(garage.pending_platform_dues) + float(platform_commission)
+
+                # Check if a bill already exists for this booking
+                existing_bill = db.query(models.Bill).filter(models.Bill.booking_id == booking.id).first()
+                if not existing_bill:
+                    if garage.has_gst:
+                        subtotal = final_amount / 1.18
+                        tax_amount = final_amount - subtotal
+                    else:
+                        subtotal = final_amount
+                        tax_amount = 0.0
+
+                    items = []
+                    if booking.estimate_details:
+                        items.extend(booking.estimate_details)
+                    if booking.additional_estimate_details:
+                        items.extend(booking.additional_estimate_details)
+                    if booking.pickup_charge and float(booking.pickup_charge) > 0:
+                        items.append({
+                            "item_name": "Pick & Drop / Visiting Charge",
+                            "price": float(booking.pickup_charge),
+                            "qty": 1
+                        })
+
+                    garage_address = ""
+                    if garage.location:
+                        addr_parts = [
+                            garage.location.shop_number,
+                            garage.location.street,
+                            garage.location.city
+                        ]
+                        garage_address = ", ".join([p for p in addr_parts if p])
+
+                    vehicle_info = " • ".join([p for p in [booking.vehicle_model or booking.vehicle_type, booking.vehicle_number] if p])
+
+                    bill = models.Bill(
+                        booking_id=booking.id,
+                        customer_id=booking.customer_id,
+                        garage_id=booking.garage_id,
+                        bill_number=f"GNM-{booking.id}-BILL",
+                        subtotal=subtotal,
+                        tax_amount=tax_amount,
+                        total_amount=final_amount,
+                        platform_commission=platform_commission,
+                        garage_earnings=garage_earnings,
+                        items=items,
+                        garage_name=garage.name,
+                        garage_address=garage_address,
+                        garage_gst=garage.gst_number if garage.has_gst else None,
+                        customer_name=booking.customer_name,
+                        vehicle_info=vehicle_info,
+                        service_type=booking.service_type or ("SOS Assistance" if booking.booking_type == models.BookingType.sos else "General Service")
+                    )
+                    db.add(bill)
+
+        db.commit()
+        print("Backfill: Successfully updated all completed bookings, dues, and generated missing bills.")
+    except Exception as e:
+        db.rollback()
+        print(f"Backfill Error: {str(e)}")
+    finally:
+        db.close()
 
 # Dependency to get DB session
 def get_db():
