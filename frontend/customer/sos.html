@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SOS Emergency — GarageNearMe</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#DC2626">
     <link rel="stylesheet" href="../css/bootstrap.css" />
     <link rel="stylesheet" href="../css/style.css" />
@@ -128,11 +128,11 @@
 
                 list.innerHTML = vehicles.map(v => `
                     <div class="d-flex align-items-center gap-3 p-2 border rounded-3 cursor-pointer"
-                         style="cursor:pointer;" onclick="selectVehicle('${v.vehicle_type}','${v.registration_number||''}','${v.model||''}')">
+                         onclick="selectVehicle('${v.vehicle_type}','${v.vehicle_number||''}','${v.description||''}')">
                         <span style="font-size:22px;">${v.vehicle_type === 'two_wheeler' ? '🏍️' : '🚗'}</span>
                         <div>
-                            <div class="fw-semibold" style="font-size:14px;">${v.model || v.vehicle_type}</div>
-                            <div class="text-muted" style="font-size:12px;">${v.registration_number || 'No reg.'}</div>
+                            <div class="fw-semibold" style="font-size:14px;">${v.description || v.vehicle_type}</div>
+                            <div class="text-muted" style="font-size:12px;">${v.vehicle_number || 'No reg.'}</div>
                         </div>
                     </div>`).join('');
             } catch {}

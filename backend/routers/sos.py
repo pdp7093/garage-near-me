@@ -526,3 +526,30 @@ def get_sos_status_customer(
         "completed_at":     sos_request.completed_at.isoformat() if sos_request.completed_at else None,
         "created_at":       sos_request.created_at.isoformat(),
     }
+
+
+# ──────────────────────────────────────────
+# 11. CUSTOMER — CANCEL SOS
+# POST /api/sos/customer/{sos_id}/cancel
+# ──────────────────────────────────────────
+
+@router.post("/customer/{sos_id}/cancel")
+def cancel_sos_customer(
+    sos_id: int,
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    sos_request = db.query(models.SOS).filter(
+        models.SOS.id          == sos_id,
+        models.SOS.customer_id == current_customer.id,
+        models.SOS.status.notin_([models.SOSStatus.completed, models.SOSStatus.cancelled])
+    ).first()
+    if not sos_request:
+        raise HTTPException(status_code=404, detail="SOS request not found or cannot be cancelled")
+
+    sos_request.status       = models.SOSStatus.cancelled
+    sos_request.cancelled_at = datetime.utcnow()
+    db.commit()
+    db.refresh(sos_request)
+
+    return {"message": "SOS cancelled", "status": sos_request.status.value}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SOS Tracking — GarageNearMe</title>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#DC2626">
     <link rel="stylesheet" href="../css/bootstrap.css" />
     <link rel="stylesheet" href="../css/style.css" />
@@ -331,7 +331,10 @@
 <script>
     const SOS_API  = 'http://localhost:8000/api';
     const params   = new URLSearchParams(location.search);
-    let bookingId  = params.get('booking_id');
+    let bookingId  = params.get('booking_id') || params.get('sos_id');
+    if (bookingId === 'undefined' || bookingId === 'null') {
+        bookingId = null;
+    }
     let pollTimer  = null;
     let sosData    = null;
 
@@ -382,7 +385,7 @@
                 return;
             }
 
-            bookingId = data.booking_id;
+            bookingId = data.sos_id;
             history.replaceState({}, '', `?booking_id=${bookingId}`);
 
             const count = data.nearby_garages?.length || 0;
@@ -427,7 +430,7 @@
         const garageName = sosData.garage_name || 'Mechanic';
         const initial    = garageName.charAt(0).toUpperCase();
 
-        if (s === 'pending') {
+        if (s === 'broadcasting') {
             showSection('searching');
 
         // ✅ FIX: estimate check PEHLE karo (accepted ke andar nested condition)
@@ -436,10 +439,10 @@
             showSection('estimate');
             document.getElementById('garage-name-est').textContent    = garageName;
             document.getElementById('garage-initial-est').textContent = initial;
-            document.getElementById('estimate-amount').textContent    = sosData.estimated_amount || 0;
+            document.getElementById('estimate-amount').textContent    = sosData.estimated_charge || 0;
             // OTP display
-            if (sosData.otp) {
-                document.getElementById('otp-display').textContent = sosData.otp;
+            if (sosData.estimate_otp) {
+                document.getElementById('otp-display').textContent = sosData.estimate_otp;
             }
 
         } else if (s === 'accepted') {
@@ -470,11 +473,20 @@
             document.getElementById('detail-reg').textContent     = sosData.vehicle_number || '—';
             document.getElementById('detail-issue').textContent   = sosData.description   || 'Emergency SOS';
 
+        } else if (s === 'on_the_way' || s === 'in_progress') {
+            showSection('ongoing');
+            document.getElementById('garage-name-ong').textContent    = garageName;
+            document.getElementById('garage-initial-ong').textContent = initial;
+            document.getElementById('ongoing-amount').textContent     = sosData.estimated_charge || 0;
+            if (sosData.started_at) {
+                document.getElementById('work-started-time').textContent = `Started ${getTimeAgo(sosData.started_at)}`;
+            }
+
         } else if (s === 'ongoing') {
             showSection('ongoing');
             document.getElementById('garage-name-ong').textContent    = garageName;
             document.getElementById('garage-initial-ong').textContent = initial;
-            document.getElementById('ongoing-amount').textContent     = sosData.estimated_amount || 0;
+            document.getElementById('ongoing-amount').textContent     = sosData.estimated_charge || 0;
             if (sosData.started_at) {
                 document.getElementById('work-started-time').textContent = `Started ${getTimeAgo(sosData.started_at)}`;
             }
@@ -482,7 +494,7 @@
         } else if (s === 'completed') {
             clearInterval(pollTimer);
             showSection('completed');
-            document.getElementById('final-amount-display').textContent  = sosData.final_amount || sosData.estimated_amount || 0;
+            document.getElementById('final-amount-display').textContent  = sosData.final_charge || sosData.estimated_charge || 0;
             document.getElementById('completed-garage-name').textContent = garageName;
             if (sosData.created_at && sosData.completed_at) {
                 document.getElementById('total-duration').textContent = getTimeDuration(sosData.created_at, sosData.completed_at);
@@ -525,8 +537,8 @@
         const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
         if (!bookingId) { window.location.href = 'index.html'; return; }
         try {
-            await fetch(`${SOS_API}/bookings/${bookingId}`, {
-                method: 'DELETE',
+            await fetch(`${SOS_API}/sos/customer/${bookingId}/cancel`, {
+                method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
         } catch {}
