@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Garage - Admin | GarageNearMe</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/admin.css" />
@@ -242,6 +244,7 @@
   </div>
 
   <script src="../js/components.js"></script>
+  <script src="../js/config.js"></script>
   <script>
     initAdminChrome('Add New Garage Partner', () => {
       const garageLink = document.querySelector('.admin-nav-link[href="garages.html"]');

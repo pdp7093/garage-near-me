@@ -464,41 +464,8 @@ def update_booking_status(
         booking.completed_at = now
         booking.final_amount = update.final_amount
 
-    booking.status      = update.status
-    booking.garage_note = update.garage_note
-
-    db.commit()
-    db.refresh(booking)
-    return booking
-
-
-@router.patch("/garage/{booking_id}/payment")
-def update_booking_payment_status(
-    booking_id: int,
-    status_update: schemas.PaymentStatusUpdate,
-    db: Session = Depends(get_db),
-    current_garage: models.Garage = Depends(get_current_garage)
-):
-    """
-    Update payment status (e.g. mark as 'paid').
-    When payment is marked as paid, automatically save bill for customer.
-    """
-    booking = db.query(models.Booking).filter(
-        models.Booking.id        == booking_id,
-        models.Booking.garage_id == current_garage.id
-    ).first()
-
-    if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
-
-    booking.payment_status = status_update.payment_status
-    db.commit()
-    db.refresh(booking)
-    
-    # If payment is marked as paid, save bill for customer
-    if status_update.payment_status == 'paid':
-        # Calculate amounts
-        final_amount = float(booking.final_amount) if booking.final_amount else 0
+        # Calculate amounts instantly upon completion
+        final_amount = float(update.final_amount) if update.final_amount else 0.0
         
         # Calculate subtotal and tax (assuming 18% GST)
         if current_garage.has_gst:
@@ -506,7 +473,7 @@ def update_booking_payment_status(
             tax_amount = final_amount - subtotal
         else:
             subtotal = final_amount
-            tax_amount = 0
+            tax_amount = 0.0
         
         # Collect all items for the bill
         items = []
@@ -551,32 +518,151 @@ def update_booking_payment_status(
         booking.platform_commission = platform_commission
         booking.garage_earnings = garage_earnings
 
-        # Create bill
-        bill = models.Bill(
-            booking_id=booking.id,
-            customer_id=booking.customer_id,
-            garage_id=current_garage.id,
-            bill_number=f"GNM-{booking.id}-BILL",
-            subtotal=subtotal,
-            tax_amount=tax_amount,
-            total_amount=final_amount,
-            platform_commission=platform_commission,
-            garage_earnings=garage_earnings,
-            items=items,
-            garage_name=current_garage.name,
-            garage_address=garage_address,
-            garage_gst=current_garage.gst_number if current_garage.has_gst else None,
-            customer_name=booking.customer_name,
-            vehicle_info=vehicle_info,
-            service_type=booking.service_type or (models.BookingType.sos.value if booking.booking_type == models.BookingType.sos else "General Service")
-        )
+        # Check if bill already exists to prevent duplicate entry
+        existing_bill = db.query(models.Bill).filter(models.Bill.booking_id == booking.id).first()
+        if not existing_bill:
+            bill = models.Bill(
+                booking_id=booking.id,
+                customer_id=booking.customer_id,
+                garage_id=current_garage.id,
+                bill_number=f"GNM-{booking.id}-BILL",
+                subtotal=subtotal,
+                tax_amount=tax_amount,
+                total_amount=final_amount,
+                platform_commission=platform_commission,
+                garage_earnings=garage_earnings,
+                items=items,
+                garage_name=current_garage.name,
+                garage_address=garage_address,
+                garage_gst=current_garage.gst_number if current_garage.has_gst else None,
+                customer_name=booking.customer_name,
+                vehicle_info=vehicle_info,
+                service_type=booking.service_type or ("SOS Assistance" if booking.booking_type == models.BookingType.sos else "General Service")
+            )
+            db.add(bill)
+
         # Update outstanding platform dues (dues accumulate; weekly billing manages lockouts)
         if current_garage.pending_platform_dues is None:
             current_garage.pending_platform_dues = 0.0
         current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
 
-        db.add(bill)
-        db.commit()
+    booking.status      = update.status
+    booking.garage_note = update.garage_note
+
+    db.commit()
+    db.refresh(booking)
+    return booking
+
+
+@router.patch("/garage/{booking_id}/payment")
+def update_booking_payment_status(
+    booking_id: int,
+    status_update: schemas.PaymentStatusUpdate,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Update payment status (e.g. mark as 'paid').
+    When payment is marked as paid, automatically save bill for customer.
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id        == booking_id,
+        models.Booking.garage_id == current_garage.id
+    ).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    booking.payment_status = status_update.payment_status
+    db.commit()
+    db.refresh(booking)
+    
+    # If payment is marked as paid, save bill for customer
+    if status_update.payment_status == 'paid':
+        # Calculate amounts ONLY if they have not been calculated yet (backward compatibility for legacy bookings)
+        if booking.platform_commission is None:
+            final_amount = float(booking.final_amount) if booking.final_amount else 0
+            
+            # Calculate subtotal and tax (assuming 18% GST)
+            if current_garage.has_gst:
+                subtotal = final_amount / 1.18
+                tax_amount = final_amount - subtotal
+            else:
+                subtotal = final_amount
+                tax_amount = 0
+            
+            # Collect all items for the bill
+            items = []
+            if booking.estimate_details:
+                items.extend(booking.estimate_details)
+            if booking.additional_estimate_details:
+                items.extend(booking.additional_estimate_details)
+            if booking.pickup_charge and float(booking.pickup_charge) > 0:
+                items.append({
+                    "item_name": "Pick & Drop / Visiting Charge",
+                    "price": float(booking.pickup_charge),
+                    "qty": 1
+                })
+            
+            # Garage location address
+            garage_address = ""
+            if current_garage.location:
+                addr_parts = [
+                    current_garage.location.shop_number,
+                    current_garage.location.street,
+                    current_garage.location.city
+                ]
+                garage_address = ", ".join([p for p in addr_parts if p])
+            
+            # Vehicle info
+            vehicle_info = " • ".join([p for p in [booking.vehicle_model or booking.vehicle_type, booking.vehicle_number] if p])
+            
+            # Calculate platform commission
+            commission_rule = db.query(models.CommissionRule).filter(
+                models.CommissionRule.is_active == True,
+                models.CommissionRule.min_amount <= final_amount,
+                (models.CommissionRule.max_amount >= final_amount) | (models.CommissionRule.max_amount == None)
+            ).first()
+
+            platform_commission = 0.0
+            if commission_rule:
+                platform_commission = (final_amount * float(commission_rule.percentage)) / 100.0
+
+            garage_earnings = final_amount - platform_commission
+
+            # Save to booking
+            booking.platform_commission = platform_commission
+            booking.garage_earnings = garage_earnings
+
+            # Create bill if it doesn't exist
+            existing_bill = db.query(models.Bill).filter(models.Bill.booking_id == booking.id).first()
+            if not existing_bill:
+                bill = models.Bill(
+                    booking_id=booking.id,
+                    customer_id=booking.customer_id,
+                    garage_id=current_garage.id,
+                    bill_number=f"GNM-{booking.id}-BILL",
+                    subtotal=subtotal,
+                    tax_amount=tax_amount,
+                    total_amount=final_amount,
+                    platform_commission=platform_commission,
+                    garage_earnings=garage_earnings,
+                    items=items,
+                    garage_name=current_garage.name,
+                    garage_address=garage_address,
+                    garage_gst=current_garage.gst_number if current_garage.has_gst else None,
+                    customer_name=booking.customer_name,
+                    vehicle_info=vehicle_info,
+                    service_type=booking.service_type or (models.BookingType.sos.value if booking.booking_type == models.BookingType.sos else "General Service")
+                )
+                db.add(bill)
+
+            # Update outstanding platform dues (dues accumulate; weekly billing manages lockouts)
+            if current_garage.pending_platform_dues is None:
+                current_garage.pending_platform_dues = 0.0
+            current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
+
+            db.commit()
     
     # Return as dict and inject garage info
     booking_data = schemas.BookingResponse.model_validate(booking).model_dump()

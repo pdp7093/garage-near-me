@@ -10,6 +10,26 @@ from utils.file_upload import save_payout_screenshot
 
 router = APIRouter()
 
+def verify_admin(x_admin_key: str = Header(None)):
+    ADMIN_SECRET = os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026")
+    if x_admin_key == ADMIN_SECRET:
+        return
+    
+    if not x_admin_key:
+        raise HTTPException(status_code=401, detail="Admin token required")
+    
+    from jose import jwt, JWTError
+    from routers.auth import SECRET_KEY, ALGORITHM
+    
+    try:
+        payload = jwt.decode(x_admin_key, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        role: str = payload.get("role")
+        if not email or role != "admin":
+            raise HTTPException(status_code=401, detail="Invalid admin credentials")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired session token")
+
 # ──────────────────────────────────────────
 # 1. GARAGE: SUBMIT PAYOUT PROOF
 # POST /api/payouts/request
@@ -102,8 +122,7 @@ def get_all_payout_requests_admin(
     """
     Admin fetches all payout request submissions from all garages.
     """
-    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
-        raise HTTPException(status_code=403, detail="Invalid admin key")
+    verify_admin(x_admin_key)
 
     requests = db.query(models.PlatformPayoutRequest).order_by(
         models.PlatformPayoutRequest.created_at.desc()
@@ -134,8 +153,7 @@ def process_payout_request_admin(
     Admin approves or rejects a payout verification request.
     If approved, deducts dues from the garage and unlocks credit if dues fall below ₹500.
     """
-    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
-        raise HTTPException(status_code=403, detail="Invalid admin key")
+    verify_admin(x_admin_key)
 
     payout_req = db.query(models.PlatformPayoutRequest).filter(
         models.PlatformPayoutRequest.id == payout_id
@@ -186,8 +204,7 @@ def generate_weekly_statements(
     Finds all active, verified garages with outstanding dues >= 500.0
     and starts a strict 24-hour grace period for payment.
     """
-    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
-        raise HTTPException(status_code=403, detail="Invalid admin key")
+    verify_admin(x_admin_key)
 
     # Find active, verified garages with dues >= 500.0 and no active grace period
     garages = db.query(models.Garage).filter(

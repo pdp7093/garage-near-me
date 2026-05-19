@@ -25,6 +25,14 @@ class BookingStatus(str, enum.Enum):
     completed = "completed"
     cancelled = "cancelled"
 
+class SOSStatus(str, enum.Enum):
+    broadcasting  = "broadcasting"   # Broadcast ho raha hai 2km radius ke garages ko
+    accepted      = "accepted"       # Garage ne accept kiya
+    on_the_way    = "on_the_way"    # Mechanic on the way
+    in_progress   = "in_progress"   # Work in progress
+    completed     = "completed"     # Complete ho gaya
+    cancelled     = "cancelled"     # Customer ne cancel kiya ya garage rejected
+
 class EstimateStatus(str, enum.Enum):
     not_required = "not_required"
     pending      = "pending"
@@ -365,6 +373,66 @@ class Booking(Base):
     def customer_phone(self):
         return self.customer.phone if self.customer else None
 
+
+# ──────────────────────────────────────────
+# SOS (EMERGENCY BREAKDOWN)
+# Alag booking nahi, alag tracking system
+# ──────────────────────────────────────────
+
+class SOS(Base):
+    __tablename__ = "sos_requests"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    sos_number          = Column(String(50), unique=True, index=True, nullable=True)  # e.g. SOS-2026-001
+    customer_id         = Column(Integer, ForeignKey("customers.id"), nullable=False)
+    garage_id           = Column(Integer, ForeignKey("garages.id"), nullable=True)  # NULL jab tak accept nahi hota
+
+    # Location
+    latitude            = Column(Float, nullable=False)
+    longitude           = Column(Float, nullable=False)
+    address             = Column(String(255), nullable=True)
+    broadcast_radius_km = Column(Float, default=2.0)
+
+    # Vehicle Information
+    vehicle_type        = Column(String(50), nullable=False)  # two_wheeler, four_wheeler
+    vehicle_number      = Column(String(20), nullable=True)
+    vehicle_model       = Column(String(100), nullable=True)
+
+    # Problem Description
+    description         = Column(Text, nullable=True)
+
+    # Status
+    status              = Column(Enum(SOSStatus), default=SOSStatus.broadcasting)
+
+    # Pricing
+    estimated_charge    = Column(Numeric(10, 2), nullable=True)
+    visiting_charge     = Column(Numeric(10, 2), nullable=True)
+    final_charge        = Column(Numeric(10, 2), nullable=True)
+    platform_commission = Column(Numeric(10, 2), nullable=True)
+    garage_earnings     = Column(Numeric(10, 2), nullable=True)
+
+    # Estimate & OTP
+    estimate_status     = Column(Enum(EstimateStatus), default=EstimateStatus.not_required)
+    estimate_details    = Column(JSONB, nullable=True)
+    estimate_otp        = Column(String(6), nullable=True)
+    estimate_otp_verified = Column(Boolean, default=False)
+    estimate_otp_sent_at = Column(DateTime(timezone=True), nullable=True)
+    garage_note         = Column(Text, nullable=True)
+
+    # Timestamps
+    created_at          = Column(DateTime(timezone=True), server_default=func.now())
+    accepted_at         = Column(DateTime(timezone=True), nullable=True)
+    responded_at        = Column(DateTime(timezone=True), nullable=True)
+    started_at          = Column(DateTime(timezone=True), nullable=True)
+    completed_at        = Column(DateTime(timezone=True), nullable=True)
+    cancelled_at        = Column(DateTime(timezone=True), nullable=True)
+    updated_at          = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    customer            = relationship("Customer")
+    garage              = relationship("Garage")
+
+
 # ──────────────────────────────────────────
 # BILL / INVOICE (Bill storage for customers)
 # Customer ko booking history mein bill dikhegi
@@ -457,3 +525,16 @@ class PlatformPayoutRequest(Base):
     updated_at     = Column(DateTime(timezone=True), onupdate=func.now())
 
     garage = relationship("Garage")
+
+
+# ──────────────────────────────────────────
+# PLATFORM ADMINS (Hashed Credentials)
+# ──────────────────────────────────────────
+
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    email           = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    created_at      = Column(DateTime(timezone=True), server_default=func.now())

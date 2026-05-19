@@ -17,11 +17,24 @@ ADMIN_SECRET = os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026")
 
 
 def check_admin(x_admin_key: str):
-    if x_admin_key != ADMIN_SECRET:
-        raise HTTPException(
-            status_code=403,
-            detail="Invalid admin key"
-        )
+    ADMIN_SECRET = os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026")
+    if x_admin_key == ADMIN_SECRET:
+        return
+    
+    if not x_admin_key:
+        raise HTTPException(status_code=401, detail="Admin token required")
+    
+    from jose import jwt, JWTError
+    from routers.auth import SECRET_KEY, ALGORITHM
+    
+    try:
+        payload = jwt.decode(x_admin_key, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        role: str = payload.get("role")
+        if not email or role != "admin":
+            raise HTTPException(status_code=401, detail="Invalid admin credentials")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired session token")
 
 
 # ──────────────────────────────────────────
