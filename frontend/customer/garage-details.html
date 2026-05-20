@@ -362,8 +362,8 @@
         ]);
     </script>
 
+    <script src="../js/config.js"></script>
     <script>
-        const GNM_DETAIL_API = 'http://localhost:8000/api';
         const DAYS_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         const DAY_LABELS = { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' };
 
@@ -383,7 +383,7 @@
         // ── Fetch ──
         async function loadGarage(id) {
             try {
-                const res = await fetch(`${GNM_DETAIL_API}/garage/${id}/public`);
+                const res = await fetch(`${getApiBase()}/garage/${id}/public`);
                 if (!res.ok) throw new Error();
                 garageData = await res.json();
                 renderPage();
@@ -643,7 +643,7 @@
                     description: description || null,
                 };
 
-                const res = await fetch(`${GNM_DETAIL_API}/bookings/`, {
+                const res = await fetch(`${getApiBase()}/bookings/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(body)

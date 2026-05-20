@@ -10,5 +10,5 @@ function getApiBase() {
     }
 
     // Ngrok / production
-    return "https://YOUR_BACKEND_NGROK.ngrok-free.app/api";
+    return "https://itchy-hotels-type.loca.lt/api";
 }

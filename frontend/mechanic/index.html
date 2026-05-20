@@ -276,8 +276,8 @@
   </div>
 
   <script src="../js/bootstrap.js"></script>
+  <script src="../js/config.js"></script>
   <script>
-    const API = 'http://localhost:8000';
 
     // ── Tab Switching
     document.addEventListener('DOMContentLoaded', () => {
@@ -326,7 +326,7 @@
       btn.disabled = true;
 
       try {
-        const res  = await fetch(`${API}/api/garage-auth/send-otp`, {
+        const res  = await fetch(`${getApiBase()}/garage-auth/send-otp`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ phone })
@@ -378,7 +378,7 @@
       btn.disabled = true;
 
       try {
-        const res  = await fetch(`${API}/api/garage-auth/verify-otp`, {
+        const res  = await fetch(`${getApiBase()}/garage-auth/verify-otp`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ phone, otp })
@@ -453,7 +453,7 @@
       };
 
       try {
-        const response = await fetch(`${API}/api/garage-requests/`, {
+        const response = await fetch(`${getApiBase()}/garage-requests/`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify(payload)
@@ -504,7 +504,7 @@
           if (file) {
             const fd = new FormData();
             fd.append('file', file);
-            await fetch(`${API}/api/garage-requests/${requestId}/documents?document_type=${u.type}`, {
+            await fetch(`${getApiBase()}/garage-requests/${requestId}/documents?document_type=${u.type}`, {
               method: 'POST',
               body:   fd
             });

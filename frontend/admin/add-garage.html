@@ -258,9 +258,10 @@
     });
   </script>
   <script src="../js/bootstrap.js"></script>
+  <script src="../js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    const API = 'http://localhost:8000';
+    const API = getapiBase();
     const AKEY = 'gnm_admin_secret_2026';
 
     async function adminApi(url, method = 'POST', body = null) {

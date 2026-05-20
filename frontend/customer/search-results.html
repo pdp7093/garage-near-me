@@ -226,8 +226,8 @@
         ]);
     </script>
 
+    <script src="../js/config.js"></script>
     <script>
-        const GNM_API = "http://localhost:8000";
         const ITEMS_PER_PAGE = 10;
 
         let allGarages = [];
@@ -295,7 +295,7 @@
         async function fetchWithCoordinates(lat, lng) {
             showSkeletons();
             try {
-                let url = `${GNM_API}/api/garage/nearby?lat=${lat}&lng=${lng}&radius=2.0`;
+                let url = `${getApiBase()}/garage/nearby?lat=${lat}&lng=${lng}&radius=2.0`;
                 if (serviceQuery) url += `&service_name=${encodeURIComponent(serviceQuery)}`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -131,11 +131,12 @@
 
   <script src="../js/components.js"></script>
   <script src="../js/bootstrap.bundle.js"></script>
+  <script src="../js/config.js"></script>
   <script>
     // Initialize Admin sidebar chrome
     initAdminChrome('Offline UTR Verification');
 
-    const API = 'http://localhost:8000';
+    const API = getApiBase();
     const adminSecret = 'gnm_admin_secret_2026';
 
     // Load Payout verification requests

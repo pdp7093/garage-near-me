@@ -282,8 +282,9 @@
 <script src="../js/bootstrap.js"></script>
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
-const API = 'http://localhost:8000';
+const API = getApiBase();
 
 // ── Auth check
 const token = localStorage.getItem('garage_token');

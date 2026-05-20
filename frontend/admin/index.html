@@ -97,8 +97,8 @@
   </div>
 
   <script src="../js/bootstrap.bundle.js"></script>
+  <script src="../js/config.js"></script>
   <script>
-    const API_BASE = "http://localhost:8000";
 
     function showAlert(msg, isError = true) {
       const box = document.getElementById("alertBox");
@@ -110,7 +110,7 @@
     // Auto check if system is configured
     async function checkSetup() {
       try {
-        const response = await fetch(`${API_BASE}/api/admin-auth/has-admin`);
+        const response = await fetch(`${getApiBase()}/admin-auth/has-admin`);
         const data = await response.json();
         if (!data.has_admin) {
           // If no admin accounts exist, redirect to setup page immediately!
@@ -131,7 +131,7 @@
       const password = document.getElementById("passwordInput").value;
 
       try {
-        const response = await fetch(`${API_BASE}/api/admin-auth/login`, {
+        const response = await fetch(`${getApiBase()}/admin-auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

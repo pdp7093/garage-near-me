@@ -638,12 +638,13 @@
     initAdminChrome('Manage Garages & Partners');
   </script>
   <script src="../js/bootstrap.js"></script>
+  <script src="../js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     /* ══════════════════════════════════════
        CONFIG & STATE
     ══════════════════════════════════════ */
-    const API = 'http://localhost:8000';
+    const API = getApiBase();
     const AKEY = 'gnm_admin_secret_2026';
     const H = { 'X-Admin-Key': AKEY };
     const HJ = { 'X-Admin-Key': AKEY, 'Content-Type': 'application/json' };

@@ -342,12 +342,8 @@
 
   <script src="../js/mechanic-auth.js"></script>
   <script src="../js/components.js"></script>
+
   <script>
-    initMechanicChrome('Services', mechanicCheckLocationSet);
-  </script>
-  <script src="../js/bootstrap.js"></script>
-  <script>
-    const API = 'http://localhost:8000';
     const token = localStorage.getItem('garage_token');
     if (!token) window.location.href = 'index.html';
 

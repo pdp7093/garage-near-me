@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from datetime import datetime
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
@@ -129,7 +129,7 @@ def create_sos(
     # SOS request create karo — dedicated SOS table mein
     sos_request = models.SOS(
         customer_id             = current_customer.id,
-        garage_id               = nearby_garages[0]["id"] if nearby_garages else None,
+        garage_id               = None,  # Blast notification to all, not just first
         vehicle_type            = data.vehicle_type or "unknown",
         vehicle_model           = data.vehicle_model,
         vehicle_number          = data.vehicle_number,
@@ -191,11 +191,10 @@ def get_active_sos(
 
     # Pending/Broadcasting SOS requests for this garage
     sos_requests = db.query(models.SOS).filter(
-        models.SOS.status.in_([
-            models.SOSStatus.broadcasting,
-            models.SOSStatus.accepted
-        ]),
-        models.SOS.garage_id == current_garage.id
+        or_(
+            models.SOS.status == models.SOSStatus.broadcasting,
+            (models.SOS.status == models.SOSStatus.accepted) & (models.SOS.garage_id == current_garage.id)
+        )
     ).order_by(models.SOS.created_at.desc()).all()
 
     results = []
@@ -296,12 +295,12 @@ def accept_sos(
 ):
     sos_request = db.query(models.SOS).filter(
         models.SOS.id           == sos_id,
-        models.SOS.garage_id    == current_garage.id,
         models.SOS.status       == models.SOSStatus.broadcasting
     ).first()
     if not sos_request:
         raise HTTPException(status_code=404, detail="SOS not found or already taken")
 
+    sos_request.garage_id    = current_garage.id
     sos_request.status       = models.SOSStatus.accepted
     sos_request.responded_at = datetime.utcnow()
     sos_request.accepted_at  = datetime.utcnow()
@@ -326,18 +325,14 @@ def reject_sos(
 ):
     sos_request = db.query(models.SOS).filter(
         models.SOS.id           == sos_id,
-        models.SOS.garage_id    == current_garage.id,
         models.SOS.status       == models.SOSStatus.broadcasting
     ).first()
     if not sos_request:
         raise HTTPException(status_code=404, detail="SOS not found")
 
-    sos_request.status       = models.SOSStatus.cancelled
-    sos_request.responded_at = datetime.utcnow()
-    sos_request.cancelled_at = datetime.utcnow()
-    db.commit()
-
-    return { "message": "SOS rejected", "sos_id": sos_request.id }
+    # Locally reject for this garage only (frontend will hide it)
+    # Status remains broadcasting for other garages
+    return { "message": "SOS rejected locally", "sos_id": sos_request.id }
 
 
 # ──────────────────────────────────────────

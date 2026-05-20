@@ -327,9 +327,8 @@
 </div>
 
 <script src="../js/bootstrap.js"></script>
-<script src="../js/script.js"></script>
+<script src="../js/config.js"></script>
 <script>
-    const SOS_API  = 'http://localhost:8000/api';
     const params   = new URLSearchParams(location.search);
     let bookingId  = params.get('booking_id') || params.get('sos_id');
     if (bookingId === 'undefined' || bookingId === 'null') {
@@ -365,7 +364,7 @@
         } catch {}
 
         try {
-            const res = await fetch(`${SOS_API}/sos/create`, {
+            const res = await fetch(`${getApiBase()}/sos/create`, {
                 method: 'POST',
                 headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
                 body: JSON.stringify({
@@ -409,7 +408,7 @@
         if (!bookingId) return;
         const token = localStorage.getItem("gnm_token") || localStorage.getItem("access_token");
         try {
-            const res = await fetch(`${SOS_API}/sos/customer/${bookingId}`, {
+            const res = await fetch(`${getApiBase()}/sos/customer/${bookingId}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) {
@@ -513,7 +512,7 @@
     async function rejectEstimate() {
         const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
         try {
-            await fetch(`${SOS_API}/bookings/${bookingId}/approve-estimate`, {
+            await fetch(`${getApiBase()}/bookings/${bookingId}/approve-estimate`, {
                 method: 'PATCH',
                 headers: { 'Authorization':`Bearer ${token}`, 'Content-Type':'application/json' },
                 body: JSON.stringify({ estimate_status: 'rejected' })
@@ -537,7 +536,7 @@
         const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
         if (!bookingId) { window.location.href = 'index.html'; return; }
         try {
-            await fetch(`${SOS_API}/sos/customer/${bookingId}/cancel`, {
+            await fetch(`${getApiBase()}/sos/customer/${bookingId}/cancel`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

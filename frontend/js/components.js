@@ -1,4 +1,4 @@
-const API_BASE = window.API_BASE || ((window.location.protocol === 'http:' || window.location.protocol === 'https:') ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://localhost:8000');
+const API_BASE = window.API_BASE || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:8000' : 'https://sanctity-litter-machinist.ngrok-free.dev');
 
 async function loadComponent(elementId, componentPath, callback = null) {
   const container = document.getElementById(elementId);

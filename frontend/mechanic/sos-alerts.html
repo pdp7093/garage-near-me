@@ -124,13 +124,29 @@
     } catch(e) {}
   }
 
+  function getDeclinedSOS() {
+    return JSON.parse(localStorage.getItem('declined_sos') || '[]');
+  }
+
+  function addDeclinedSOS(id) {
+    const declined = getDeclinedSOS();
+    if (!declined.includes(id)) {
+      declined.push(id);
+      localStorage.setItem('declined_sos', JSON.stringify(declined));
+    }
+  }
+
   async function loadSOSAlerts() {
     try {
       const res = await fetch(`${API()}/api/sos/active`, {
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
       if (!res.ok) throw new Error();
-      const alerts = await res.json();
+      let alerts = await res.json();
+
+      const declined = getDeclinedSOS();
+      alerts = alerts.filter(a => !declined.includes(a.id));
+
       renderAlerts(alerts);
       loadHistory();
     } catch {
@@ -234,12 +250,19 @@
   async function rejectSOS(id, btn) {
     btn.disabled = true; btn.textContent = 'Declining...';
     try {
-      await fetch(`${API()}/api/sos/${id}/reject`, {
+      const res = await fetch(`${API()}/api/sos/${id}/reject`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
+      if (!res.ok) throw new Error();
+      
+      addDeclinedSOS(id);
       loadSOSAlerts();
-    } catch { btn.disabled=false; btn.textContent='Decline'; }
+    } catch { 
+      btn.disabled = false; 
+      btn.textContent = 'Decline';
+      showToast('Decline nahi hua. Try again.', 'danger');
+    }
   }
 
   async function loadHistory() {

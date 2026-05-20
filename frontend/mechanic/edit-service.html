@@ -156,7 +156,7 @@
   </script>
   <script src="../js/bootstrap.js"></script>
   <script>
-    const API = 'http://localhost:8000';
+    const API = getApiBase();
 
     const params = new URLSearchParams(window.location.search);
     const serviceId = Number(params.get('id'));

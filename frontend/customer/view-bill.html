@@ -154,13 +154,9 @@
   </div>
 
   <script src="../js/mechanic-auth.js"></script>
-  <script src="../js/bootstrap.js"></script>
-  <script>
-    // Get booking ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookingId = urlParams.get('id');
 
-    const API_BASE = "http://127.0.0.1:8000";
+  <script src="../js/config.js"></script>
+  <script>
     const token = localStorage.getItem('gnm_token');
 
     let currentBill = null;
@@ -182,7 +178,7 @@
 
         try {
             // Fetch Bill
-            const res = await fetch(`${API_BASE}/api/bookings/${bookingId}/bill`, {
+            const res = await fetch(`${getApiBase()}/bookings/${bookingId}/bill`, {
                 headers: authHeaders()
             });
 

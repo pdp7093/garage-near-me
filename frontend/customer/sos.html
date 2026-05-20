@@ -103,9 +103,9 @@
     </div>
 
     <script src="../js/bootstrap.js"></script>
+    <script src="../js/config.js"></script>
     <script src="../js/script.js"></script>
     <script>
-        const SOS_API = 'http://localhost:8000/api';
 
         window.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
@@ -115,7 +115,7 @@
 
         async function loadSavedVehicles(token) {
             try {
-                const res = await fetch(`${SOS_API}/vehicles/`, {
+                const res = await fetch(`${getApiBase()}/vehicles/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) return;

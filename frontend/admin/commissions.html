@@ -93,8 +93,8 @@
   <script src="../js/components.js"></script>
   <script>
     initAdminChrome('Commission Rules');
-
-    const API_URL = 'http://localhost:8000/api/commissions';
+    const apiBase = getApiBase();
+    const API_URL = `${apiBase}/api/commissions`;
     const ADMIN_KEY = 'gnm_admin_secret_2026';
 
     async function loadRules() {

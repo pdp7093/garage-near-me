@@ -90,8 +90,8 @@
   </div>
 
   <script src="../js/bootstrap.bundle.js"></script>
+  <script src="../js/config.js"></script>
   <script>
-    const API_BASE = "http://localhost:8000";
 
     // Show custom message in alerts
     function showAlert(msg, isError = true) {
@@ -104,7 +104,7 @@
     // Check if admin setup is already complete on load
     async function checkSetup() {
       try {
-        const response = await fetch(`${API_BASE}/api/admin-auth/has-admin`);
+        const response = await fetch(`${getApiBase()}/admin-auth/has-admin`);
         const data = await response.json();
         if (data.has_admin) {
           // Setup already done, redirect to index login page immediately
@@ -136,7 +136,7 @@
       }
 
       try {
-        const response = await fetch(`${API_BASE}/api/admin-auth/setup`, {
+        const response = await fetch(`${getApiBase()}/admin-auth/setup`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

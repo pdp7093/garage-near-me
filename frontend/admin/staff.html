@@ -96,8 +96,8 @@
 
   <script src="../js/components.js"></script>
   <script src="../js/bootstrap.bundle.js"></script>
+  <script src="../js/config.js"></script>
   <script>
-    const API_BASE = "http://localhost:8000";
     
     // Authorization lock check before initializing chrome
     const adminKey = localStorage.getItem("gnm_admin_key");
@@ -117,7 +117,7 @@
     // Load admin staff accounts from dynamic API
     async function loadAdmins() {
       try {
-        const response = await fetch(`${API_BASE}/api/admin-auth/all`, {
+        const response = await fetch(`${getApiBase()}/admin-auth/all`, {
           headers: {
             "X-Admin-Key": adminKey
           }
@@ -198,7 +198,7 @@
       }
 
       try {
-        const response = await fetch(`${API_BASE}/api/admin-auth/create`, {
+        const response = await fetch(`${getApiBase()}/admin-auth/create`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

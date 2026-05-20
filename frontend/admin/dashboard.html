@@ -221,10 +221,11 @@
     initAdminChrome('Dashboard');
   </script>
   <script>
+  const apiBase = getApiBase();
   async function loadDashboardStats(){
     try {
       const response = await fetch(
-        'http://localhost:8000/api/garage-requests/admin/dashboard-stats/',
+        `${apiBase}/api/garage-requests/admin/dashboard-stats/`,
         {
           headers:{
             "X-Admin-Key": localStorage.getItem("gnm_admin_key") || "gnm_admin_secret_2026"

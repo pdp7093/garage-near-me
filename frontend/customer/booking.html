@@ -412,9 +412,9 @@
     </div>
 
     <script src="../js/bootstrap.js"></script>
+    <script src="../js/config.js"></script>
     <script src="../js/script.js"></script>
     <script>
-        const BK_API = 'http://localhost:8000/api';
 
         const params = new URLSearchParams(location.search);
         const garageId = params.get('garage_id');
@@ -488,7 +488,7 @@
         async function fetchVehicles(token) {
             const container = document.getElementById('vehicles-container');
             try {
-                const res = await fetch(`${BK_API}/vehicles/`, {
+                const res = await fetch(`${getApiBase()}/vehicles/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error();
@@ -562,7 +562,7 @@
         async function fetchAddresses(token) {
             const container = document.getElementById('addresses-container');
             try {
-                const res = await fetch(`${BK_API}/addresses/`, {
+                const res = await fetch(`${getApiBase()}/addresses/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) throw new Error();
@@ -633,7 +633,7 @@
         async function fetchGarageWorkingHours(id) {
             if (!id) return;
             try {
-                const res = await fetch(`${BK_API}/garage/${id}/public`);
+                const res = await fetch(`${getApiBase()}/garage/${id}/public`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data.working_hours) {
@@ -794,7 +794,7 @@
             submitBtn.textContent = 'Booking ho rahi hai...';
 
             try {
-                const res = await fetch(`${BK_API}/bookings/`, {
+                const res = await fetch(`${getApiBase()}/bookings/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -856,7 +856,7 @@
             btn.textContent = 'Saving...';
 
             try {
-                const res = await fetch(`${BK_API}/vehicles/`, {
+                const res = await fetch(`${getApiBase()}/vehicles/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

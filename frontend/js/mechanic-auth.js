@@ -5,7 +5,12 @@
 
 // Helper to get API base without conflicting with components.js
 function getApiBase() {
-  return window.API_BASE || ((window.location.protocol === 'http:' || window.location.protocol === 'https:') ? `${window.location.protocol}//${window.location.hostname}:8000` : 'http://localhost:8000');
+  if (window.API_BASE) return window.API_BASE;
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:8000';
+  }
+  return 'https://sanctity-litter-machinist.ngrok-free.dev';
 }
 
 const MECHANIC_AUTH = {
