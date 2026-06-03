@@ -6,6 +6,7 @@ import os
 import models, schemas
 from database import get_db
 from utils.file_upload import save_garage_document
+from routers.garage import _make_slug
 
 router = APIRouter()
 
@@ -325,7 +326,8 @@ def approve_garage_request(
     )
 
     db.add(new_garage)
-    db.flush()
+    db.flush()  # ID milta hai flush se
+    new_garage.slug = _make_slug(new_garage.name, new_garage.id)
 
     days = [
         "monday",
@@ -451,7 +453,96 @@ def upload_garage_document(
 
 
 # ──────────────────────────────────────────
-# 8. REQUEST DETAILS
+# 9. DASHBOARD STATS  (must be BEFORE /{request_id})
+# ──────────────────────────────────────────
+
+@router.get("/admin/dashboard-stats")
+def get_dashboard_stats(
+    db: Session = Depends(get_db),
+    x_admin_key: str = Header(None)
+):
+    from sqlalchemy import func, extract
+    check_admin(x_admin_key)
+
+    now = datetime.utcnow()
+
+    total_customers = db.query(models.Customer).count()
+    total_garages   = db.query(models.Garage).filter(models.Garage.is_active == True).count()
+
+    pending_requests = db.query(models.GarageRequest).filter(
+        models.GarageRequest.status.in_([
+            models.GarageRequestStatus.pending,
+            models.GarageRequestStatus.under_review,
+            models.GarageRequestStatus.site_visit_scheduled,
+            models.GarageRequestStatus.documents_pending,
+            models.GarageRequestStatus.verification_completed,
+        ])
+    ).count()
+
+    # Monthly revenue = sum of platform_commission on completed bookings this month
+    monthly_revenue = db.query(func.coalesce(func.sum(models.Booking.platform_commission), 0)).filter(
+        models.Booking.status == models.BookingStatus.completed,
+        extract('month', models.Booking.completed_at) == now.month,
+        extract('year',  models.Booking.completed_at) == now.year,
+    ).scalar() or 0.0
+
+    # Latest 5 pending/under-review garage requests
+    pending_list = db.query(models.GarageRequest).filter(
+        models.GarageRequest.status.in_([
+            models.GarageRequestStatus.pending,
+            models.GarageRequestStatus.under_review,
+            models.GarageRequestStatus.site_visit_scheduled,
+            models.GarageRequestStatus.documents_pending,
+            models.GarageRequestStatus.verification_completed,
+        ])
+    ).order_by(models.GarageRequest.created_at.desc()).limit(5).all()
+
+    pending_data = []
+    for r in pending_list:
+        docs = db.query(models.GarageDocument).filter(models.GarageDocument.request_id == r.id).count()
+        location_parts = [part for part in (r.address, r.city, r.pincode) if part]
+        location_str = ", ".join(location_parts)
+        pending_data.append({
+            "id":       r.id,
+            "name":     r.garage_name,
+            "phone":    r.phone,
+            "location": location_str or "N/A",
+            "status":   r.status.value,
+            "docs_uploaded": docs > 0,
+        })
+
+    # Latest 5 SOS requests
+    recent_sos = db.query(models.SOS).order_by(models.SOS.created_at.desc()).limit(5).all()
+    sos_data = []
+    for s in recent_sos:
+        customer = db.query(models.Customer).filter(models.Customer.id == s.customer_id).first()
+        garage   = db.query(models.Garage).filter(models.Garage.id == s.garage_id).first() if s.garage_id else None
+        diff     = now - s.created_at.replace(tzinfo=None)
+        mins     = max(0, int(diff.total_seconds() / 60))
+        time_ago = "Just now" if mins < 1 else f"{mins} min ago" if mins < 60 else f"{int(mins/60)}h ago"
+        sos_data.append({
+            "id":          s.id,
+            "slug":        s.slug,
+            "status":      s.status.value,
+            "customer":    customer.name if customer else "Unknown",
+            "description": s.description or s.vehicle_type or "SOS",
+            "address":     s.address or "Unknown location",
+            "garage_name": garage.name if garage else None,
+            "time_ago":    time_ago,
+        })
+
+    return {
+        "total_customers":   total_customers,
+        "total_garages":     total_garages,
+        "pending_requests":  pending_requests,
+        "monthly_revenue":   round(float(monthly_revenue), 2),
+        "pending_list":      pending_data,
+        "recent_sos":        sos_data,
+    }
+
+
+# ──────────────────────────────────────────
+# 8. REQUEST DETAILS  (must be AFTER dashboard-stats)
 # ──────────────────────────────────────────
 
 @router.get(
@@ -477,49 +568,3 @@ def get_request_details(
         )
 
     return req
-
-
-# ──────────────────────────────────────────
-# 9. DASHBOARD STATS
-# ──────────────────────────────────────────
-
-@router.get("/admin/dashboard-stats")
-def get_dashboard_stats(
-    db: Session = Depends(get_db),
-    x_admin_key: str = Header(None)
-):
-
-    check_admin(x_admin_key)
-
-    total_requests = db.query(models.GarageRequest).count()
-
-    pending_requests = db.query(models.GarageRequest).filter(
-        models.GarageRequest.status ==
-        models.GarageRequestStatus.pending
-    ).count()
-
-    under_review = db.query(models.GarageRequest).filter(
-        models.GarageRequest.status ==
-        models.GarageRequestStatus.under_review
-    ).count()
-
-    approved = db.query(models.GarageRequest).filter(
-        models.GarageRequest.status ==
-        models.GarageRequestStatus.approved
-    ).count()
-
-    rejected = db.query(models.GarageRequest).filter(
-        models.GarageRequest.status ==
-        models.GarageRequestStatus.rejected
-    ).count()
-
-    total_garages = db.query(models.Garage).count()
-
-    return {
-        "total_requests": total_requests,
-        "pending_requests": pending_requests,
-        "under_review": under_review,
-        "approved": approved,
-        "rejected": rejected,
-        "total_garages": total_garages
-    }

@@ -7,8 +7,8 @@
     <title>My Dashboard — GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
@@ -40,7 +40,7 @@
     <!-- ═══ NAVBAR ═══ -->
     <nav class="gnm-nav sticky-top shadow-sm border-bottom">
         <div class="gnm-nav-inner justify-content-between">
-            <a href="index.html" class="gnm-logo text-decoration-none">
+            <a href="index" class="gnm-logo text-decoration-none">
                 <div class="gnm-logo-icon">
                     <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
                         <path
@@ -51,13 +51,11 @@
             </a>
 
             <div class="d-none d-md-flex align-items-center gap-3">
-                <a href="search-results.html" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
+                <a href="search-results" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
                 <!-- User Avatar -->
                 <div class="dropdown">
-                    <div id="topAvatarCircle" class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer"
-                        style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown">
-                        JD
-                    </div>
+                    <div id="topAvatarCircle" class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer overflow-hidden"
+                        style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown"></div>
                 </div>
             </div>
 
@@ -76,10 +74,8 @@
                 <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:100px;">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center gap-3 mb-4">
-                            <div id="sidebarAvatarCircle" class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0"
-                                style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);">
-                                JD
-                            </div>
+                            <div id="sidebarAvatarCircle" class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0 overflow-hidden"
+                                style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);"></div>
                             <div>
                                 <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
                                     John Doe</h6>
@@ -90,35 +86,35 @@
                         <hr class="mb-4">
 
                         <nav class="nav flex-column dashboard-nav">
-                            <a class="nav-link active d-flex align-items-center gap-3" href="dashboard.html">
+                            <a class="nav-link active d-flex align-items-center gap-3" href="dashboard">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                                     <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
                                 </svg>
                                 Dashboard Overview
                             </a>
-                            <a class="nav-link d-flex align-items-center gap-3" href="my-bookings.html">
+                            <a class="nav-link d-flex align-items-center gap-3" href="my-bookings">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                                     <path
                                         d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
                                 </svg>
                                 My Bookings
                             </a>
-                            <a class="nav-link d-flex align-items-center gap-3" href="my-vehicles.html">
+                            <a class="nav-link d-flex align-items-center gap-3" href="my-vehicles">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
                                 My Vehicles
                             </a>
-                            <a class="nav-link d-flex align-items-center gap-3" href="past-history.html">
+                            <a class="nav-link d-flex align-items-center gap-3" href="past-history">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
                                 Past History
                             </a>
-                            <a class="nav-link d-flex align-items-center gap-3" href="profile.html">
+                            <a class="nav-link d-flex align-items-center gap-3" href="profile">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                                     <path
                                         d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                                 </svg>
                                 Profile Settings
                             </a>
-                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login.html">
+                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
                                     <path
                                         d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
@@ -170,7 +166,7 @@
                                 <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
                                     My Vehicles</h6>
 
-                                <a href="my-vehicles.html" class="btn btn-sm btn-outline-primary rounded-pill px-3">+
+                                <a href="my-vehicles" class="btn btn-sm btn-outline-primary rounded-pill px-3">+
                                     Add
                                     New</a>
                             </div>
@@ -192,9 +188,9 @@
         &copy; 2026 GarageNearMe. All rights reserved.
     </footer>
 
-    <script src="../js/bootstrap.js"></script>
-    <script src="../js/script.js"></script>
-    <script src="../js/config.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/script.js"></script>
+    <script src="/js/config.js"></script>
 
     <script>
         const token = localStorage.getItem('gnm_token');
@@ -207,7 +203,7 @@
 
         function checkAuth() {
             if (!token) {
-                window.location.href = 'login.html';
+                window.location.href = 'login';
                 return false;
             }
             return true;
@@ -216,7 +212,7 @@
         function logout() {
             localStorage.removeItem('gnm_token');
             localStorage.removeItem('gnm_role');
-            window.location.href = 'login.html';
+            window.location.href = 'login';
         }
 
         async function loadUserInfo() {
@@ -232,7 +228,7 @@
                 const data = await response.json();
                 const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'JD';
                 const avatarHtml = data.profile_image
-                    ? `<img src="${getApiBase()}${data.profile_image}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` 
+                    ? `<img src="${window.location.origin}${data.profile_image}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
                     : initials;
 
                 const topAvatar = document.getElementById('topAvatarCircle');
@@ -260,7 +256,7 @@
                 console.error('User info load error:', err);
                 localStorage.removeItem('gnm_token');
                 localStorage.removeItem('gnm_role');
-                window.location.href = 'login.html';
+                window.location.href = 'login';
             }
         }
 
@@ -307,7 +303,7 @@
                     <div class="card-body p-4 text-center text-muted py-5">
                         <svg viewBox="0 0 24 24" fill="currentColor" width="40" height="40" class="mb-3 opacity-25"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
                         <p class="mb-3">No active bookings right now.</p>
-                        <a href="search-results.html" class="btn text-white rounded-pill px-4" style="background:var(--color-primary);">Find a Garage</a>
+                        <a href="search-results" class="btn text-white rounded-pill px-4" style="background:var(--color-primary);">Find a Garage</a>
                     </div>`;
                 return;
             }
@@ -335,7 +331,7 @@
                         ` : active.estimate_status}
                     </div>` : ""}
                     <div class="d-flex gap-2 mt-3">
-                        <a href="my-bookings.html" class="btn btn-sm btn-outline-primary rounded-pill px-4">View Details</a>
+                        <a href="my-bookings" class="btn btn-sm btn-outline-primary rounded-pill px-4">View Details</a>
                         ${active.status === "pending" ? `<button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="cancelBooking(${active.id})">Cancel</button>` : ""}
                     </div>
                 </div>`;
@@ -366,7 +362,7 @@
         function renderVehiclesMini(vehicles) {
             const el = document.getElementById("vehiclesMini");
             if (!vehicles.length) {
-                el.innerHTML = `<p class="text-muted small p-3">No vehicles added. <a href="my-vehicles.html">Add one!</a></p>`;
+                el.innerHTML = `<p class="text-muted small p-3">No vehicles added. <a href="my-vehicles">Add one!</a></p>`;
                 return;
             }
             const icons = {

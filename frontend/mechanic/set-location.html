@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Set Your Garage Location - GarageNearMe</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -278,6 +278,7 @@
 </div>
 
 
+<script src="../js/config.js"></script>
 <script src="../js/mechanic-auth.js"></script>
 <script src="../js/bootstrap.js"></script>
 <!-- Leaflet JS -->
@@ -495,7 +496,7 @@ async function saveLocation() {
   const pincode = document.getElementById('fieldPincode').value.trim();
 
   try {
-    const res = await fetch(`${API}/api/garage/me/location`, {
+    const res = await fetch(`${API}/garage/me/location`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -540,7 +541,7 @@ async function saveLocation() {
 // ── On load: check if location already set → prefill
 async function checkExistingLocation() {
   try {
-    const res = await fetch(`${API}/api/garage-auth/me`, {
+    const res = await fetch(`${API}/garage-auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) {
@@ -568,3 +569,4 @@ checkExistingLocation();
 </script>
 </body>
 </html>
+

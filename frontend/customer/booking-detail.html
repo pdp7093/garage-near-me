@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Status — GarageNearMe</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
+  <style>
+    body { background: var(--color-bg); }
+
+    .status-timeline { position: relative; padding-left: 32px; }
+    .status-timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px; top: 8px; bottom: 8px;
+      width: 2px;
+      background: var(--color-border);
+    }
+    .timeline-step { position: relative; margin-bottom: 24px; }
+    .timeline-step:last-child { margin-bottom: 0; }
+    .step-dot {
+      position: absolute;
+      left: -27px; top: 2px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+    }
+    .step-dot.done   { background: #22C55E; border-color: #22C55E; color: #fff; }
+    .step-dot.active { background: #FF6B35; border-color: #FF6B35; color: #fff; animation: pulse-dot 1.5s infinite; }
+    .step-dot.pending{ background: #fff; border-color: var(--color-border); }
+    @keyframes pulse-dot {
+      0%   { box-shadow: 0 0 0 0 rgba(255,107,53,0.4); }
+      70%  { box-shadow: 0 0 0 8px rgba(255,107,53,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,107,53,0); }
+    }
+    .step-label { font-weight: 600; font-size: 14px; color: var(--color-text); }
+    .step-label.pending { color: var(--color-text-muted); font-weight: 400; }
+    .step-time { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 14px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--color-text-muted); }
+    .info-value { font-weight: 600; color: var(--color-text); }
+
+    .garage-card { background: var(--color-primary); border-radius: 16px; padding: 20px; color: #fff; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="gnm-nav sticky-top shadow-sm border-bottom">
+  <div class="gnm-nav-inner justify-content-between">
+    <a href="my-bookings" class="gnm-logo text-decoration-none d-flex align-items-center gap-2">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style="color:var(--color-text-muted)"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      <span style="font-size:14px;color:var(--color-text-muted);font-weight:500;">My Bookings</span>
+    </a>
+    <span class="gnm-logo-text" style="position:absolute;left:50%;transform:translateX(-50%);">GarageNearMe</span>
+  </div>
+</nav>
+
+<div class="container py-4" style="max-width:640px;">
+
+  <!-- Skeleton -->
+  <div id="skeleton">
+    <div class="skeleton mb-3" style="height:24px;width:40%;border-radius:8px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;"></div>
+    <div class="skeleton mb-4" style="height:120px;border-radius:16px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;"></div>
+    <div class="skeleton" style="height:200px;border-radius:16px;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;"></div>
+    <style>@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}</style>
+  </div>
+
+  <!-- Main content (hidden until loaded) -->
+  <div id="main-content" style="display:none;">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h5 class="fw-bold mb-1" style="font-family:var(--font-head);" id="booking-title">Booking #—</h5>
+        <div id="status-badge"></div>
+      </div>
+      <div class="text-end">
+        <div class="fw-bold fs-5" id="booking-amount">—</div>
+        <div class="text-muted" style="font-size:12px;">Estimated</div>
+      </div>
+    </div>
+
+    <!-- Garage Info (sirf jab accept hua ho) -->
+    <div class="garage-card mb-4" id="garage-section" style="display:none;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+             id="garage-avatar"
+             style="width:48px;height:48px;background:rgba(255,255,255,0.15);font-size:18px;flex-shrink:0;">
+          G
+        </div>
+        <div>
+          <div class="fw-bold" id="garage-name" style="font-size:16px;">—</div>
+          <div style="font-size:13px;opacity:0.8;" id="garage-address">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending state — garage nahi mila abhi -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 text-center" id="searching-section" style="display:none;">
+      <div class="mb-3" style="font-size:48px;">🔍</div>
+      <h6 class="fw-bold mb-2">Garage Dhundh Raha Hai...</h6>
+      <p class="text-muted mb-0" style="font-size:13px;">Aapke area ke garages ko request bheja ja raha hai. Thoda wait karo!</p>
+    </div>
+
+    <!-- Status Timeline -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+      <h6 class="fw-bold mb-4" style="font-family:var(--font-head);">Booking Status</h6>
+      <div class="status-timeline" id="timeline">
+        <!-- JS se render hoga -->
+      </div>
+    </div>
+
+    <!-- Booking Details -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+      <h6 class="fw-bold mb-3" style="font-family:var(--font-head);">Booking Details</h6>
+      <div class="info-row"><span class="info-label">Booking ID</span><span class="info-value" id="detail-id">—</span></div>
+      <div class="info-row"><span class="info-label">Service</span><span class="info-value" id="detail-service">—</span></div>
+      <div class="info-row"><span class="info-label">Vehicle</span><span class="info-value" id="detail-vehicle">—</span></div>
+      <div class="info-row"><span class="info-label">Pickup Address</span><span class="info-value" id="detail-address" style="max-width:200px;text-align:right;">—</span></div>
+      <div class="info-row"><span class="info-label">Scheduled</span><span class="info-value" id="detail-date">—</span></div>
+    </div>
+
+    <!-- Cancel Button (sirf pending/accepted pe) -->
+    <div id="cancel-section">
+      <button onclick="showCancelConfirm()" class="btn w-100 btn-outline-danger rounded-pill py-3 fw-bold">
+        Cancel Booking
+      </button>
+      <p class="text-center text-muted mt-2 mb-0" style="font-size:12px;">Sirf tab cancel karo jab garage ne kaam shuru na kiya ho</p>
+    </div>
+
+  </div>
+
+  <!-- Error state -->
+  <div id="error-section" style="display:none;" class="text-center py-5">
+    <div style="font-size:48px;">😕</div>
+    <h6 class="fw-bold mt-3">Booking nahi mili</h6>
+    <p class="text-muted">Ya toh yeh booking aapki nahi hai, ya delete ho gayi.</p>
+    <a href="my-bookings" class="btn btn-outline-primary rounded-pill px-4">My Bookings pe Jao</a>
+  </div>
+
+</div>
+
+<!-- Cancel Confirm Modal -->
+<div id="cancelConfirmBox" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      </div>
+      <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">Booking Cancel Karna Hai?</h6>
+      <p style="color:#6B7280;font-size:13px;margin:0;">Ek baar cancel kiya toh wapas nahi hoga.</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="document.getElementById('cancelConfirmBox').style.display='none'"
+        style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
+        Nahi, Rakho
+      </button>
+      <button id="confirmCancelBtn" onclick="doCancelBooking()"
+        style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
+        Haan, Cancel Karo
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/bootstrap.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/script.js"></script>
+<script>
+  // Booking slug/ID URL se nikalo: /booking-detail/bk-abc123-7
+  const pathParts = window.location.pathname.split('/');
+  const bookingId = pathParts[pathParts.length - 1];
+  const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+
+  if (!token) window.location.href = '/login';
+  if (!bookingId) {
+    document.getElementById('skeleton').style.display = 'none';
+    document.getElementById('error-section').style.display = 'block';
+  }
+
+  let bookingData = null;
+  let pollInterval = null;
+
+  // ── Status config ──────────────────────────────────────────
+  const STATUSES = [
+    { key: 'pending',   label: 'Booking Request Bheja',    icon: '📋' },
+    { key: 'accepted',  label: 'Garage ne Accept Kiya',    icon: '✓'  },
+    { key: 'picked_up', label: 'Vehicle Pickup Ho Gaya',   icon: '🚗' },
+    { key: 'ongoing',   label: 'Repair Chal Rahi Hai',     icon: '🔧' },
+    { key: 'completed', label: 'Kaam Complete Ho Gaya!',   icon: '🎉' },
+  ];
+
+  const STATUS_BADGE = {
+    pending:   '<span class="badge rounded-pill px-3 py-2" style="background:#EFF6FF;color:#2563EB;font-size:13px;">Waiting for Garage</span>',
+    accepted:  '<span class="badge rounded-pill px-3 py-2" style="background:#F0FDF4;color:#16A34A;font-size:13px;">Garage ne Accept Kiya ✓</span>',
+    picked_up: '<span class="badge rounded-pill px-3 py-2" style="background:#FFF7ED;color:#EA580C;font-size:13px;">Vehicle Pickup Ho Gaya</span>',
+    ongoing:   '<span class="badge rounded-pill px-3 py-2" style="background:#FEF9C3;color:#CA8A04;font-size:13px;">Repair Chal Rahi Hai</span>',
+    completed: '<span class="badge rounded-pill px-3 py-2" style="background:#F0FDF4;color:#16A34A;font-size:13px;">Completed ✓</span>',
+    cancelled: '<span class="badge rounded-pill px-3 py-2" style="background:#FEF2F2;color:#DC2626;font-size:13px;">Cancelled</span>',
+  };
+
+  // ── Load booking ───────────────────────────────────────────
+  async function loadBooking() {
+    try {
+      const res = await fetch(`${getApiBase()}/bookings/${bookingId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error();
+      const b = await res.json();
+      bookingData = b;
+      renderBooking(b);
+    } catch (e) {
+      document.getElementById('skeleton').style.display = 'none';
+      document.getElementById('error-section').style.display = 'block';
+    }
+  }
+
+  function renderBooking(b) {
+    document.getElementById('skeleton').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+
+    // Header
+    document.getElementById('booking-title').textContent = `Booking #GNM-${b.id}`;
+    document.getElementById('status-badge').innerHTML = STATUS_BADGE[b.status] || `<span class="badge bg-secondary">${b.status}</span>`;
+    document.getElementById('booking-amount').textContent = b.final_amount
+      ? `₹${parseFloat(b.final_amount).toLocaleString('en-IN')}`
+      : b.estimated_amount ? `₹${parseFloat(b.estimated_amount).toLocaleString('en-IN')}` : 'Estimating...';
+
+    // Garage info
+    if (b.garage_name && b.status !== 'pending') {
+      document.getElementById('garage-section').style.display = 'block';
+      document.getElementById('searching-section').style.display = 'none';
+      document.getElementById('garage-name').textContent = b.garage_name;
+      document.getElementById('garage-address').textContent = b.garage_address || 'Address not available';
+      const initials = b.garage_name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+      document.getElementById('garage-avatar').textContent = initials;
+    } else if (b.status === 'pending') {
+      document.getElementById('searching-section').style.display = 'block';
+      document.getElementById('garage-section').style.display = 'none';
+    }
+
+    // Timeline
+    renderTimeline(b.status);
+
+    // Details
+    document.getElementById('detail-id').textContent = `#GNM-${b.id}`;
+    document.getElementById('detail-service').textContent = b.service_type || 'General Service';
+    document.getElementById('detail-vehicle').textContent =
+      [b.vehicle_model, b.vehicle_number].filter(Boolean).join(' • ') || 'N/A';
+    document.getElementById('detail-address').textContent = b.pickup_address || b.customer_address || '—';
+    document.getElementById('detail-date').textContent = b.scheduled_at
+      ? new Date(b.scheduled_at).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
+      : new Date(b.created_at).toLocaleDateString('en-IN');
+
+    // Cancel button — sirf pending ya accepted pe
+    const cancelSection = document.getElementById('cancel-section');
+    if (['pending', 'accepted'].includes(b.status)) {
+      cancelSection.style.display = 'block';
+    } else {
+      cancelSection.style.display = 'none';
+    }
+
+    // Stop polling if completed/cancelled
+    if (['completed', 'cancelled'].includes(b.status) && pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+    }
+  }
+
+  function renderTimeline(currentStatus) {
+    const currentIdx = STATUSES.findIndex(s => s.key === currentStatus);
+    const timeline = document.getElementById('timeline');
+
+    timeline.innerHTML = STATUSES.map((s, i) => {
+      let dotClass = 'pending';
+      let labelClass = 'pending';
+      let icon = '○';
+
+      if (i < currentIdx) { dotClass = 'done'; icon = '✓'; labelClass = ''; }
+      else if (i === currentIdx) { dotClass = 'active'; icon = s.icon; labelClass = ''; }
+
+      return `
+        <div class="timeline-step">
+          <div class="step-dot ${dotClass}">${icon}</div>
+          <div class="step-label ${labelClass}">${s.label}</div>
+          ${i === currentIdx ? '<div class="step-time" style="color:var(--color-accent);">Current Status</div>' : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // ── Cancel ─────────────────────────────────────────────────
+  function showCancelConfirm() {
+    document.getElementById('cancelConfirmBox').style.display = 'flex';
+  }
+
+  async function doCancelBooking() {
+    const btn = document.getElementById('confirmCancelBtn');
+    btn.disabled = true;
+    btn.textContent = 'Cancelling...';
+    const cancelId = bookingData ? bookingData.id : bookingId;
+    try {
+      const res = await fetch(`${getApiBase()}/bookings/${cancelId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        let msg = 'Cancel nahi hua';
+        try { const err = await res.json(); msg = err.detail || msg; } catch {}
+        throw new Error(msg);
+      }
+      document.getElementById('cancelConfirmBox').style.display = 'none';
+      showToast('Booking cancel ho gayi!', 'success');
+      setTimeout(() => window.location.href = '/my-bookings', 1500);
+    } catch (e) {
+      document.getElementById('cancelConfirmBox').style.display = 'none';
+      showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
+      btn.disabled = false;
+      btn.textContent = 'Haan, Cancel Karo';
+    }
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = `alert alert-${type} position-fixed shadow rounded-3`;
+    t.style.cssText = 'top:80px;right:20px;z-index:9999;font-size:14px;min-width:220px;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  // ── Init ───────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    loadBooking();
+    // Poll every 10 seconds for status updates
+    pollInterval = setInterval(loadBooking, 10000);
+  });
+</script>
+</body>
+</html>

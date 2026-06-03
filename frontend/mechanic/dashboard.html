@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mechanic Dashboard - GarageNearMe</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -148,8 +148,10 @@
 
   </div>
 
+  <script src="../js/config.js"></script>
   <script src="../js/mechanic-auth.js"></script>
   <script src="../js/components.js"></script>
+  <script src="../js/sos-notification-handler.js"></script>
   <script>
     initMechanicChrome('Overview', mechanicCheckLocationSet);
   </script>
@@ -178,7 +180,7 @@
       try {
 
         // Garage profile fetch
-        const response = await fetch(`${API}/api/garage/me`, {
+        const response = await fetch(`${API}/garage/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -289,7 +291,7 @@
         try {
 
           const response = await fetch(
-            `${API}/api/garage/me`,
+            `${API}/garage/me`,
             {
               method: 'PATCH',
 
@@ -332,6 +334,11 @@
     loadDashboardSummary();
     loadRecentBookings();
 
+    // Mechanic is now on the dashboard — stop any lingering SW notification loops
+    if (typeof stopAllSOSLoops === 'function') {
+      navigator.serviceWorker?.ready.then(() => stopAllSOSLoops());
+    }
+
     async function loadDashboardSummary() {
 
       const token = localStorage.getItem('garage_token');
@@ -343,7 +350,7 @@
       try {
 
         const response = await fetch(
-          `${API}/api/garage/dashboard-summary`,
+          `${API}/garage/dashboard-summary`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -392,7 +399,7 @@
       try {
 
         const response = await fetch(
-          `${API}/api/bookings/garage/all`,
+          `${API}/bookings/garage/all`,
           {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -605,3 +612,5 @@
 </body>
 
 </html>
+
+

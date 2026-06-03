@@ -7,9 +7,9 @@
     <title>Default Services - Admin | GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
-    <link rel="stylesheet" href="../css/admin.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
@@ -464,16 +464,19 @@
     <!-- Toast -->
     <div class="gnm-toast" id="gnmToast"></div>
 
-    <script src="../js/components.js"></script>
-    <script src="../js/config.js"></script>
+    <script src="/js/components.js"></script>
+    <script src="/js/config.js"></script>
     <script>
         initAdminChrome('Default Services');
     </script>
-    <script src="../js/bootstrap.js"></script>
+    <script src="/js/bootstrap.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const API = getApiBase();
-        const AKEY = 'gnm_admin_secret_2026';
+        const AKEY = localStorage.getItem('gnm_admin_key');
+        if (!AKEY) {
+          window.location.href = 'index';
+        }
         const H = { 'X-Admin-Key': AKEY };
         const HJ = { 'X-Admin-Key': AKEY, 'Content-Type': 'application/json' };
 
@@ -523,7 +526,7 @@
 
             try {
                 const res = await fetch(
-                    `${API}/api/default-services/admin/all?vehicle_type=${currentVehicleTab}`,
+                    `${API}/default-services/admin/all?vehicle_type=${currentVehicleTab}`,
                     { headers: H }
                 );
                 if (!res.ok) throw new Error();
@@ -623,7 +626,7 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch(`${API}/api/default-services/`, {
+                const res = await fetch(`${API}/default-services/`, {
                     method: 'POST', headers: HJ,
                     body: JSON.stringify({
                         vehicle_type: vtype, category: cat,
@@ -673,7 +676,7 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch(`${API}/api/default-services/${id}`, {
+                const res = await fetch(`${API}/default-services/${id}`, {
                     method: 'PATCH', headers: HJ,
                     body: JSON.stringify({
                         vehicle_type: document.getElementById('edit-vehicle-type').value,
@@ -700,7 +703,7 @@
         async function deleteService(id) {
             if (!confirm('Delete this default service?')) return;
             try {
-                const res = await fetch(`${API}/api/default-services/${id}`, {
+                const res = await fetch(`${API}/default-services/${id}`, {
                     method: 'DELETE', headers: H
                 });
                 if (res.ok || res.status === 204) {
@@ -713,7 +716,7 @@
         /* ── Toggle Active ── */
         async function toggleActive(id, newStatus) {
             try {
-                const res = await fetch(`${API}/api/default-services/${id}`, {
+                const res = await fetch(`${API}/default-services/${id}`, {
                     method: 'PATCH', headers: HJ,
                     body: JSON.stringify({ is_active: newStatus })
                 });
@@ -781,7 +784,7 @@
             ];
 
             try {
-                const res = await fetch(`${API}/api/default-services/bulk`, {
+                const res = await fetch(`${API}/default-services/bulk`, {
                     method: 'POST', headers: HJ,
                     body: JSON.stringify(DEFAULT_SERVICES)
                 });

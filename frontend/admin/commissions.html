@@ -7,9 +7,9 @@
   <title>Commission Rules - Admin</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -88,14 +88,18 @@
     </div>
   </div>
 
-  <script src="../js/bootstrap.js"></script>
-  <script src="../js/config.js"></script>
-  <script src="../js/components.js"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/components.js"></script>
   <script>
     initAdminChrome('Commission Rules');
     const apiBase = getApiBase();
-    const API_URL = `${apiBase}/api/commissions`;
-    const ADMIN_KEY = 'gnm_admin_secret_2026';
+    const API_URL = `${apiBase}/commissions`;
+    const ADMIN_KEY = localStorage.getItem('gnm_admin_key');
+
+    if (!ADMIN_KEY) {
+      window.location.href = 'index';
+    }
 
     async function loadRules() {
       try {
@@ -142,11 +146,11 @@
       };
 
       try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(API_URL + '/', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
-            'X-Admin-Key': ADMIN_KEY 
+            'X-Admin-Key': ADMIN_KEY
           },
           body: JSON.stringify(data)
         });

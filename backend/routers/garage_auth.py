@@ -26,7 +26,7 @@ OTP_EXPIRY_MINUTES = 10  # OTP 10 minute mein expire ho jaayega
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -197,7 +197,28 @@ def get_my_profile(
 
 
 # ──────────────────────────────────────────
-# 4. UPDATE MY PROFILE
+# 4. SAVE FCM TOKEN
+# POST /api/garage-auth/fcm-token
+# ──────────────────────────────────────────
+
+@router.post("/fcm-token")
+def save_fcm_token(
+    token_data: schemas.FCMTokenUpdate,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Garage ka FCM token save karo — push notifications ke liye.
+    Login ke baad ya app open hone pe call hoga.
+    POST /api/garage-auth/fcm-token
+    """
+    current_garage.fcm_token = token_data.fcm_token
+    db.commit()
+    return {"message": "FCM token saved"}
+
+
+# ──────────────────────────────────────────
+# 5. UPDATE MY PROFILE
 # PATCH /api/garage-auth/me
 # ──────────────────────────────────────────
 

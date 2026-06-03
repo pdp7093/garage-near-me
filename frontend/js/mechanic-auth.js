@@ -3,15 +3,7 @@
  * Session and authentication management for mechanic portal
  */
 
-// Helper to get API base without conflicting with components.js
-function getApiBase() {
-  if (window.API_BASE) return window.API_BASE;
-  const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') {
-      return 'http://localhost:8000';
-  }
-  return 'https://sanctity-litter-machinist.ngrok-free.dev';
-}
+
 
 const MECHANIC_AUTH = {
   // Check if user is logged in
@@ -42,13 +34,13 @@ const MECHANIC_AUTH = {
   logout() {
     localStorage.removeItem('garage_token');
     localStorage.removeItem('mechanic_info');
-    window.location.href = 'index.html';
+    window.location.href = 'index';
   },
 
   // Check if session is valid, redirect to login if not
   checkSession() {
     if (!this.isLoggedIn()) {
-      window.location.href = 'index.html';
+      window.location.href = 'index';
       return false;
     }
     return true;
@@ -63,7 +55,7 @@ const MECHANIC_AUTH = {
     }
 
     try {
-      const response = await fetch(getApiBase() + '/api/garage-auth/me', {
+      const response = await fetch(getApiBase() + '/garage-auth/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -93,12 +85,12 @@ window.addEventListener('DOMContentLoaded', function() {
   const currentPage = window.location.pathname.split('/').pop() || '';
   
   // Skip session check on login/index pages
-  if (currentPage === 'index.html' || currentPage === '') {
+  if (currentPage === 'index' || currentPage === '') {
     return;
   }
 
   // For all other mechanic pages, enforce session check
   if (!MECHANIC_AUTH.isLoggedIn()) {
-    window.location.href = 'index.html';
+    window.location.href = 'index';
   }
 });

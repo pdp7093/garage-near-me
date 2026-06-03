@@ -7,8 +7,8 @@
     <title>Login — GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
@@ -19,7 +19,7 @@
     <!-- ═══ NAVBAR ═══ -->
     <nav class="gnm-nav">
         <div class="gnm-nav-inner">
-            <a href="index.html" class="gnm-logo">
+            <a href="index" class="gnm-logo">
                 <div class="gnm-logo-icon">
                     <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
                         <path
@@ -29,7 +29,7 @@
                 <span class="gnm-logo-text">GarageNearMe</span>
             </a>
             <div class="gnm-nav-right">
-                <a href="index.html" class="gnm-nav-link">← Back to Home</a>
+                <a href="index" class="gnm-nav-link">← Back to Home</a>
             </div>
         </div>
     </nav>
@@ -223,7 +223,7 @@
                     <div style="display:flex; align-items:center; gap:12px; margin:20px 0 16px;">
                         <div style="flex:1; height:1px; background:var(--color-border);"></div>
                         <span style="font-size:12px; color:var(--color-text-muted); white-space:nowrap;">
-                            <a href="register.html">New to GarageNearMe?</a></span>
+                            <a href="register">New to GarageNearMe?</a></span>
                         <div style="flex:1; height:1px; background:var(--color-border);"></div>
                     </div>
 
@@ -262,9 +262,9 @@
         }
     </style>
 
-    <script src="../js/bootstrap.js"></script>
-    <script src="../js/config.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/script.js"></script>
 
     <script>
         // ── Login page JS ──
@@ -343,7 +343,7 @@
                             name: meData.name,
                             email: meData.email,
                             phone: meData.phone,
-                            profile_image: meData.profile_image ? `${getApiBase()}${meData.profile_image}` : null
+                            profile_image: meData.profile_image ? `${window.location.origin}${meData.profile_image}` : null
                         }));
                     }
                 } catch (meErr) {
@@ -351,7 +351,7 @@
                 }
 
                 // Redirect
-                window.location.href = 'index.html';
+                window.location.href = 'index';
 
             } catch (err) {
                 // Button reset karo

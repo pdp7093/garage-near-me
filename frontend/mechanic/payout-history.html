@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Platform Payouts - Mechanic Dashboard</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -145,6 +145,7 @@
     </div>
   </div>
 
+  <script src="../js/config.js"></script>
   <script src="../js/mechanic-auth.js"></script>
   <script src="../js/components.js"></script>
   <script src="../js/bootstrap.js"></script>
@@ -162,7 +163,7 @@
 
       try {
         // 1. Fetch Garage profile details
-        const garageRes = await fetch(`${API}/api/garage-auth/me`, {
+        const garageRes = await fetch(`${API}/garage-auth/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!garageRes.ok) throw new Error();
@@ -195,7 +196,7 @@
         document.getElementById('modalQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${upiId}%26pn=GarageNearMeAdmin%26am=${currentDues}%26cu=INR%26tn=PlatformDues`;
 
         // 2. Fetch Payout ledger requests
-        const requestsRes = await fetch(`${API}/api/payouts/garage/my-requests`, {
+        const requestsRes = await fetch(`${API}/payouts/garage/my-requests`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!requestsRes.ok) throw new Error();
@@ -272,7 +273,7 @@
       formData.append('utr_number', utr);
 
       try {
-        const response = await fetch(`${API}/api/payouts/request`, {
+        const response = await fetch(`${API}/payouts/request`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -306,3 +307,5 @@
   </script>
 </body>
 </html>
+
+

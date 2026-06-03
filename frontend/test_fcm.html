@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test FCM</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js"></script>
+</head>
+<body>
+    <h1>Testing FCM</h1>
+    <button id="btn">Get Token</button>
+    <pre id="log"></pre>
+
+    <script>
+        const firebaseConfig = {
+            apiKey:            "AIzaSyAf_TRBMQ1213PahyEsP5GiJlPMFyV_YrU",
+            authDomain:        "nice-limiter-308209.firebaseapp.com",
+            projectId:         "nice-limiter-308209",
+            storageBucket:     "nice-limiter-308209.firebasestorage.app",
+            messagingSenderId: "154328863578",
+            appId:             "1:154328863578:web:16dd06513aee5398f79963",
+            measurementId:     "G-QLFVHQWZXT"
+        };
+        const VAPID_KEY = "BLfbB278yYEFSYvREGzmTJlHlCMX92sNiG3s4GNOWQOhkGHMe3MKzM7jOr1qpBapbFp9w9r4rpcPrEYuUWz9KWs";
+
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        function log(msg) {
+            document.getElementById('log').textContent += msg + '\n';
+        }
+
+        document.getElementById('btn').addEventListener('click', async () => {
+            try {
+                log('Requesting permission...');
+                const permission = await Notification.requestPermission();
+                log('Permission: ' + permission);
+                if (permission === 'granted') {
+                    log('Getting token...');
+                    const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+                    log('Token: ' + token);
+                }
+            } catch (e) {
+                log('Error: ' + e);
+                console.error(e);
+            }
+        });
+    </script>
+</body>
+</html>

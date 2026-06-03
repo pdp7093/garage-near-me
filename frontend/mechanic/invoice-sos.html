@@ -1,66 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SOS Final Bill #SOS-991 - GarageNearMe</title>
-  <link rel="manifest" href="/manifest.json">
+  <title>SOS Invoice — GarageNearMe</title>
+  <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css?v=919f6625" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
-    rel="stylesheet" />
+  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
   <style>
-    body {
-      background-color: #FEF2F2;
-    }
-    .invoice-card {
-      border-top: 6px solid #EF4444; /* Red for SOS */
-    }
-    .dotted-divider {
-      border-top: 2px dashed #dee2e6;
-      margin: 1.5rem 0;
-    }
+    body { background-color: #FEF2F2; }
+    .invoice-card { border-top: 6px solid #EF4444; }
+    .dotted-divider { border-top: 2px dashed #dee2e6; margin: 1.5rem 0; }
+    .commission-badge { background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; border-radius: 8px; padding: 12px 16px; font-size: 13px; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; height: 16px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   </style>
 </head>
-
 <body>
 
   <div class="container py-5">
     <div class="row justify-content-center">
       <div class="col-12 col-md-8 col-lg-6">
-        
+
         <!-- Back Button -->
-        <a href="sos-detail.html" class="btn btn-light rounded-pill mb-4 shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
+        <a id="back-btn" href="/mechanic/sos-history" class="btn btn-light rounded-pill mb-4 shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-          Back to SOS Detail
+          Back
         </a>
 
+        <!-- Skeleton -->
+        <div id="skeleton-card" class="bg-white rounded-4 shadow-sm p-4 p-md-5">
+          <div class="skeleton mb-3" style="width:40%;height:24px;"></div>
+          <div class="skeleton mb-2" style="width:60%;"></div>
+          <div class="skeleton mb-4" style="width:45%;"></div>
+          <div class="skeleton mb-2"></div>
+          <div class="skeleton mb-2" style="width:80%;"></div>
+          <div class="skeleton mb-4" style="width:70%;"></div>
+          <div class="skeleton mb-2"></div>
+          <div class="skeleton mb-2"></div>
+          <div class="skeleton" style="width:50%;"></div>
+        </div>
+
         <!-- Invoice Card -->
-        <div class="bg-white rounded-4 shadow-sm p-4 p-md-5 invoice-card position-relative overflow-hidden">
-          
+        <div id="invoice-card" class="bg-white rounded-4 shadow-sm p-4 p-md-5 invoice-card position-relative overflow-hidden" style="display:none;">
+
           <!-- Header -->
           <div class="d-flex justify-content-between align-items-start mb-4">
             <div>
-              <h3 class="fw-bold mb-1 text-danger" style="font-family: var(--font-head);">Emergency Invoice</h3>
-              <div class="text-muted small">Job ID: #SOS-991</div>
-              <div class="text-muted small">Date: 26 Apr 2026</div>
+              <h3 class="fw-bold mb-1 text-danger" style="font-family:var(--font-head);">Emergency Invoice</h3>
+              <div class="text-muted small">SOS ID: <span id="inv-sos-number" class="fw-semibold text-dark">—</span></div>
+              <div class="text-muted small">Date: <span id="inv-date">—</span></div>
             </div>
             <div class="text-end">
-              <h5 class="fw-bold mb-0 text-dark">Sharma Auto</h5>
-              <div class="text-muted small">S.G. Highway, Ahmedabad</div>
+              <h5 class="fw-bold mb-0 text-dark" id="inv-garage-name">—</h5>
+              <div class="text-muted small" id="inv-garage-address">—</div>
             </div>
           </div>
 
           <!-- Customer Info -->
           <div class="bg-danger bg-opacity-10 rounded-3 p-3 mb-4 border border-danger border-opacity-25">
-            <h6 class="fw-bold text-danger mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 1px;">Billed To</h6>
-            <h6 class="fw-bold mb-1">Rahul Verma</h6>
-            <div class="text-muted small">Honda City (White) • GJ01 AB 1234</div>
-            <div class="text-danger small fw-bold mt-1">Location: Opposite YMCA Club, S.G. Highway</div>
+            <h6 class="fw-bold text-danger mb-2 text-uppercase" style="font-size:11px;letter-spacing:1px;">Customer Details</h6>
+            <h6 class="fw-bold mb-1" id="inv-customer-name">—</h6>
+            <div class="text-muted small" id="inv-vehicle">—</div>
+            <div class="text-danger small fw-bold mt-1" id="inv-address">—</div>
           </div>
 
           <!-- Items Table -->
@@ -68,36 +73,12 @@
             <table class="table table-borderless mb-0">
               <thead class="text-muted small border-bottom">
                 <tr>
-                  <th scope="col" class="ps-0 fw-medium pb-2">Description</th>
-                  <th scope="col" class="fw-medium pb-2 text-center">Qty</th>
-                  <th scope="col" class="pe-0 fw-medium pb-2 text-end">Amount</th>
+                  <th class="ps-0 fw-medium pb-2">Description</th>
+                  <th class="fw-medium pb-2 text-end pe-0">Amount</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td class="ps-0 py-3">
-                    <div class="fw-bold text-danger d-flex align-items-center gap-2">
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-                      Emergency Visit Charge
-                    </div>
-                  </td>
-                  <td class="py-3 text-center text-muted">1</td>
-                  <td class="pe-0 py-3 text-end fw-bold text-danger">₹100</td>
-                </tr>
-                <tr>
-                  <td class="ps-0 py-3 border-top border-light">
-                    <div class="fw-bold text-dark">Battery Jump Start</div>
-                  </td>
-                  <td class="py-3 text-center text-muted border-top border-light">1</td>
-                  <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹250</td>
-                </tr>
-                <tr>
-                  <td class="ps-0 py-3 border-top border-light">
-                    <div class="fw-bold text-dark">Labour Charges</div>
-                  </td>
-                  <td class="py-3 text-center text-muted border-top border-light">-</td>
-                  <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹150</td>
-                </tr>
+              <tbody id="inv-items">
+                <!-- Dynamic rows -->
               </tbody>
             </table>
           </div>
@@ -106,42 +87,216 @@
 
           <!-- Totals -->
           <div class="row justify-content-end mb-4">
-            <div class="col-8 col-sm-6">
+            <div class="col-9 col-sm-7">
               <div class="d-flex justify-content-between mb-2 text-muted">
                 <span>Subtotal</span>
-                <span class="fw-bold text-dark">₹500</span>
+                <span class="fw-bold text-dark">₹<span id="inv-subtotal">0</span></span>
               </div>
-              <div class="d-flex justify-content-between mb-2 text-muted">
-                <span>Taxes (18% GST)</span>
-                <span class="fw-bold text-dark">₹90</span>
+              <div class="d-flex justify-content-between mb-2 text-muted" id="visiting-row" style="display:none!important;">
+                <span>Emergency Visit Charge</span>
+                <span class="fw-bold text-danger">₹<span id="inv-visiting">100</span></span>
               </div>
               <div class="d-flex justify-content-between mt-3 pt-3 border-top align-items-center">
-                <span class="fw-bold text-dark fs-5">Total Due</span>
-                <span class="fw-bold fs-4 text-danger">₹590</span>
+                <span class="fw-bold text-dark fs-5">Total Collected</span>
+                <span class="fw-bold fs-4 text-danger">₹<span id="inv-total">0</span></span>
               </div>
             </div>
           </div>
 
-          <!-- Payment Actions -->
-          <div class="d-flex flex-column flex-sm-row gap-3">
-            <a href="dashboard.html" class="btn btn-success flex-grow-1 fw-bold rounded-pill py-3 shadow-sm d-flex justify-content-center align-items-center gap-2 text-decoration-none">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              Mark as Paid
+          <!-- Commission Breakdown -->
+          <div class="commission-badge mb-4">
+            <div class="fw-bold mb-2" style="font-size:14px;">💰 Platform Commission Breakdown</div>
+            <div class="d-flex justify-content-between mb-1">
+              <span>Total Collected</span>
+              <span class="fw-semibold">₹<span id="comm-total">0</span></span>
+            </div>
+            <div class="d-flex justify-content-between mb-1 text-danger">
+              <span>GarageNearMe Commission (<span id="comm-pct">0</span>%)</span>
+              <span class="fw-semibold">- ₹<span id="comm-amount">0</span></span>
+            </div>
+            <div class="dotted-divider" style="margin:10px 0;"></div>
+            <div class="d-flex justify-content-between fw-bold" style="font-size:15px;">
+              <span>Your Earnings 🎉</span>
+              <span class="text-success">₹<span id="comm-net">0</span></span>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="d-flex align-items-center gap-2 mb-4 p-3 rounded-3" id="status-box">
+            <span id="status-icon">⏳</span>
+            <span id="status-text" class="fw-semibold" style="font-size:14px;">—</span>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex flex-column gap-2">
+            <a id="back-sos-btn" href="/mechanic/sos-history" class="btn btn-outline-danger rounded-pill py-3 fw-bold d-flex justify-content-center align-items-center gap-2">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+              SOS History Dekho
             </a>
-            <a href="dashboard.html" class="btn btn-outline-danger rounded-pill px-4 py-3 fw-bold d-flex justify-content-center align-items-center gap-2 text-decoration-none">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-              Send Link
+            <a href="/mechanic/dashboard" class="btn btn-light rounded-pill py-2 fw-medium text-muted d-flex justify-content-center align-items-center gap-2" style="font-size:14px;">
+              Dashboard pe Jao
             </a>
           </div>
 
+        </div>
+
+        <!-- Error -->
+        <div id="error-card" class="bg-white rounded-4 shadow-sm p-5 text-center" style="display:none;">
+          <div style="font-size:48px;" class="mb-3">😔</div>
+          <h5 class="fw-bold mb-2">Invoice load nahi hua</h5>
+          <p class="text-muted mb-4" style="font-size:14px;" id="error-msg">SOS data nahi mila.</p>
+          <a href="/mechanic/sos-history" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-medium">Wapas Jao</a>
         </div>
 
       </div>
     </div>
   </div>
 
-  <script src="../js/mechanic-auth.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/mechanic_script.js"></script>
   <script src="../js/bootstrap.js"></script>
-</body>
+  <script>
+    // Slug URL se lo: /mechanic/invoice-sos/<slug>
+    const pathParts = window.location.pathname.split('/');
+    const sosSlug   = pathParts[pathParts.length - 1];
 
+    function API() { return getApiBase(); }
+
+    // Commission slab (same as platform rules)
+    function calcCommission(amount) {
+      let pct;
+      if      (amount <= 1000) pct = 15;
+      else if (amount <= 2000) pct = 18;
+      else if (amount <= 4000) pct = 20;
+      else                     pct = 25;
+      return { pct, commission: Math.round(amount * pct / 100), net: Math.round(amount * (1 - pct / 100)) };
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    async function loadInvoice() {
+      if (!sosSlug) { showError('SOS ID missing hai URL mein.'); return; }
+
+      const token = localStorage.getItem('gnm_mechanic_token') || localStorage.getItem('mechanic_token');
+      if (!token) { window.location.href = '/mechanic/login'; return; }
+
+      try {
+        const res = await fetch(`${API()}/sos/${sosSlug}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+        const sos = await res.json();
+
+        // Back button — sos-detail pe jaaye agar completed nahi
+        const sosDetailHref = `/mechanic/sos-detail/${sosSlug}`;
+        document.getElementById('back-btn').href     = sosDetailHref;
+        document.getElementById('back-sos-btn').href = '/mechanic/sos-history';
+
+        // Header
+        document.getElementById('inv-sos-number').textContent  = sos.sos_number || `#${sos.id}`;
+        document.getElementById('inv-date').textContent         = fmtDate(sos.completed_at || sos.created_at);
+        document.getElementById('inv-garage-name').textContent  = sos.garage_name || 'Your Garage';
+        document.getElementById('inv-garage-address').textContent = sos.garage_address || 'Ahmedabad';
+
+        // Customer
+        document.getElementById('inv-customer-name').textContent = sos.customer_name || `Customer #${sos.customer_id}`;
+        const vt = sos.vehicle_type === 'two_wheeler' ? '2 Wheeler' : sos.vehicle_type === 'four_wheeler' ? '4 Wheeler' : sos.vehicle_type || '—';
+        document.getElementById('inv-vehicle').textContent = `${sos.vehicle_model || vt}${sos.vehicle_number ? ' • ' + sos.vehicle_number : ''}`;
+        document.getElementById('inv-address').textContent = sos.address || 'Location on map';
+
+        // Items
+        const tbody    = document.getElementById('inv-items');
+        const items    = sos.estimate_details || [];
+        const visiting = sos.visiting_charge || 0;
+        let rows       = '';
+
+        if (visiting > 0) {
+          rows += `<tr>
+            <td class="ps-0 py-3">
+              <div class="fw-bold text-danger d-flex align-items-center gap-2">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                Emergency Visit Charge
+              </div>
+            </td>
+            <td class="pe-0 py-3 text-end fw-bold text-danger">₹${visiting}</td>
+          </tr>`;
+        }
+
+        if (items.length > 0) {
+          items.forEach(item => {
+            rows += `<tr>
+              <td class="ps-0 py-3 border-top border-light">
+                <div class="fw-bold text-dark">${item.item_name || item.name || '—'}</div>
+                ${item.note ? `<div class="text-muted" style="font-size:12px;">${item.note}</div>` : ''}
+              </td>
+              <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹${item.price || item.amount || 0}</td>
+            </tr>`;
+          });
+        } else {
+          const amt = sos.final_charge || sos.estimated_charge || 0;
+          rows += `<tr>
+            <td class="ps-0 py-3 border-top border-light"><div class="fw-bold text-dark">SOS Repair Charges</div></td>
+            <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹${amt}</td>
+          </tr>`;
+        }
+        tbody.innerHTML = rows;
+
+        // Totals
+        const repairAmt = sos.final_charge || sos.estimated_charge || 0;
+        const subtotal  = repairAmt;
+        const total     = subtotal + visiting;
+
+        document.getElementById('inv-subtotal').textContent = subtotal;
+        document.getElementById('inv-total').textContent    = total;
+        if (visiting > 0) {
+          document.getElementById('visiting-row').style.display = '';
+          document.getElementById('inv-visiting').textContent   = visiting;
+        }
+
+        // Commission
+        const { pct, commission, net } = calcCommission(total);
+        document.getElementById('comm-total').textContent  = total;
+        document.getElementById('comm-pct').textContent    = pct;
+        document.getElementById('comm-amount').textContent = commission;
+        document.getElementById('comm-net').textContent    = net;
+
+        // Status box
+        const statusBox  = document.getElementById('status-box');
+        const statusIcon = document.getElementById('status-icon');
+        const statusText = document.getElementById('status-text');
+        if (sos.status === 'completed') {
+          statusBox.style.background  = '#D1FAE5';
+          statusBox.style.border      = '1px solid #A7F3D0';
+          statusIcon.textContent      = '✅';
+          statusText.textContent      = 'SOS Completed — Payment pending from platform';
+          statusText.style.color      = '#065F46';
+        } else {
+          statusBox.style.background  = '#FEF3C7';
+          statusBox.style.border      = '1px solid #FDE68A';
+          statusIcon.textContent      = '⏳';
+          statusText.textContent      = `Status: ${sos.status}`;
+          statusText.style.color      = '#92400E';
+        }
+
+        // Show
+        document.getElementById('skeleton-card').style.display = 'none';
+        document.getElementById('invoice-card').style.display  = '';
+
+      } catch (e) {
+        showError(e.message || 'Data load nahi hua.');
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('skeleton-card').style.display = 'none';
+      document.getElementById('error-card').style.display    = '';
+      document.getElementById('error-msg').textContent       = msg;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadInvoice);
+  </script>
+</body>
 </html>

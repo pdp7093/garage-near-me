@@ -18,6 +18,13 @@ def ensure_schema_updates():
 
     updates = []
 
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TYPE sosstatus ADD VALUE IF NOT EXISTS 'on_the_way';"))
+            conn.execute(text("ALTER TYPE sosstatus ADD VALUE IF NOT EXISTS 'in_progress';"))
+    except Exception:
+        pass
+
     if "garages" in table_names:
         garage_columns_info = inspector.get_columns("garages")
         garage_columns = {column["name"] for column in garage_columns_info}
@@ -74,6 +81,24 @@ def ensure_schema_updates():
             updates.append(
                 "ALTER TABLE garages "
                 "ADD COLUMN grace_period_ends_at TIMESTAMP WITH TIME ZONE NULL"
+            )
+
+        if "slug" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN slug VARCHAR(300) UNIQUE NULL"
+            )
+
+        if "fcm_token" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN fcm_token TEXT NULL"
+            )
+
+        if "is_sos_available" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN is_sos_available BOOLEAN NOT NULL DEFAULT TRUE"
             )
 
     if "garage_requests" in table_names:
@@ -154,6 +179,12 @@ def ensure_schema_updates():
                 "ALTER TABLE garage_services "
                 "ADD COLUMN category VARCHAR(100)"
             )
+        
+        if "slug" not in service_columns:
+            updates.append(
+                "ALTER TABLE garage_services "
+                "ADD COLUMN slug VARCHAR(300) UNIQUE NULL"
+            )
 
     if "customers" in table_names:
         customer_columns = {
@@ -164,6 +195,12 @@ def ensure_schema_updates():
             updates.append(
                 "ALTER TABLE customers "
                 "ADD COLUMN profile_image VARCHAR(500)"
+            )
+
+        if "fcm_token" not in customer_columns:
+            updates.append(
+                "ALTER TABLE customers "
+                "ADD COLUMN fcm_token TEXT NULL"
             )
 
     if "bookings" in table_names:
@@ -204,6 +241,12 @@ def ensure_schema_updates():
                 updates.append(sql)
                 if col_name == "booking_number":
                     updates.append("UPDATE bookings SET booking_number = 'BK-OLD' || id WHERE booking_number IS NULL")
+        
+        if "slug" not in booking_columns:
+            updates.append(
+                "ALTER TABLE bookings "
+                "ADD COLUMN slug VARCHAR(300) UNIQUE NULL"
+            )
 
     if "bills" in table_names:
         bill_columns = {
@@ -224,6 +267,7 @@ def ensure_schema_updates():
             CREATE TABLE IF NOT EXISTS sos_requests (
                 id SERIAL PRIMARY KEY,
                 sos_number VARCHAR(50) UNIQUE,
+                slug VARCHAR(300) UNIQUE NULL,
                 customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
                 garage_id INTEGER REFERENCES garages(id) ON DELETE SET NULL,
                 latitude FLOAT NOT NULL,
@@ -240,14 +284,39 @@ def ensure_schema_updates():
                 final_charge NUMERIC(10, 2),
                 platform_commission NUMERIC(10, 2),
                 garage_earnings NUMERIC(10, 2),
+                estimate_status VARCHAR(20) DEFAULT 'not_required',
+                estimate_details JSONB,
+                estimate_otp VARCHAR(6),
+                estimate_otp_verified BOOLEAN DEFAULT FALSE,
+                estimate_otp_sent_at TIMESTAMP WITH TIME ZONE,
+                garage_note TEXT,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                 accepted_at TIMESTAMP WITH TIME ZONE,
+                responded_at TIMESTAMP WITH TIME ZONE,
                 started_at TIMESTAMP WITH TIME ZONE,
                 completed_at TIMESTAMP WITH TIME ZONE,
                 cancelled_at TIMESTAMP WITH TIME ZONE,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             )
         """)
+    else:
+        sos_columns = {
+            column["name"] for column in inspector.get_columns("sos_requests")
+        }
+        new_sos_cols = {
+            "slug":                 "ALTER TABLE sos_requests ADD COLUMN slug VARCHAR(300) UNIQUE NULL",
+            "responded_at":         "ALTER TABLE sos_requests ADD COLUMN responded_at TIMESTAMP WITH TIME ZONE NULL",
+            "arrived_at":           "ALTER TABLE sos_requests ADD COLUMN arrived_at TIMESTAMP WITH TIME ZONE NULL",
+            "estimate_status":      "ALTER TABLE sos_requests ADD COLUMN estimate_status VARCHAR(20) DEFAULT 'not_required'",
+            "estimate_details":     "ALTER TABLE sos_requests ADD COLUMN estimate_details JSONB NULL",
+            "estimate_otp":         "ALTER TABLE sos_requests ADD COLUMN estimate_otp VARCHAR(6) NULL",
+            "estimate_otp_verified":"ALTER TABLE sos_requests ADD COLUMN estimate_otp_verified BOOLEAN NOT NULL DEFAULT FALSE",
+            "estimate_otp_sent_at": "ALTER TABLE sos_requests ADD COLUMN estimate_otp_sent_at TIMESTAMP WITH TIME ZONE NULL",
+            "garage_note":          "ALTER TABLE sos_requests ADD COLUMN garage_note TEXT NULL",
+        }
+        for col_name, sql in new_sos_cols.items():
+            if col_name not in sos_columns:
+                updates.append(sql)
 
     if not updates:
         return
@@ -255,6 +324,45 @@ def ensure_schema_updates():
     with engine.begin() as connection:
         for statement in updates:
             connection.execute(text(statement))
+
+def backfill_slugs():
+    """Generate slugs for any garages/bookings/SOS records that are missing them."""
+    import re, unicodedata
+    db = SessionLocal()
+    try:
+        from sqlalchemy import text as _text
+
+        def _make_slug(name, record_id):
+            s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+            s = re.sub(r"[^\w\s-]", "", s).strip().lower()
+            s = re.sub(r"[\s_]+", "-", s)
+            s = re.sub(r"-+", "-", s)
+            return f"{s}-{record_id}"
+
+        # Backfill garage slugs
+        garage_rows = db.execute(_text("SELECT id, name FROM garages WHERE slug IS NULL")).fetchall()
+        for (gid, gname) in garage_rows:
+            slug = _make_slug(gname or f"garage-{gid}", gid)
+            db.execute(_text("UPDATE garages SET slug = :s WHERE id = :id"), {"s": slug, "id": gid})
+
+        # Backfill booking slugs
+        rows = db.execute(_text("SELECT id, booking_number FROM bookings WHERE slug IS NULL")).fetchall()
+        for (bid, bnum) in rows:
+            slug = _make_slug(bnum or f"bk-old-{bid}", bid)
+            db.execute(_text("UPDATE bookings SET slug = :s WHERE id = :id"), {"s": slug, "id": bid})
+
+        # Backfill SOS slugs
+        sos_rows = db.execute(_text("SELECT id FROM sos_requests WHERE slug IS NULL")).fetchall()
+        for (sid,) in sos_rows:
+            db.execute(_text("UPDATE sos_requests SET slug = :s WHERE id = :id"), {"s": f"sos-{sid}", "id": sid})
+
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Backfill slugs error: {e}")
+    finally:
+        db.close()
+
 
 def backfill_completed_bookings_and_bills():
     """

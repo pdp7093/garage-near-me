@@ -1,0 +1,31 @@
+{
+  "name": "Mechanic Portal - GarageNearMe",
+  "short_name": "GNM Mechanic",
+  "description": "Mechanic Dashboard for GarageNearMe",
+  "start_url": "/mechanic/",
+  "display": "standalone",
+  "background_color": "#F5F6FA",
+  "theme_color": "#1B1F2E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/mechanic/dashboard",
+      "description": "Open Dashboard"
+    }
+  ]
+}

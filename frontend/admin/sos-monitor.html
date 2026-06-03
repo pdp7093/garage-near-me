@@ -7,9 +7,9 @@
   <title>Live SOS Monitor - Admin | GarageNearMe</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* Specific styles for the SOS Monitor to give a "Command Center" feel */
@@ -204,11 +204,11 @@
           <div class="map-overlay-stats">
             <div class="stat-pill">
               <span class="text-white-50 small text-uppercase tracking-wider">Active SOS</span>
-              <span class="fs-5 fw-bold text-danger">3</span>
+              <span class="fs-5 fw-bold text-danger" id="sosActiveCount">—</span>
             </div>
             <div class="stat-pill">
               <span class="text-white-50 small text-uppercase tracking-wider">Available Garages</span>
-              <span class="fs-5 fw-bold text-success">42</span>
+              <span class="fs-5 fw-bold text-success" id="sosAvailGarages">—</span>
             </div>
           </div>
 
@@ -218,20 +218,8 @@
           
           <div class="position-absolute top-50 start-50 translate-middle bg-primary rounded-circle shadow" style="width: 12px; height: 12px; border: 2px solid #0F172A;"></div>
 
-          <!-- Active SOS Pings -->
-          <div class="radar-ping" style="top: 30%; left: 40%;"></div> <!-- Unassigned -->
-          <div class="radar-ping" style="top: 60%; left: 70%;"></div> <!-- Assigned -->
-          <div class="radar-ping" style="top: 80%; left: 30%;"></div> <!-- Unassigned -->
-
-          <!-- Available Garages (Green Dots) -->
-          <div class="garage-marker" style="top: 25%; left: 45%;"></div>
-          <div class="garage-marker" style="top: 35%; left: 35%;"></div>
-          <div class="garage-marker" style="top: 55%; left: 75%;"></div>
-          <div class="garage-marker" style="top: 65%; left: 65%;"></div>
-          <div class="garage-marker" style="top: 75%; left: 25%;"></div>
-          <div class="garage-marker" style="top: 85%; left: 35%;"></div>
-          <div class="garage-marker" style="top: 45%; left: 20%;"></div>
-          <div class="garage-marker" style="top: 50%; left: 80%;"></div>
+          <!-- Dynamic SOS Pings (rendered by JS) -->
+          <div id="sosPingsContainer"></div>
 
           <!-- Assignment Line Animation (Simulating a garage heading to an SOS) -->
           <svg class="position-absolute top-0 start-0 w-100 h-100" style="pointer-events: none;">
@@ -249,66 +237,8 @@
             <p class="text-white-50 small mb-0">Prioritize red items (Unassigned)</p>
           </div>
           
-          <div class="sos-list">
-            
-            <!-- SOS Item (Unassigned) -->
-            <div class="sos-card unassigned active">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-danger">Unassigned</span>
-                <span class="text-danger small fw-bold">5 mins ago</span>
-              </div>
-              <h6 class="mb-1">Engine Overheating / Smoke</h6>
-              <div class="small mb-2 text-white">Rahul Verma • +91 9876543210</div>
-              <div class="d-flex align-items-start gap-2 small mb-3">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="#94A3B8" class="mt-1 flex-shrink-0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <span>Western Express Highway, Near Bandra Toll, Mumbai</span>
-              </div>
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-sm btn-danger flex-grow-1 fw-medium">Manual Assign</button>
-                <button class="btn btn-sm btn-outline-light p-2">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- SOS Item (Assigned) -->
-            <div class="sos-card assigned">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-warning text-dark">Garage Dispatched</span>
-                <span class="text-white-50 small">12 mins ago</span>
-              </div>
-              <h6 class="mb-1">Flat Tire (No Stepney)</h6>
-              <div class="small mb-2">Priya Singh • Hyundai i20</div>
-              <div class="d-flex align-items-start gap-2 small mb-3 text-white-50">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="mt-1 flex-shrink-0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <span>Linking Road, Khar West</span>
-              </div>
-              <div class="p-2 bg-dark rounded border border-secondary border-opacity-50 small d-flex justify-content-between align-items-center">
-                <span><span class="text-white">Assigned:</span> Quick Fix Motors</span>
-                <span class="text-warning">ETA 5 min</span>
-              </div>
-            </div>
-
-             <!-- SOS Item (Unassigned) -->
-             <div class="sos-card unassigned">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-danger">Unassigned</span>
-                <span class="text-danger small fw-bold">1 min ago</span>
-              </div>
-              <h6 class="mb-1">Accident / Non-Drivable</h6>
-              <div class="small mb-2 text-white">Anil Kapoor • +91 9988776655</div>
-              <div class="d-flex align-items-start gap-2 small mb-3">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="#94A3B8" class="mt-1 flex-shrink-0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <span>Eastern Freeway, Chembur Exit</span>
-              </div>
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-sm btn-danger flex-grow-1 fw-medium">Manual Assign</button>
-                <button class="btn btn-sm btn-outline-light p-2">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-                </button>
-              </div>
-            </div>
-
+          <div class="sos-list" id="sosListPanel">
+            <div class="text-center text-white-50 py-4">Loading...</div>
           </div>
         </div>
       </div>
@@ -316,10 +246,97 @@
     </main>
   </div>
 
-  <script src="../js/components.js"></script>
-  <script src="../js/bootstrap.bundle.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/bootstrap.bundle.js"></script>
+  <script src="/js/config.js"></script>
   <script>
     initAdminChrome('Live SOS Command Center');
+  </script>
+  <script>
+  const PIN_POSITIONS = [
+    {top:'30%',left:'40%'},{top:'60%',left:'70%'},{top:'80%',left:'30%'},
+    {top:'20%',left:'60%'},{top:'50%',left:'50%'},{top:'70%',left:'20%'},
+    {top:'35%',left:'80%'},{top:'65%',left:'55%'},{top:'45%',left:'15%'},
+    {top:'55%',left:'85%'},
+  ];
+
+  const STATUS_LABEL = {
+    broadcasting: { cls: 'bg-danger', label: 'Broadcasting' },
+    accepted:     { cls: 'bg-warning text-dark', label: 'Accepted' },
+    on_the_way:   { cls: 'bg-info text-dark', label: 'On The Way' },
+    in_progress:  { cls: 'bg-primary', label: 'In Progress' },
+  };
+
+  const SVG_PIN = `<svg viewBox="0 0 24 24" width="16" height="16" fill="#94A3B8" class="mt-1 flex-shrink-0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+
+  async function loadSOS() {
+    const adminKey = localStorage.getItem('gnm_admin_key');
+    if (!adminKey) { window.location.href = '/admin/'; return; }
+
+    try {
+      const res = await fetch(getApiBase() + '/sos/admin/active', {
+        headers: { 'X-Admin-Key': adminKey }
+      });
+      if (!res.ok) throw new Error(res.status);
+      const d = await res.json();
+
+      document.getElementById('sosActiveCount').textContent  = d.active_sos ?? 0;
+      document.getElementById('sosAvailGarages').textContent = d.avail_garages ?? 0;
+
+      // Radar pings
+      const pingsCont = document.getElementById('sosPingsContainer');
+      if (d.list && d.list.length > 0) {
+        pingsCont.innerHTML = d.list.map((s, i) => {
+          const pos = PIN_POSITIONS[i % PIN_POSITIONS.length];
+          return `<div class="radar-ping" style="top:${pos.top};left:${pos.left};"></div>`;
+        }).join('');
+      } else {
+        pingsCont.innerHTML = '';
+      }
+
+      // SOS list panel
+      const panel = document.getElementById('sosListPanel');
+      if (!d.list || d.list.length === 0) {
+        panel.innerHTML = '<div class="text-center text-white-50 py-5"><div class="mb-2">✓</div>No active emergencies</div>';
+        return;
+      }
+
+      panel.innerHTML = d.list.map((s, i) => {
+        const st = STATUS_LABEL[s.status] || { cls: 'bg-secondary', label: s.status };
+        const isUnassigned = s.status === 'broadcasting';
+        const cardCls = isUnassigned ? 'unassigned' : 'assigned';
+        const timeColor = isUnassigned ? 'text-danger' : 'text-white-50';
+        const garageHtml = s.garage_name
+          ? `<div class="p-2 bg-dark rounded border border-secondary border-opacity-50 small mt-2">
+               <span class="text-white">Assigned:</span> ${s.garage_name}
+             </div>`
+          : (isUnassigned ? `<div class="d-flex gap-2 mt-3">
+               <button class="btn btn-sm btn-danger flex-grow-1 fw-medium">Manual Assign</button>
+             </div>` : '');
+        return `<div class="sos-card ${cardCls}${i===0?' active':''}">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge ${st.cls}">${st.label}</span>
+            <span class="${timeColor} small fw-bold">${s.time_ago}</span>
+          </div>
+          <h6 class="mb-1">${s.description}</h6>
+          <div class="small mb-2 text-white">${s.customer}${s.phone ? ' • ' + s.phone : ''}</div>
+          <div class="small mb-1 text-white-50">${s.vehicle}</div>
+          <div class="d-flex align-items-start gap-2 small">
+            ${SVG_PIN}
+            <span>${s.address}</span>
+          </div>
+          ${garageHtml}
+        </div>`;
+      }).join('');
+    } catch (err) {
+      console.error('SOS monitor load failed:', err);
+      document.getElementById('sosListPanel').innerHTML =
+        '<div class="text-center text-danger py-4">Failed to load SOS data</div>';
+    }
+  }
+
+  loadSOS();
+  setInterval(loadSOS, 15000); // auto-refresh every 15 seconds
   </script>
 </body>
 

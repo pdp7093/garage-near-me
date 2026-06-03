@@ -15,14 +15,25 @@ from routers.auth import (
 
 router = APIRouter()
 
-def get_current_admin(x_admin_key: str = Header(None), db: Session = Depends(get_db)):
-    if not x_admin_key:
+def get_current_admin(
+    x_admin_key: str = Header(None),
+    authorization: str = Header(None),
+    db: Session = Depends(get_db)
+):
+    token = x_admin_key
+    if not token and authorization:
+        scheme, _, credentials = authorization.partition(" ")
+        if scheme.lower() == "bearer" and credentials:
+            token = credentials
+
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Admin key required"
         )
+
     try:
-        payload = jwt.decode(x_admin_key, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         role: str = payload.get("role")
         if not email or role != "admin":

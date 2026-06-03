@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Service Catalog - GarageNearMe</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -340,6 +340,7 @@
   <!-- Toast -->
   <div class="gnm-toast" id="gnmToast"></div>
 
+  <script src="../js/config.js"></script>
   <script src="../js/mechanic-auth.js"></script>
   <script src="../js/components.js"></script>
 
@@ -384,7 +385,7 @@
     /* ── Load Suggested Services ── */
     async function loadSuggested() {
       try {
-        const res = await fetch(`${API}/api/garage/me/suggested-services`, {
+        const res = await fetch(`${API}/garage/me/suggested-services`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) return;
@@ -418,7 +419,7 @@
       if (card) card.classList.add('adding');
 
       try {
-        const res = await fetch(`${API}/api/garage/me/suggested-services/${defaultId}`, {
+        const res = await fetch(`${API}/garage/me/suggested-services/${defaultId}`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -451,7 +452,7 @@
 
       for (const s of suggestedServices) {
         try {
-          await fetch(`${API}/api/garage/me/suggested-services/${s.id}`, {
+          await fetch(`${API}/garage/me/suggested-services/${s.id}`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -467,7 +468,7 @@
     /* ── Load My Services ── */
     async function loadServices() {
       try {
-        const res = await fetch(`${API}/api/garage/me/services`, {
+        const res = await fetch(`${API}/garage/me/services`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error();
@@ -565,7 +566,7 @@
     /* ── Toggle Service ── */
     async function toggleService(serviceId, checkbox) {
       try {
-        const res = await fetch(`${API}/api/garage/me/services/${serviceId}/toggle`, {
+        const res = await fetch(`${API}/garage/me/services/${serviceId}/toggle`, {
           method: 'PATCH',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -581,7 +582,7 @@
     async function deleteService(serviceId) {
       if (!confirm('Delete this service?')) return;
       try {
-        const res = await fetch(`${API}/api/garage/me/services/${serviceId}`, {
+        const res = await fetch(`${API}/garage/me/services/${serviceId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -614,7 +615,7 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch(`${API}/api/garage/me/services`, {
+        const res = await fetch(`${API}/garage/me/services`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({
@@ -652,3 +653,4 @@
 </body>
 
 </html>
+

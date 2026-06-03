@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Header
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -33,6 +33,65 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+# ──────────────────────────────────────────
+# ADMIN — ALL CUSTOMERS (paginated)
+# GET /api/auth/admin/customers
+# ──────────────────────────────────────────
+
+@router.get("/admin/customers")
+def admin_get_customers(
+    page: int = 1,
+    limit: int = 20,
+    search: str = None,
+    db: Session = Depends(get_db),
+    x_admin_key: str = Header(None)
+):
+    from routers.garage_requests import check_admin
+    if not x_admin_key:
+        raise HTTPException(status_code=401, detail="Admin key required")
+    check_admin(x_admin_key)
+
+    from sqlalchemy import or_, func as sqlfunc
+    query = db.query(models.Customer)
+    if search:
+        like = f"%{search}%"
+        query = query.filter(or_(
+            models.Customer.name.ilike(like),
+            models.Customer.phone.ilike(like),
+            models.Customer.email.ilike(like),
+        ))
+
+    total = query.count()
+    customers = query.order_by(models.Customer.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
+
+    rows = []
+    for c in customers:
+        vehicles = db.query(models.Vehicle).filter(models.Vehicle.customer_id == c.id).all()
+        booking_count = db.query(models.Booking).filter(models.Booking.customer_id == c.id).count()
+        vehicle_summary = {}
+        for v in vehicles:
+            vt = (v.vehicle_type or "other").lower()
+            vehicle_summary[vt] = vehicle_summary.get(vt, 0) + 1
+        vehicle_str = ", ".join(f"{cnt} {vt.capitalize()}" for vt, cnt in vehicle_summary.items()) or "None"
+        rows.append({
+            "id":            c.id,
+            "name":          c.name,
+            "phone":         c.phone,
+            "email":         c.email,
+            "joined_at":     c.created_at.strftime("%b %d, %Y") if c.created_at else "—",
+            "vehicle_str":   vehicle_str,
+            "booking_count": booking_count,
+            "is_active":     True,
+        })
+
+    return {
+        "total":     total,
+        "page":      page,
+        "limit":     limit,
+        "customers": rows,
+    }
+
 
 @router.post("/register", response_model=schemas.CustomerResponse, status_code=status.HTTP_201_CREATED)
 def register_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_db)):
@@ -107,6 +166,36 @@ def get_me(
 
 
 # ──────────────────────────────────────────
+# SAVE FCM TOKEN — /api/auth/fcm-token
+# POST /api/auth/fcm-token
+# ──────────────────────────────────────────
+
+@router.post("/fcm-token")
+def save_fcm_token(
+    token_data: schemas.FCMTokenUpdate,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    """
+    Customer ka FCM token save karo — push notifications ke liye.
+    POST /api/auth/fcm-token
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("user_id")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    customer = db.query(models.Customer).filter(models.Customer.id == user_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    customer.fcm_token = token_data.fcm_token
+    db.commit()
+    return {"message": "FCM token saved"}
+
+
+# ──────────────────────────────────────────
 # UPDATE PROFILE — /api/auth/me
 # ──────────────────────────────────────────
 
@@ -135,7 +224,7 @@ def update_me(
         customer.email = email
     if profile_image is not None:
         # Save the file
-        image_path = save_customer_profile_image(profile_image, customer.id)
+        image_path = save_customer_profile_image(profile_image, customer.id, customer.name)
         customer.profile_image = image_path
 
     db.commit()

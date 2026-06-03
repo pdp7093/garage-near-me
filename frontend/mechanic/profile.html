@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Garage Profile - GarageNearMe</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -324,6 +324,7 @@
     </main>
   </div>
 
+  <script src="../js/config.js"></script>
   <script src="../js/mechanic-auth.js"></script>
   <script src="../js/components.js"></script>
   <script src="../js/bootstrap.js"></script>
@@ -394,7 +395,7 @@
       }
 
       try {
-        const response = await fetch(`${API}/api/garage/me`, {
+        const response = await fetch(`${API}/garage/me`, {
           headers: authHeaders()
         });
 
@@ -572,7 +573,7 @@
         gst_number: getChecked('hasGstInput') ? (getValue('gstNumberInput') || null) : null
       };
 
-      await sendJson(`${API}/api/garage/me`, 'PATCH', payload);
+      await sendJson(`${API}/garage/me`, 'PATCH', payload);
     }
 
     async function saveLocation() {
@@ -585,7 +586,7 @@
         longitude: getNumberOrNull('longitudeInput')
       };
 
-      await sendJson(`${API}/api/garage/me/location`, 'PATCH', payload);
+      await sendJson(`${API}/garage/me/location`, 'PATCH', payload);
     }
 
     async function saveWorkingHours() {
@@ -599,7 +600,7 @@
         };
       });
 
-      await sendJson(`${API}/api/garage/me/working-hours`, 'PUT', payload);
+      await sendJson(`${API}/garage/me/working-hours`, 'PUT', payload);
     }
 
     async function saveBanking() {
@@ -611,7 +612,7 @@
         ifsc_code: getValue('ifscInput') || null
       };
 
-      await sendJson(`${API}/api/garage/me/banking`, 'PATCH', payload);
+      await sendJson(`${API}/garage/me/banking`, 'PATCH', payload);
     }
 
     async function sendJson(url, method, payload) {
@@ -637,7 +638,7 @@
       }
 
       try {
-        const response = await fetch(`${API}/api/garage/me/documents`, {
+        const response = await fetch(`${API}/garage/me/documents`, {
           headers: authHeaders()
         });
         if (!response.ok) throw new Error('Failed to fetch documents');
@@ -956,7 +957,7 @@
 
               const response =
                 await fetch(
-                  `${API}/api/garage/me/documents`,
+                  `${API}/garage/me/documents`,
                   {
                     method: 'POST',
 
@@ -1027,3 +1028,4 @@
 </body>
 
 </html>
+

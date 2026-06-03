@@ -7,8 +7,8 @@
     <title>Garage Details — GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
@@ -351,18 +351,18 @@
     <div id="footer-container"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="../js/components.js"></script>
+    <script src="/js/components.js"></script>
     <script>
         Promise.all([
-            loadComponent('navbar-container', 'components/navbar.html', () => {
+            loadComponent('navbar-container', '/customer/components/navbar.html', () => {
                 setActiveSidebarLink();
                 if (typeof initCustomerMenu === 'function') initCustomerMenu();
             }),
-            loadComponent('footer-container', 'components/footer.html')
+            loadComponent('footer-container', '/customer/components/footer.html')
         ]);
     </script>
 
-    <script src="../js/config.js"></script>
+    <script src="/js/config.js"></script>
     <script>
         const DAYS_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         const DAY_LABELS = { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' };
@@ -374,9 +374,10 @@
 
         // ── Boot ──
         window.addEventListener('DOMContentLoaded', async () => {
+            const pathMatch = window.location.pathname.match(/\/garage-details\/([^/?#]+)/);
             const params = new URLSearchParams(location.search);
-            const garageId = params.get('id');
-            if (!garageId) { window.location.href = 'search-results.html'; return; }
+            const garageId = (pathMatch && pathMatch[1]) || params.get('id');
+            if (!garageId) { window.location.href = '/search-results'; return; }
             await loadGarage(garageId);
         });
 
@@ -394,7 +395,7 @@
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                         </svg>
                         <h5 class="fw-bold mb-2">Garage nahi mila</h5>
-                        <a href="search-results.html" class="btn btn-sm rounded-pill px-4 text-white mt-2" style="background:var(--color-primary);">← Wapas Jao</a>
+                        <a href="search-results" class="btn btn-sm rounded-pill px-4 text-white mt-2" style="background:var(--color-primary);">← Wapas Jao</a>
                     </div>`;
             }
         }
@@ -601,19 +602,20 @@
 
             const params = new URLSearchParams({
                 garage_id: garageData.id,
+                garage_slug: garageData.slug || garageData.id,
                 garage_name: garageData.name,
                 garage_address: addr,
                 visiting_charge: garageData.visiting_charge || 0,
                 services: JSON.stringify(selectedServices),
             });
 
-            window.location.href = `booking.html?${params.toString()}`;
+            window.location.href = `/customer/booking?${params.toString()}`;
         }
 
         async function submitBooking() {
-            const token = localStorage.getItem('access_token');
+            const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
             if (!token) {
-                window.location.href = `login.html?redirect=${encodeURIComponent(location.href)}`;
+                window.location.href = `/login?redirect=${encodeURIComponent(location.href)}`;
                 return;
             }
 
@@ -650,7 +652,7 @@
                 });
 
                 if (res.status === 401) {
-                    window.location.href = `login.html?redirect=${encodeURIComponent(location.href)}`;
+                    window.location.href = `/login?redirect=${encodeURIComponent(location.href)}`;
                     return;
                 }
                 if (!res.ok) {
@@ -659,7 +661,7 @@
                 }
 
                 bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
-                window.location.href = 'my-bookings.html?booked=1';
+                window.location.href = '/my-bookings?booked=1';
 
             } catch (e) {
                 errorEl.textContent = e.message || 'Kuch gadbad ho gayi. Dobara try karo.';
@@ -671,8 +673,8 @@
         }
     </script>
 
-    <script src="../js/bootstrap.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/script.js"></script>
 </body>
 
 </html>

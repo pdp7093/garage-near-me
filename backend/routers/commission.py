@@ -39,6 +39,7 @@ def get_commission_rules(
     return db.query(models.CommissionRule).order_by(models.CommissionRule.min_amount).all()
 
 @router.post("/", response_model=schemas.CommissionRuleResponse, status_code=201)
+@router.post("", response_model=schemas.CommissionRuleResponse, status_code=201, include_in_schema=False)
 def create_commission_rule(
     data: schemas.CommissionRuleCreate,
     x_admin_key: str = Header(None),

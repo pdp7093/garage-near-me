@@ -6,9 +6,9 @@
   <title>First-Time Setup - GarageNearMe Admin</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -89,8 +89,8 @@
     </div>
   </div>
 
-  <script src="../js/bootstrap.bundle.js"></script>
-  <script src="../js/config.js"></script>
+  <script src="/js/bootstrap.bundle.js"></script>
+  <script src="/js/config.js"></script>
   <script>
 
     // Show custom message in alerts
@@ -108,7 +108,7 @@
         const data = await response.json();
         if (data.has_admin) {
           // Setup already done, redirect to index login page immediately
-          window.location.href = "index.html";
+          window.location.href = "index";
         }
       } catch (err) {
         console.error("Failed to communicate with auth backend", err);
@@ -152,7 +152,7 @@
 
         showAlert("Platform Superadmin registered successfully! Redirecting to login...", false);
         setTimeout(() => {
-          window.location.href = "index.html";
+          window.location.href = "index";
         }, 1800);
 
       } catch (err) {

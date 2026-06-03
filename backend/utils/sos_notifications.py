@@ -55,12 +55,12 @@ class SOSNotificationService:
                 
                 payload = {
                     "to": token,
+                    "priority": "high",
                     "notification": {
                         "title": f"🆘 SOS Alert - {sos_data['vehicle_type']}",
                         "body": f"{sos_data['customer_name']} - {sos_data['distance_km']}km away",
                         "click_action": "FLUTTER_NOTIFICATION_CLICK",
-                        "sound": "default",
-                        "priority": "high"
+                        "sound": "default"
                     },
                     "data": {
                         "sos_id": str(sos_data["sos_id"]),

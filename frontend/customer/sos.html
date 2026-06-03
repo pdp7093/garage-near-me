@@ -6,8 +6,8 @@
     <title>SOS Emergency — GarageNearMe</title>
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
     <style>
         body { background:#FEF2F2; min-height:100vh; }
@@ -22,7 +22,7 @@
     <!-- NAVBAR -->
     <nav class="gnm-nav sticky-top shadow-sm border-bottom bg-white">
         <div class="gnm-nav-inner justify-content-between">
-            <a href="dashboard.html" class="gnm-logo text-decoration-none d-flex align-items-center gap-2 text-muted" style="font-size:14px;">
+            <a href="dashboard" class="gnm-logo text-decoration-none d-flex align-items-center gap-2 text-muted" style="font-size:14px;">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
                 Back
             </a>
@@ -102,14 +102,14 @@
         </div>
     </div>
 
-    <script src="../js/bootstrap.js"></script>
-    <script src="../js/config.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/script.js"></script>
     <script>
 
         window.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
-            if (!token) { window.location.href = 'login.html'; return; }
+            if (!token) { window.location.href = 'login'; return; }
             loadSavedVehicles(token);
         });
 
@@ -144,9 +144,40 @@
             document.getElementById('vehicle-model').value  = model;
         }
 
+        function getSOSLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Aapke browser me location support nahi hai.'));
+                    return;
+                }
+                if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+                    reject(new Error('Location permission ke liye website HTTPS par open karo.'));
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => resolve({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude,
+                        accuracy: pos.coords.accuracy
+                    }),
+                    (err) => {
+                        let msg = 'Location detect nahi ho saki. Permission allow karke dobara try karo.';
+                        if (err.code === err.PERMISSION_DENIED) {
+                            msg = 'Location permission denied hai. Browser settings se allow karke dobara try karo.';
+                        } else if (err.code === err.TIMEOUT) {
+                            msg = 'Location detect hone me time lag gaya. GPS on karke dobara try karo.';
+                        }
+                        reject(new Error(msg));
+                    },
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            });
+        }
+
         async function sendSOS() {
             const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
-            if (!token) { window.location.href = 'login.html'; return; }
+            if (!token) { window.location.href = 'login'; return; }
 
             const vehicleType   = document.getElementById('vehicle-type').value;
             const vehicleNumber = document.getElementById('vehicle-number').value.trim();
@@ -159,14 +190,62 @@
             btn.disabled    = true;
             btn.textContent = '🆘 Location detect ho rahi hai...';
 
-            // Build URL params → tracking page pe jaake SOS create hoga
-            const p = new URLSearchParams();
-            if (vehicleType)   p.set('vehicle_type',   vehicleType);
-            if (vehicleNumber) p.set('vehicle_number', vehicleNumber);
-            if (vehicleModel)  p.set('vehicle_model',  vehicleModel);
-            if (description)   p.set('description',    description);
+            // Step 1: Location lo
+            let loc;
+            try {
+                loc = await getSOSLocation();
+            } catch (e) {
+                errEl.textContent = e.message || 'Location permission allow karke dobara try karo.';
+                errEl.classList.remove('d-none');
+                btn.disabled    = false;
+                btn.textContent = '🆘 SOS Bhejo — Help Chahiye!';
+                return;
+            }
 
-            window.location.href = `sos-tracking.html?${p.toString()}`;
+            // Step 2: SOS create karo yahan se hi
+            btn.textContent = '🆘 SOS bheja ja raha hai...';
+            try {
+                const res = await fetch(`${getApiBase()}/sos/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        lat:            loc.lat,
+                        lng:            loc.lng,
+                        vehicle_type:   vehicleType   || null,
+                        vehicle_number: vehicleNumber || null,
+                        vehicle_model:  vehicleModel  || null,
+                        description:    description   || null,
+                        radius_km:      2.0
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    errEl.textContent = data.message || 'Koi mechanic nahi mila aas paas mein.';
+                    errEl.classList.remove('d-none');
+                    btn.disabled    = false;
+                    btn.textContent = '🆘 SOS Bhejo — Help Chahiye!';
+                    return;
+                }
+
+                // Step 3: Slug sessionStorage mein save karo — tracking page dobara create NA kare
+                const sosSlug = data.sos_slug || data.sos_id;
+                sessionStorage.setItem('gnm_active_sos_slug', String(sosSlug));
+                sessionStorage.setItem('gnm_active_sos_count', String(data.nearby_garages?.length || 0));
+
+                // Step 4: Tracking page pe redirect
+                window.location.href = `sos-tracking/${sosSlug}`;
+
+            } catch (e) {
+                errEl.textContent = 'SOS send nahi ho saka. Internet check karo aur dobara try karo.';
+                errEl.classList.remove('d-none');
+                btn.disabled    = false;
+                btn.textContent = '🆘 SOS Bhejo — Help Chahiye!';
+            }
         }
     </script>
 </body>

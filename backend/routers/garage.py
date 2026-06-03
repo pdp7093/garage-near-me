@@ -4,15 +4,43 @@ from sqlalchemy import Date, cast, func
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
-import os
+import os, re, unicodedata
 from fastapi import UploadFile, File, Form
 import models, schemas
 from database import get_db
-from utils.file_upload import save_garage_document
+from utils.file_upload import delete_uploaded_file, save_garage_document, save_garage_logo
 import math
-from fastapi.responses import JSONResponse 
-from datetime import datetime as dt 
+from fastapi.responses import JSONResponse
+from datetime import datetime as dt
 from typing import Optional as Opt
+from routers.admin_auth import get_current_admin
+
+
+def _make_slug(name: str, garage_id: int) -> str:
+    """Garage name + ID se clean URL slug banao."""
+    s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    s = re.sub(r"[^\w\s-]", "", s).strip().lower()
+    s = re.sub(r"[\s_]+", "-", s)
+    s = re.sub(r"-+", "-", s)
+    return f"{s}-{garage_id}"
+
+
+def _make_service_slug(name: str, service_id: int) -> str:
+    """Service name + ID se clean URL slug banao."""
+    s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode()
+    s = re.sub(r"[^\w\s-]", "", s).strip().lower()
+    s = re.sub(r"[\s_]+", "-", s)
+    s = re.sub(r"-+", "-", s)
+    return f"{s}-{service_id}"
+
+
+def _make_booking_slug(booking_number: str, booking_id: int) -> str:
+    """Booking number + ID se clean URL slug banao."""
+    s = unicodedata.normalize("NFKD", booking_number).encode("ascii", "ignore").decode()
+    s = re.sub(r"[^\w\s-]", "", s).strip().lower()
+    s = re.sub(r"[\s_]+", "-", s)
+    s = re.sub(r"-+", "-", s)
+    return f"{s}-{booking_id}"
 
 router = APIRouter()
 
@@ -59,6 +87,34 @@ def get_my_profile(current_garage: models.Garage = Depends(get_current_garage)):
     JWT token se apna poora profile fetch karo.
     Dashboard load hote waqt yahi call hoga.
     """
+    return current_garage
+
+
+@router.post("/me/logo", response_model=schemas.GarageResponse)
+def upload_my_logo(
+    logo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+    filename = logo.filename or ""
+    extension = os.path.splitext(filename)[1].lower()
+    content_type = (logo.content_type or "").lower()
+
+    if not content_type.startswith("image/") and extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a valid image file."
+        )
+
+    old_logo_url = current_garage.logo_url
+    logo_url = save_garage_logo(logo, current_garage.id)
+
+    current_garage.logo_url = logo_url
+    db.commit()
+    db.refresh(current_garage)
+
+    delete_uploaded_file(old_logo_url)
     return current_garage
 
 
@@ -218,6 +274,11 @@ def add_service(
     db.add(service)
     db.commit()
     db.refresh(service)
+    
+    # Now generate slug with service ID
+    service.slug = _make_service_slug(service.service_name, service.id)
+    db.commit()
+    db.refresh(service)
     return service
 
 
@@ -341,20 +402,23 @@ def upload_garage_document(
 
 @router.get("/admin/all", response_model=list[schemas.GarageResponse])
 def get_all_garages_admin(
-    x_admin_key: str = Header(None),
+    current_admin: models.Admin = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Admin — saare garages fetch karo (active + inactive dono)"""
-    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
-        raise HTTPException(status_code=403, detail="Invalid admin key")
-    
     return db.query(models.Garage).order_by(models.Garage.created_at.desc()).all()
 
-# Admin : Get single garage by ID 
+# Admin : Get single garage by slug
+@router.get("/admin/slug/{slug}", response_model=schemas.GarageResponse)
+def get_garage_by_slug_admin(slug: str, current_admin: models.Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
+    g = db.query(models.Garage).filter(models.Garage.slug == slug).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Garage not found")
+    return g
+
+# Admin : Get single garage by ID
 @router.get("/admin/{garage_id}", response_model=schemas.GarageResponse)
-def get_garage_by_id_admin(garage_id:int, x_admin_key: str =Header(None), db:Session = Depends(get_db)):
-    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
-        raise HTTPException(status_code=403, detail="Invalid admin key")
+def get_garage_by_id_admin(garage_id:int, current_admin: models.Admin = Depends(get_current_admin), db:Session = Depends(get_db)):
     g = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
     if not g:
         raise HTTPException(status_code=404, detail="Garage not found")
@@ -366,11 +430,9 @@ def get_garage_by_id_admin(garage_id:int, x_admin_key: str =Header(None), db:Ses
 def toggle_garage_status(
     garage_id: int,
     data: schemas.GarageUpdate,
-    x_admin_key: str = Header(None),
+    current_admin: models.Admin = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
-        raise HTTPException(status_code=403, detail="Invalid admin key")
     g = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
     if not g:
         raise HTTPException(status_code=404, detail="Garage not found")
@@ -383,11 +445,9 @@ def toggle_garage_status(
 @router.delete("/admin/{garage_id}", status_code=204)
 def delete_garage_admin(
     garage_id: int,
-    x_admin_key: str = Header(None),
+    current_admin: models.Admin = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    if x_admin_key != os.getenv("ADMIN_SECRET", "gnm_admin_secret_2026"):
-        raise HTTPException(status_code=403, detail="Invalid admin key")
     g = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
     if not g:
         raise HTTPException(status_code=404, detail="Garage not found")
@@ -613,6 +673,30 @@ def toggle_service_status(
         "is_available": service.is_available
     }
 
+
+# ──────────────────────────────────────────
+# GET SERVICE BY SLUG
+# GET /api/garage/me/services/slug/{slug}
+# ──────────────────────────────────────────
+
+@router.get("/me/services/slug/{slug}", response_model=schemas.GarageServiceResponse)
+def get_service_by_slug(
+    slug: str,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """Service ko slug se fetch karo."""
+    service = db.query(models.GarageService).filter(
+        models.GarageService.slug == slug,
+        models.GarageService.garage_id == current_garage.id
+    ).first()
+    
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    return service
+
+
 # NearBy Garages 
 def haversine_distance(lat1:float, lng1:float, lat2 :float,lng2:float) -> float:
     R = 6371
@@ -633,6 +717,13 @@ class NearbeGarageResponse(schemas.GaragePublicResponse):
 
     class Config:
         from_attributes = True 
+
+
+@router.get("/stats")
+def get_public_stats(db: Session = Depends(get_db)):
+    """Public stats for homepage — no auth needed."""
+    total_garages = db.query(models.Garage).filter(models.Garage.is_active == True).count()
+    return {"total_garages": total_garages}
 
 
 @router.get("/nearby")
@@ -704,6 +795,7 @@ def get_nearby_garages(lat: float,lng: float,radius: float = 2.0,service_name: O
  
         results.append({
             "id":                   garage.id,
+            "slug":                 garage.slug,
             "name":                 garage.name,
             "phone":                garage.phone,
             "garage_type":          garage.garage_type,
@@ -744,20 +836,30 @@ def get_nearby_garages(lat: float,lng: float,radius: float = 2.0,service_name: O
  
 
 
-@router.get("/{garage_id}/public")
+@router.get("/{garage_slug_or_id}/public")
 def get_garage_public_detail(
-    garage_id: int,
+    garage_slug_or_id: str,
     db: Session = Depends(get_db),
 ):
     """
     Garage detail page ke liye — no auth required.
+    Slug ya ID dono se garage fetch karo.
     Customer is page pe services select karta hai aur booking karta hai.
     """
-    garage = db.query(models.Garage).filter(
-        models.Garage.id         == garage_id,
-        models.Garage.is_active  == True,
-        models.Garage.is_verified == True,
-    ).first()
+    # Try as integer ID first, else slug
+    try:
+        garage_id = int(garage_slug_or_id)
+        garage = db.query(models.Garage).filter(
+            models.Garage.id          == garage_id,
+            models.Garage.is_active   == True,
+            models.Garage.is_verified == True,
+        ).first()
+    except ValueError:
+        garage = db.query(models.Garage).filter(
+            models.Garage.slug        == garage_slug_or_id,
+            models.Garage.is_active   == True,
+            models.Garage.is_verified == True,
+        ).first()
  
     if not garage:
         raise HTTPException(status_code=404, detail="Garage not found")

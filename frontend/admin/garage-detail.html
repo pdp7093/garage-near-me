@@ -7,9 +7,9 @@
     <title>Garage Detail - Admin | GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
-    <link rel="stylesheet" href="../css/admin.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
@@ -309,6 +309,59 @@
             color: #9CA3AF;
         }
 
+        /* ── Services (card + grouped categories) ── */
+        .service-category-card {
+            padding: 0.9rem 1rem;
+            border-top: 1px solid #F3F4F6;
+        }
+
+        .service-category-head {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            margin-bottom:0.5rem;
+        }
+
+        .service-category-head h6 {
+            margin:0;
+            font-size:0.9rem;
+            font-weight:700;
+            color:#111827;
+        }
+
+        .service-list .service-item {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            padding:0.55rem 0;
+            border-bottom:1px dashed #F3F4F6;
+            font-size:0.92rem;
+        }
+
+        .service-name { color:#111827; font-weight:600; }
+        .service-meta { display:flex; gap:12px; align-items:center; flex-shrink:0; }
+        .service-price { color:#374151; font-weight:700; }
+        .service-availability { font-size:0.82rem; padding:4px 8px; border-radius:12px; }
+        .service-availability.avail-yes { background:#ECFDF5; color:#065F46; font-weight:700; }
+        .service-availability.avail-no { background:#FEF3F2; color:#991B1B; font-weight:700; }
+
+        /* Scrollable services wrapper and toggle */
+        .services-scroll {
+            max-height: 320px;
+            overflow: auto;
+            transition: max-height .25s ease;
+            padding-right: 6px;
+        }
+
+        .services-scroll.expanded { max-height: 1200px; }
+
+        #servicesToggleBtn {
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+        }
+
         /* ── Danger zone ── */
         .danger-zone {
             border: 1.5px solid #FECACA;
@@ -425,7 +478,7 @@
 
                 <!-- Back button -->
                 <div class="mb-3">
-                    <a href="garages.html"
+                    <a href="/admin/garages"
                         class="btn btn-light rounded-pill px-3 fw-medium border d-inline-flex align-items-center gap-2">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
@@ -680,28 +733,38 @@
     </div>
 
 
-    <script src="../js/components.js"></script>
+    <script src="/js/components.js"></script>
     <script>
         initAdminChrome('Garage Detail', () => {
-            const garageLink = document.querySelector('.admin-nav-link[href="garages.html"]');
+            const garageLink = document.querySelector('.admin-nav-link[href="/admin/garages"]');
             if (garageLink) garageLink.classList.add('active');
         });
     </script>
-    <script src="../js/bootstrap.js"></script>
-    <script src="../js/config.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         /* ══════════════════════════════════════
            CONFIG
         ══════════════════════════════════════ */
         const API = getApiBase();
-        const AKEY = 'gnm_admin_secret_2026';
+        const AKEY = localStorage.getItem('gnm_admin_key');
+        if (!AKEY) {
+          window.location.href = '/admin/';
+        }
         const H = { 'X-Admin-Key': AKEY };
         const HJ = { 'X-Admin-Key': AKEY, 'Content-Type': 'application/json' };
 
-        // Get garage ID from URL ?id=2
-        const params = new URLSearchParams(window.location.search);
-        const garageId = params.get('id');
+        // Slug from URL path: /admin/garage-detail/quick-fix-motors-5
+        const pathMatch = window.location.pathname.match(/garage-detail\/([^/?#]+)/);
+        let garageSlug = pathMatch ? pathMatch[1] : null;
+
+        // Fallback: legacy ?id= query param (backward compat)
+        if (!garageSlug) {
+            const params = new URLSearchParams(window.location.search);
+            const legacyId = params.get('id') || params.get('garage_id');
+            if (legacyId) garageSlug = legacyId;
+        }
 
         let garageData = null;
 
@@ -734,25 +797,31 @@
            LOAD GARAGE
         ══════════════════════════════════════ */
         async function loadGarage() {
-            if (!garageId) {
+            if (!garageSlug) {
                 document.getElementById('loadingState').innerHTML = `
       <div class="text-center py-5 text-danger">
-        <div class="fw-bold mb-2">No garage ID provided.</div>
-        <a href="garages.html" class="btn btn-light rounded-pill px-4 border">Go Back</a>
+        <div class="fw-bold mb-2">Garage not found.</div>
+        <a href="/admin/garages" class="btn btn-light rounded-pill px-4 border">Go Back</a>
       </div>`;
                 return;
             }
 
+            // Numeric slug = legacy ID, use old endpoint; else use slug endpoint
+            const isNumeric = /^\d+$/.test(garageSlug);
+            const endpoint = isNumeric
+                ? `${API}/garage/admin/${garageSlug}`
+                : `${API}/garage/admin/slug/${garageSlug}`;
+
             try {
-                const res = await fetch(`${API}/api/garage/admin/${garageId}`, { headers: H });
+                const res = await fetch(endpoint, { headers: H });
                 if (!res.ok) throw new Error('Not found');
                 garageData = await res.json();
                 renderPage(garageData);
             } catch {
                 document.getElementById('loadingState').innerHTML = `
       <div class="text-center py-5 text-danger">
-        <div class="fw-bold mb-2">Could not load garage #${garageId}.</div>
-        <a href="garages.html" class="btn btn-light rounded-pill px-4 border">Go Back</a>
+        <div class="fw-bold mb-2">Garage not found.</div>
+        <a href="/admin/garages" class="btn btn-light rounded-pill px-4 border">Go Back</a>
       </div>`;
             }
         }
@@ -817,20 +886,55 @@
       </div>`).join('')
                 : '<div class="text-muted small">No documents uploaded yet.</div>';
 
-            // Services
-            const services = g.services || [];
-            document.getElementById('servicesSection').innerHTML = services.length
-                ? `<table class="services-table">
-        <thead><tr><th>Service</th><th>Price</th><th>Available</th></tr></thead>
-        <tbody>${services.map(s => `
-          <tr>
-            <td>${s.service_name}</td>
-            <td>₹${s.price}</td>
-            <td class="${s.is_available ? 'avail-yes' : 'avail-no'}">${s.is_available ? '✓ Yes' : '✗ No'}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`
-                : '<div class="p-3 text-muted small">No services added yet.</div>';
+                        // Services — group by category and render cleanly
+                        const services = g.services || [];
+                        if (!services.length) {
+                                document.getElementById('servicesSection').innerHTML = '<div class="p-3 text-muted small">No services added yet.</div>';
+                        } else {
+                                const groups = {};
+                                services.forEach(s => {
+                                        const cat = (s.category || 'General').trim() || 'General';
+                                        if (!groups[cat]) groups[cat] = [];
+                                        groups[cat].push(s);
+                                });
+
+                                const cats = Object.keys(groups);
+                                const servicesHtml = cats.map(cat => `
+            <div class="service-category-card">
+                <div class="service-category-head">
+                    <h6>${cat}</h6>
+                    <div class="text-muted small">${groups[cat].length} item${groups[cat].length>1?'s':''}</div>
+                </div>
+                <div class="service-list">
+                    ${groups[cat].map(s => `
+                        <div class="service-item">
+                            <div class="service-name">${s.service_name}</div>
+                            <div class="service-meta">
+                                <div class="service-price">₹${s.price}</div>
+                                <div class="service-availability ${s.is_available ? 'avail-yes' : 'avail-no'}">${s.is_available ? 'Available' : 'Unavailable'}</div>
+                            </div>
+                        </div>`).join('')}
+                </div>
+            </div>`).join('');
+
+                                document.getElementById('servicesSection').innerHTML = `
+                                    <div class="services-scroll" id="servicesScroll">${servicesHtml}</div>
+                                    <div class="p-3 text-center"><button class="btn btn-sm btn-light" id="servicesToggleBtn">Show more</button></div>
+                                `;
+
+                                // Wire up toggle behaviour
+                                setTimeout(() => {
+                                    const scrollEl = document.getElementById('servicesScroll');
+                                    const btn = document.getElementById('servicesToggleBtn');
+                                    if (!btn || !scrollEl) return;
+                                    // Hide toggle if content fits
+                                    if (scrollEl.scrollHeight <= scrollEl.clientHeight + 8) { btn.style.display = 'none'; return; }
+                                    btn.addEventListener('click', () => {
+                                        const expanded = scrollEl.classList.toggle('expanded');
+                                        btn.textContent = expanded ? 'Show less' : 'Show more';
+                                    });
+                                }, 30);
+                        }
 
             // Working Hours
             const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -868,7 +972,7 @@
             if (!garageData) return;
             const newStatus = !garageData.is_active;
             try {
-                const res = await fetch(`${API}/api/garage/admin/${garageId}/toggle-status`, {
+                const res = await fetch(`${API}/garage/admin/${garageData.id}/toggle-status`, {
                     method: 'PATCH',
                     headers: HJ,
                     body: JSON.stringify({ is_active: newStatus })
@@ -898,13 +1002,13 @@
             const sp = document.getElementById('delete-sp');
             this.disabled = true; sp.classList.remove('d-none');
             try {
-                const res = await fetch(`${API}/api/garage/admin/${garageId}`, {
+                const res = await fetch(`${API}/garage/admin/${garageData.id}`, {
                     method: 'DELETE', headers: H
                 });
                 if (res.ok || res.status === 204) {
                     bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
                     showToast('Garage deleted successfully.');
-                    setTimeout(() => window.location.href = 'garages.html', 1500);
+                    setTimeout(() => window.location.href = '/admin/garages', 1500);
                 } else {
                     const e = await res.json();
                     showToast(e.detail || 'Could not delete.', 'danger');

@@ -159,6 +159,10 @@ class GarageRequestAdminUpdate(BaseModel):
 # GARAGE OTP AUTH
 # ──────────────────────────────────────────
 
+class FCMTokenUpdate(BaseModel):
+    fcm_token: str
+
+
 class OTPSendRequest(BaseModel):
     """Garage owner phone number dalta hai → OTP bhejo"""
     phone: str
@@ -285,6 +289,7 @@ class GarageUpdate(BaseModel):
 
 class GarageResponse(BaseModel):
     id:                   int
+    slug:                 Optional[str]  = None
     name:                 str
     owner_name:           str
     phone:                str
@@ -313,6 +318,7 @@ class GarageResponse(BaseModel):
 
 class GaragePublicResponse(BaseModel):
     id:                   int
+    slug:                 Optional[str] = None
     name:                 str
     phone:                str
     garage_type:          Optional[str] = None
@@ -390,6 +396,7 @@ class EstimateApproval(BaseModel):
 
 class BookingResponse(BaseModel):
     id:                     int
+    slug:                   Optional[str] = None
     booking_number:         Optional[str] = None
     customer_id:            int
     customer_name:          Optional[str] = None
@@ -428,6 +435,7 @@ class BookingResponse(BaseModel):
     # Garage info — visiting_charge ke liye (booking router inject karta hai)
     garage_visiting_charge: Optional[float] = None
     garage_name:            Optional[str] = None
+    garage_address:         Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -463,6 +471,7 @@ class SOSUpdate(BaseModel):
 
 class SOSResponse(BaseModel):
     id:                  int
+    slug:                Optional[str] = None
     sos_number:          Optional[str] = None
     customer_id:         int
     garage_id:           Optional[int] = None

@@ -6,8 +6,8 @@
     <title>SOS Tracking — GarageNearMe</title>
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
     <style>
         body { background:#f8f9fa; min-height:100vh; }
@@ -276,10 +276,10 @@
                 <p class="text-muted mb-1" style="font-size:13px;">Garage: <span class="fw-semibold text-dark" id="completed-garage-name">—</span></p>
                 <p class="text-muted mb-4" style="font-size:13px;">Duration: <span id="total-duration">—</span></p>
                 <div class="fw-bold mb-4" style="font-size:32px;color:var(--color-primary);">₹<span id="final-amount-display">0</span></div>
-                <a href="my-bookings.html" class="btn w-100 text-white rounded-pill py-3 fw-bold mb-2" style="background:var(--color-primary);">
+                <a href="/customer/my-bookings" class="btn w-100 text-white rounded-pill py-3 fw-bold mb-2" style="background:var(--color-primary);">
                     My Bookings Dekho
                 </a>
-                <a href="dashboard.html" class="btn w-100 btn-outline-secondary rounded-pill py-2" style="font-size:14px;">
+                <a href="/customer/dashboard" class="btn w-100 btn-outline-secondary rounded-pill py-2" style="font-size:14px;">
                     Dashboard pe Jao
                 </a>
             </div>
@@ -292,10 +292,10 @@
             <div style="font-size:52px;" class="mb-3">😔</div>
             <h5 class="fw-bold mb-2">Koi mechanic nahi mila</h5>
             <p class="text-muted mb-4" style="font-size:14px;" id="error-msg">2km radius mein koi SOS-available mechanic nahi hai.</p>
-            <a href="sos.html" class="btn text-white rounded-pill px-4 py-2 fw-bold mb-2" style="background:#DC2626;">
+            <a href="/customer/sos" class="btn text-white rounded-pill px-4 py-2 fw-bold mb-2" style="background:#DC2626;">
                 Dobara Try Karo
             </a>
-            <a href="dashboard.html" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-medium" style="font-size:14px;">
+            <a href="/customer/dashboard" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-medium" style="font-size:14px;">
                 Dashboard pe Jao
             </a>
         </div>
@@ -315,88 +315,85 @@
     </div>
 </div>
 
-<!-- WebRTC Call Toast (placeholder — baad mein implement) -->
-<div id="call-toast" class="position-fixed bottom-0 start-0 end-0 p-3" style="z-index:9999;display:none;">
-    <div class="bg-dark text-white rounded-4 p-3 d-flex align-items-center justify-content-between shadow-lg">
-        <div>
-            <div class="fw-bold" style="font-size:14px;">📞 In-App Call</div>
-            <div class="text-white-50" style="font-size:12px;">WebRTC calling — coming soon</div>
+<!-- WebRTC Call Overlay -->
+<div id="gnm-call-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#0a0a0a;flex-direction:column;align-items:center;justify-content:space-between;padding:64px 24px 80px;">
+    <style>
+        @keyframes callPulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+        #gnm-call-overlay .cp{position:absolute;inset:0;border-radius:50%;border:2px solid #22C55E;animation:callPulse 1.6s ease-out infinite}
+        #gnm-call-overlay .cp:nth-child(2){animation-delay:.5s}
+        #gnm-call-overlay .cp:nth-child(3){animation-delay:1s}
+    </style>
+    <div style="text-align:center;">
+        <div style="color:#22C55E;font-size:13px;letter-spacing:2px;font-family:'DM Sans',sans-serif;text-transform:uppercase;margin-bottom:12px;">📞 In-App Call</div>
+        <div id="call-name" style="color:#fff;font-size:22px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:6px;">Mechanic</div>
+        <div id="call-status" style="color:#9CA3AF;font-size:14px;font-family:'DM Sans',sans-serif;">Connecting...</div>
+    </div>
+    <div style="position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center;">
+        <div class="cp"></div><div class="cp"></div><div class="cp"></div>
+        <div style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#22C55E,#16a34a);display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;z-index:1;">🔧</div>
+    </div>
+    <div style="display:flex;gap:48px;align-items:flex-start;">
+        <div style="text-align:center;">
+            <button id="call-mute-btn" onclick="toggleMute()" style="width:68px;height:68px;border-radius:50%;background:#374151;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <span style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;" id="mute-label">Mute</span>
         </div>
-        <button onclick="document.getElementById('call-toast').style.display='none'" class="btn btn-outline-light btn-sm rounded-pill px-3">Close</button>
+        <div style="text-align:center;">
+            <button onclick="endCall()" style="width:68px;height:68px;border-radius:50%;background:#E53E3E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(229,62,62,0.15);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+            </button>
+            <span style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">End Call</span>
+        </div>
     </div>
 </div>
 
-<script src="../js/bootstrap.js"></script>
-<script src="../js/config.js"></script>
+<script src="/js/bootstrap.js"></script>
+<script src="/js/config.js"></script>
 <script>
     const params   = new URLSearchParams(location.search);
-    let bookingId  = params.get('booking_id') || params.get('sos_id');
+    // Read SOS slug/id from path (/sos-tracking/<slug>) or query params as fallback
+    const _sosPathMatch = window.location.pathname.match(/\/sos-tracking\/([^/?#]+)/);
+    let bookingId  = (_sosPathMatch && _sosPathMatch[1]) || params.get('booking_id') || params.get('sos_id');
     if (bookingId === 'undefined' || bookingId === 'null') {
         bookingId = null;
     }
     let pollTimer  = null;
     let sosData    = null;
+    const _API_BASE = getApiBase();
 
     // ── Boot ──
     window.addEventListener('DOMContentLoaded', async () => {
         const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
-        if (!token) { window.location.href = 'login.html'; return; }
+        if (!token) { window.location.href = '/customer/login'; return; }
 
-        if (bookingId) {
-            showSection('searching');
-            startPolling();
+        // bookingId URL path se aata hai (/sos-tracking/<slug>)
+        // Agar nahi mila toh sessionStorage se check karo
+        if (!bookingId) {
+            const savedSlug = sessionStorage.getItem('gnm_active_sos_slug');
+            if (savedSlug) {
+                bookingId = savedSlug;
+                history.replaceState({}, '', `/customer/sos-tracking/${bookingId}`);
+            }
+        }
+
+        if (!bookingId) {
+            // Koi SOS slug nahi — SOS page pe wapas bhejo
+            window.location.href = '/customer/sos';
             return;
         }
-        await triggerSOS(token);
-    });
 
-    // ── Trigger SOS ──
-    async function triggerSOS(token) {
-        showSection('searching');
-
-        let lat = 23.0225, lng = 72.5714;
-        try {
-            const pos = await new Promise((res, rej) =>
-                navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000 })
-            );
-            lat = pos.coords.latitude;
-            lng = pos.coords.longitude;
-        } catch {}
-
-        try {
-            const res = await fetch(`${getApiBase()}/sos/create`, {
-                method: 'POST',
-                headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` },
-                body: JSON.stringify({
-                    lat, lng,
-                    vehicle_type:   params.get('vehicle_type')   || null,
-                    vehicle_number: params.get('vehicle_number') || null,
-                    vehicle_model:  params.get('vehicle_model')  || null,
-                    description:    params.get('description')    || null,
-                    radius_km:      2.0
-                })
-            });
-
-            const data = await res.json();
-            if (!data.success) {
-                showSection('error');
-                document.getElementById('error-msg').textContent = data.message;
-                return;
-            }
-
-            bookingId = data.sos_id;
-            history.replaceState({}, '', `?booking_id=${bookingId}`);
-
-            const count = data.nearby_garages?.length || 0;
-            document.getElementById('nearby-count-text').textContent =
-                `${count} mechanic${count !== 1 ? 's' : ''} ko alert bheja! Accept karne ka wait...`;
-
-            startPolling();
-        } catch {
-            showSection('error');
-            document.getElementById('error-msg').textContent = 'SOS send nahi ho saka. Internet check karo.';
+        // nearby count sessionStorage se update karo
+        const savedCount = sessionStorage.getItem('gnm_active_sos_count');
+        if (savedCount) {
+            const c = parseInt(savedCount) || 0;
+            const el = document.getElementById('nearby-count-text');
+            if (el) el.textContent = `${c} mechanic${c !== 1 ? 's' : ''} ko alert bheja! Accept karne ka wait...`;
         }
-    }
+
+        showSection('searching');
+        startPolling();
+    });
 
     // ── Poll ──
     function startPolling() {
@@ -412,7 +409,7 @@
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) {
-                if (res.status === 401) { window.location.href = "login.html"; }
+                if (res.status === 401) { window.location.href = "/customer/login"; }
                 return;
             }
             const json = await res.json();
@@ -492,6 +489,9 @@
 
         } else if (s === 'completed') {
             clearInterval(pollTimer);
+            // SessionStorage cleanup
+            sessionStorage.removeItem('gnm_active_sos_slug');
+            sessionStorage.removeItem('gnm_active_sos_count');
             showSection('completed');
             document.getElementById('final-amount-display').textContent  = sosData.final_charge || sosData.estimated_charge || 0;
             document.getElementById('completed-garage-name').textContent = garageName;
@@ -534,7 +534,7 @@
     async function cancelSOS() {
         hideCancelConfirm();
         const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
-        if (!bookingId) { window.location.href = 'index.html'; return; }
+        if (!bookingId) { window.location.href = '/customer/index'; return; }
         try {
             await fetch(`${getApiBase()}/sos/customer/${bookingId}/cancel`, {
                 method: 'POST',
@@ -542,14 +542,159 @@
             });
         } catch {}
         clearInterval(pollTimer);
-        window.location.href = 'index.html';
+        // SessionStorage cleanup
+        sessionStorage.removeItem('gnm_active_sos_slug');
+        sessionStorage.removeItem('gnm_active_sos_count');
+        window.location.href = '/customer/index';
     }
 
-    // ── In-App Call (WebRTC placeholder) ──
-    function startCall() {
-        document.getElementById('call-toast').style.display = '';
-        setTimeout(() => document.getElementById('call-toast').style.display = 'none', 4000);
+    // ── WebRTC Call ────────────────────────────────────────────────────────
+    let _pc        = null;
+    let _localStream = null;
+    let _customerWs  = null;
+    let _targetGarageId = null;
+    let _isMuted   = false;
+    let _callTimer = null;
+    let _callSeconds = 0;
+
+    function getCustomerIdFromToken() {
+        const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+        if (!token) return null;
+        try { return JSON.parse(atob(token.split('.')[1])).user_id || null; } catch(e) { return null; }
     }
+
+    function connectCustomerWS(customerId) {
+        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+        const host  = location.hostname;
+        const port  = (host === 'localhost' || host === '127.0.0.1') ? ':8000' : '';
+        const url   = `${proto}://${host}${port}/ws/customer/${customerId}`;
+        _customerWs = new WebSocket(url);
+
+        _customerWs.onopen  = () => console.log('Customer WS connected ✅');
+        _customerWs.onclose = () => setTimeout(() => connectCustomerWS(customerId), 5000);
+        _customerWs.onmessage = async (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.type === 'webrtc_answer' && _pc) {
+                    await _pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    document.getElementById('call-status').textContent = 'Connected ✅';
+                    startCallTimer();
+                } else if (data.type === 'webrtc_ice' && _pc) {
+                    await _pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                } else if (data.type === 'webrtc_end') {
+                    endCall();
+                }
+            } catch(err) { console.error(err); }
+        };
+    }
+
+    async function startCall() {
+        if (!sosData || !sosData.garage_id) {
+            return;
+        }
+        _targetGarageId = sosData.garage_id;
+        const customerId = getCustomerIdFromToken();
+        if (!customerId) return;
+
+        if (!_customerWs || _customerWs.readyState !== WebSocket.OPEN) {
+            connectCustomerWS(customerId);
+            await new Promise(r => setTimeout(r, 800));
+        }
+
+        try {
+            _localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        } catch(e) {
+            return;
+        }
+
+        _pc = new RTCPeerConnection({
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+            ]
+        });
+
+        _localStream.getTracks().forEach(t => _pc.addTrack(t, _localStream));
+
+        _pc.ontrack = (e) => {
+            let audio = document.getElementById('gnm-remote-audio');
+            if (!audio) {
+                audio = document.createElement('audio');
+                audio.id = 'gnm-remote-audio';
+                audio.autoplay = true;
+                document.body.appendChild(audio);
+            }
+            audio.srcObject = e.streams[0];
+        };
+
+        _pc.onicecandidate = (e) => {
+            if (e.candidate && _customerWs?.readyState === WebSocket.OPEN) {
+                _customerWs.send(JSON.stringify({
+                    type: 'webrtc_ice',
+                    target_garage_id: _targetGarageId,
+                    candidate: e.candidate
+                }));
+            }
+        };
+
+        _pc.onconnectionstatechange = () => {
+            if (_pc?.connectionState === 'disconnected' || _pc?.connectionState === 'failed') {
+                endCall();
+            }
+        };
+
+        const offer = await _pc.createOffer();
+        await _pc.setLocalDescription(offer);
+
+        _customerWs.send(JSON.stringify({
+            type: 'webrtc_offer',
+            target_garage_id: _targetGarageId,
+            customer_id: customerId,
+            offer: offer
+        }));
+
+        document.getElementById('call-name').textContent = sosData.garage_name || 'Mechanic';
+        document.getElementById('call-status').textContent = 'Ringing...';
+        document.getElementById('gnm-call-overlay').style.display = 'flex';
+    }
+
+    function endCall() {
+        if (_pc) { _pc.close(); _pc = null; }
+        if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
+        if (_callTimer) { clearInterval(_callTimer); _callTimer = null; }
+        if (_customerWs && _targetGarageId) {
+            _customerWs.send(JSON.stringify({ type: 'webrtc_end', target_garage_id: _targetGarageId }));
+        }
+        const audio = document.getElementById('gnm-remote-audio');
+        if (audio) audio.remove();
+        document.getElementById('gnm-call-overlay').style.display = 'none';
+        _isMuted = false;
+        document.getElementById('mute-label').textContent = 'Mute';
+    }
+
+    function toggleMute() {
+        if (!_localStream) return;
+        _isMuted = !_isMuted;
+        _localStream.getAudioTracks().forEach(t => t.enabled = !_isMuted);
+        document.getElementById('mute-label').textContent = _isMuted ? 'Unmute' : 'Mute';
+        document.getElementById('call-mute-btn').style.background = _isMuted ? '#EF4444' : '#374151';
+    }
+
+    function startCallTimer() {
+        _callSeconds = 0;
+        _callTimer = setInterval(() => {
+            _callSeconds++;
+            const m = String(Math.floor(_callSeconds/60)).padStart(2,'0');
+            const s = String(_callSeconds%60).padStart(2,'0');
+            document.getElementById('call-status').textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    // Customer WS boot karo
+    window.addEventListener('DOMContentLoaded', () => {
+        const customerId = getCustomerIdFromToken();
+        if (customerId) connectCustomerWS(customerId);
+    });
 
     // ── Section toggle ──
     function showSection(name) {

@@ -7,8 +7,8 @@
   <title>Bill Details - GarageNearMe</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -42,7 +42,7 @@
 
         <!-- Back Button -->
         <div class="back-btn-container mb-4">
-          <a href="my-bookings.html" class="btn btn-light rounded-pill shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
+          <a href="/customer/my-bookings" class="btn btn-light rounded-pill shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
             Back to My Bookings
           </a>
@@ -153,11 +153,16 @@
     </div>
   </div>
 
-  <script src="../js/mechanic-auth.js"></script>
+  <script src="/js/mechanic-auth.js"></script>
 
-  <script src="../js/config.js"></script>
+  <script src="/js/config.js"></script>
   <script>
     const token = localStorage.getItem('gnm_token');
+
+    // Read booking slug/id from path (/view-bill/<slug>) or ?id= fallback
+    const _pathMatch = window.location.pathname.match(/\/view-bill\/([^/?#]+)/);
+    const _params = new URLSearchParams(location.search);
+    const bookingId = (_pathMatch && _pathMatch[1]) || _params.get('id');
 
     let currentBill = null;
 
@@ -172,7 +177,7 @@
         }
 
         if (!token) {
-            window.location.href = 'login.html';
+            window.location.href = '/customer/login';
             return;
         }
 

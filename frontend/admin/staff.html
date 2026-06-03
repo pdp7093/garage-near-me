@@ -6,9 +6,9 @@
   <title>Manage Administrators - Admin | GarageNearMe</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -94,15 +94,15 @@
     </div>
   </div>
 
-  <script src="../js/components.js"></script>
-  <script src="../js/bootstrap.bundle.js"></script>
-  <script src="../js/config.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/bootstrap.bundle.js"></script>
+  <script src="/js/config.js"></script>
   <script>
     
     // Authorization lock check before initializing chrome
     const adminKey = localStorage.getItem("gnm_admin_key");
     if (!adminKey) {
-      window.location.href = "index.html";
+      window.location.href = "index";
     }
 
     initAdminChrome('Manage Admins', loadAdmins);
@@ -126,7 +126,7 @@
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
             localStorage.removeItem("gnm_admin_key");
-            window.location.href = "index.html";
+            window.location.href = "index";
             return;
           }
           throw new Error("Failed to load administrators directory.");

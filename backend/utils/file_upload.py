@@ -7,6 +7,7 @@ from fastapi import UploadFile
 
 
 GARAGE_DOCUMENT_ROOT = Path("uploads") / "garage_documents"
+GARAGE_LOGO_ROOT = Path("uploads") / "garage_logos"
 
 DOCUMENT_CATEGORIES = {
     "profile_photo",
@@ -108,17 +109,66 @@ def save_garage_document(
     return f"/{file_path.as_posix()}"
 
 
-CUSTOMER_PROFILE_ROOT = Path("uploads") / "customer_profiles"
-
-
-def save_customer_profile_image(file: UploadFile, customer_id: int) -> str:
+def save_garage_logo(file: UploadFile, garage_id: int) -> str:
     """
-    Save a customer profile image under:
-    uploads/customer_profiles/{customer_id}/{unique-filename}
+    Save a garage logo/profile image under:
+    uploads/garage_logos/{garage_id}/{unique-filename}
 
     Returns the URL path stored in the database.
     """
-    upload_dir = CUSTOMER_PROFILE_ROOT / str(customer_id)
+    upload_dir = GARAGE_LOGO_ROOT / str(garage_id)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}{_safe_extension(file.filename)}"
+    file_path = upload_dir / filename
+
+    with file_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return f"/{file_path.as_posix()}"
+
+
+def delete_uploaded_file(file_url: str | None) -> None:
+    """
+    Delete an uploaded local file safely. External URLs and paths outside
+    the uploads directory are ignored.
+    """
+    if not file_url or re.match(r"^https?://", file_url, re.IGNORECASE):
+        return
+
+    cleaned = file_url.split("?", 1)[0].split("#", 1)[0].replace("\\", "/")
+    if cleaned.startswith("/"):
+        cleaned = cleaned[1:]
+
+    if not cleaned.startswith("uploads/"):
+        return
+
+    uploads_root = Path("uploads").resolve()
+    file_path = Path(cleaned).resolve()
+
+    if uploads_root != file_path and uploads_root not in file_path.parents:
+        return
+
+    try:
+        if file_path.is_file():
+            file_path.unlink()
+    except OSError:
+        return
+
+
+CUSTOMER_PROFILE_ROOT = Path("uploads") / "customer_profiles"
+
+
+def save_customer_profile_image(file: UploadFile, customer_id: int, customer_name: str | None = None) -> str:
+    """
+    Save a customer profile image under:
+    uploads/customer_profiles/{name-slug}-{id}/{unique-filename}
+
+    Returns the URL path stored in the database.
+    """
+    name_slug = slugify_garage_name(customer_name) if customer_name else "customer"
+    folder_name = f"{name_slug}-{customer_id}"
+    upload_dir = CUSTOMER_PROFILE_ROOT / folder_name
     upload_dir.mkdir(parents=True, exist_ok=True)
 
     filename = f"{uuid.uuid4().hex}{_safe_extension(file.filename)}"

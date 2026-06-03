@@ -7,9 +7,9 @@
   <title>Manage Customers - Admin | GarageNearMe</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -35,7 +35,7 @@
           <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
           </span>
-          <input type="text" class="form-control rounded-pill ps-5 bg-white border" placeholder="Search by name, phone..." style="width: 300px;">
+          <input id="customersSearch" type="text" class="form-control rounded-pill ps-5 bg-white border" placeholder="Search by name, phone..." style="width: 300px;">
         </div>
       </div>
 
@@ -54,149 +54,109 @@
                 <th class="text-end">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              <!-- Item 1 -->
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 40px; height: 40px;">
-                      R
-                    </div>
-                    <div>
-                      <div class="fw-bold text-dark fs-6">Rahul Verma</div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="text-muted small">+91 98765 00001</div>
-                  <div class="text-muted small">rahul@example.com</div>
-                </td>
-                <td>
-                  <div class="fw-medium text-dark">Jan 12, 2024</div>
-                </td>
-                <td>
-                  <span class="badge bg-light text-dark border px-2 py-1">1 Car</span>
-                  <span class="badge bg-light text-dark border px-2 py-1">1 Bike</span>
-                </td>
-                <td>
-                  <div class="fw-bold text-dark">14</div>
-                </td>
-                <td>
-                  <span class="badge badge-admin-success rounded-pill px-3 py-1">Active</span>
-                </td>
-                <td class="text-end">
-                  <div class="dropdown">
-                    <button class="btn btn-sm btn-light rounded-circle p-2 border" type="button" data-bs-toggle="dropdown">
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                      <li><a class="dropdown-item py-2" href="#">View Booking History</a></li>
-                      <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item py-2 text-danger" href="#">Block User</a></li>
-                    </ul>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Item 2 -->
-              <tr>
-                <td>
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 40px; height: 40px;">
-                      P
-                    </div>
-                    <div>
-                      <div class="fw-bold text-dark fs-6">Priya Singh</div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="text-muted small">+91 99887 00002</div>
-                  <div class="text-muted small">priya@example.com</div>
-                </td>
-                <td>
-                  <div class="fw-medium text-dark">Feb 05, 2024</div>
-                </td>
-                <td>
-                  <span class="badge bg-light text-dark border px-2 py-1">1 Car</span>
-                </td>
-                <td>
-                  <div class="fw-bold text-dark">3</div>
-                </td>
-                <td>
-                  <span class="badge badge-admin-success rounded-pill px-3 py-1">Active</span>
-                </td>
-                <td class="text-end">
-                  <div class="dropdown">
-                    <button class="btn btn-sm btn-light rounded-circle p-2 border" type="button" data-bs-toggle="dropdown">
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                      <li><a class="dropdown-item py-2" href="#">View Booking History</a></li>
-                      <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item py-2 text-danger" href="#">Block User</a></li>
-                    </ul>
-                  </div>
-                </td>
-              </tr>
-              
-              <!-- Item 3 (Blocked) -->
-              <tr class="bg-light">
-                <td>
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-white d-flex align-items-center justify-content-center text-muted fw-bold border" style="width: 40px; height: 40px;">
-                      A
-                    </div>
-                    <div>
-                      <div class="fw-bold text-muted fs-6 text-decoration-line-through">Amit Sharma</div>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div class="text-muted small">+91 91234 00003</div>
-                  <div class="text-muted small">amit@example.com</div>
-                </td>
-                <td>
-                  <div class="fw-medium text-muted">Nov 18, 2023</div>
-                </td>
-                <td>
-                  <span class="badge bg-white text-muted border px-2 py-1">2 Bikes</span>
-                </td>
-                <td>
-                  <div class="fw-bold text-muted">1</div>
-                </td>
-                <td>
-                  <span class="badge badge-admin-danger rounded-pill px-3 py-1">Blocked</span>
-                </td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-success rounded-pill px-3 fw-medium">Unblock</button>
-                </td>
-              </tr>
-
+            <tbody id="customersTableBody">
+              <tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr>
             </tbody>
           </table>
         </div>
         <!-- Pagination -->
         <div class="p-3 border-top d-flex justify-content-between align-items-center">
-          <span class="text-muted small">Showing 1 to 10 of 12,450 entries</span>
-          <ul class="pagination pagination-sm mb-0">
-            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">Next</a></li>
-          </ul>
+          <span class="text-muted small" id="customersPaginationInfo">—</span>
+          <ul class="pagination pagination-sm mb-0" id="customersPagination"></ul>
         </div>
       </div>
 
     </main>
   </div>
 
-  <script src="../js/components.js"></script>
-  <script src="../js/config.js"></script>
-  <script src="../js/bootstrap.bundle.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/bootstrap.bundle.js"></script>
   <script>
     initAdminChrome('User Management');
+  </script>
+  <script>
+  let custPage = 1, custSearch = '';
+
+  async function loadCustomers(page = 1) {
+    const adminKey = localStorage.getItem('gnm_admin_key');
+    if (!adminKey) { window.location.href = '/admin/'; return; }
+
+    const params = new URLSearchParams({ page, limit: 20 });
+    if (custSearch) params.set('search', custSearch);
+
+    const tbody = document.getElementById('customersTableBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr>';
+
+    try {
+      const res = await fetch(getApiBase() + '/auth/admin/customers?' + params, {
+        headers: { 'X-Admin-Key': adminKey }
+      });
+      if (!res.ok) throw new Error(res.status);
+      const d = await res.json();
+
+      if (!d.customers || d.customers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No customers found</td></tr>';
+      } else {
+        tbody.innerHTML = d.customers.map(c => {
+          const initials = c.name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+          return `<tr>
+            <td>
+              <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width:40px;height:40px;">${initials}</div>
+                <div class="fw-bold text-dark fs-6">${c.name}</div>
+              </div>
+            </td>
+            <td>
+              <div class="text-muted small">${c.phone}</div>
+              <div class="text-muted small">${c.email}</div>
+            </td>
+            <td><div class="fw-medium text-dark">${c.joined_at}</div></td>
+            <td><span class="badge bg-light text-dark border px-2 py-1">${c.vehicle_str}</span></td>
+            <td><div class="fw-bold text-dark">${c.booking_count}</div></td>
+            <td><span class="badge badge-admin-success rounded-pill px-3 py-1">Active</span></td>
+            <td class="text-end">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-light rounded-circle p-2 border" type="button" data-bs-toggle="dropdown">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                  <li><a class="dropdown-item py-2" href="#">View Booking History</a></li>
+                </ul>
+              </div>
+            </td>
+          </tr>`;
+        }).join('');
+      }
+
+      const total = d.total || 0;
+      const totalPages = Math.ceil(total / 20);
+      const from = ((page - 1) * 20) + 1;
+      const to = Math.min(page * 20, total);
+      document.getElementById('customersPaginationInfo').textContent =
+        total ? `Showing ${from} to ${to} of ${total.toLocaleString()} entries` : 'No entries';
+
+      const pag = document.getElementById('customersPagination');
+      let html = `<li class="page-item${page<=1?' disabled':''}"><a class="page-link" href="#" onclick="loadCustomers(${page-1});return false;">Previous</a></li>`;
+      for (let p = Math.max(1, page-2); p <= Math.min(totalPages, page+2); p++) {
+        html += `<li class="page-item${p===page?' active':''}"><a class="page-link" href="#" onclick="loadCustomers(${p});return false;">${p}</a></li>`;
+      }
+      html += `<li class="page-item${page>=totalPages?' disabled':''}"><a class="page-link" href="#" onclick="loadCustomers(${page+1});return false;">Next</a></li>`;
+      pag.innerHTML = html;
+      custPage = page;
+    } catch (err) {
+      console.error('Customers load failed:', err);
+      document.getElementById('customersTableBody').innerHTML =
+        '<tr><td colspan="7" class="text-center text-danger py-4">Failed to load customers</td></tr>';
+    }
+  }
+
+  document.getElementById('customersSearch').addEventListener('input', function() {
+    custSearch = this.value.trim();
+    loadCustomers(1);
+  });
+
+  loadCustomers(1);
   </script>
 </body>
 

@@ -7,9 +7,9 @@
   <title>Offline UTR Verification - Admin | GarageNearMe</title>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -129,20 +129,23 @@
     </main>
   </div>
 
-  <script src="../js/components.js"></script>
-  <script src="../js/bootstrap.bundle.js"></script>
-  <script src="../js/config.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/bootstrap.bundle.js"></script>
+  <script src="/js/config.js"></script>
   <script>
     // Initialize Admin sidebar chrome
     initAdminChrome('Offline UTR Verification');
 
     const API = getApiBase();
-    const adminSecret = 'gnm_admin_secret_2026';
+    const adminSecret = localStorage.getItem('gnm_admin_key');
+    if (!adminSecret) {
+      window.location.href = 'index';
+    }
 
     // Load Payout verification requests
     async function loadPayoutRequests() {
       try {
-        const response = await fetch(`${API}/api/payouts/admin/all-requests`, {
+        const response = await fetch(`${API}/payouts/admin/all-requests`, {
           headers: {
             'x-admin-key': adminSecret
           }
@@ -263,7 +266,7 @@
       if (!confirm(confirmMsg)) return;
 
       try {
-        const response = await fetch(`${API}/api/payouts/admin/action/${payoutId}`, {
+        const response = await fetch(`${API}/payouts/admin/action/${payoutId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -296,7 +299,7 @@
       btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
 
       try {
-        const response = await fetch(`${API}/api/payouts/admin/generate-weekly-statements`, {
+        const response = await fetch(`${API}/payouts/admin/generate-weekly-statements`, {
           method: 'POST',
           headers: {
             'x-admin-key': adminSecret

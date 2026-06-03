@@ -7,8 +7,8 @@
     <title>Search Results — GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap"
         rel="stylesheet" />
@@ -135,7 +135,7 @@
                         </svg>
                         <input type="text" id="location-display"
                             class="form-control border-0 bg-transparent shadow-none p-0 me-3"
-                            placeholder="Detecting location..." style="font-size:14px;" readonly>
+                            placeholder="Enter area or city..." style="font-size:14px;">
                         <div style="width:1px;height:20px;background:var(--color-border);" class="me-3"></div>
                         <input type="text" id="service-input"
                             class="form-control border-0 bg-transparent shadow-none p-0"
@@ -158,6 +158,13 @@
                         onclick="toggleChip('pick')">🚗 Pick &amp; Drop</button>
                     <button class="btn btn-outline-secondary filter-chip rounded-pill px-3 py-1" id="chip-sos"
                         onclick="toggleChip('sos')">🆘 SOS Available</button>
+                    <select id="radius-select" class="form-select form-select-sm rounded-pill border px-3"
+                        style="font-size:13px;width:auto;cursor:pointer;" onchange="changeRadius(this.value)">
+                        <option value="2">Within 2 km</option>
+                        <option value="5">Within 5 km</option>
+                        <option value="10">Within 10 km</option>
+                        <option value="20">Within 20 km</option>
+                    </select>
                 </div>
 
             </div>
@@ -215,7 +222,7 @@
     <div id="footer-container"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="../js/components.js"></script>
+    <script src="/js/components.js"></script>
     <script>
         Promise.all([
             loadComponent('navbar-container', 'components/navbar.html', () => {
@@ -226,7 +233,7 @@
         ]);
     </script>
 
-    <script src="../js/config.js"></script>
+    <script src="/js/config.js"></script>
     <script>
         const ITEMS_PER_PAGE = 10;
 
@@ -244,58 +251,137 @@
         // filter state
         let fOpen = false, fPick = false, fSOS = false;
         let serviceQuery = '';
+        let searchRadius = 2.0;
 
         // ── Boot ──
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(location.search);
+
+            // Service from URL or index search
             if (params.get('service')) {
                 document.getElementById('service-input').value = params.get('service');
                 serviceQuery = params.get('service');
             }
+
             document.getElementById('service-input').addEventListener('keydown', e => {
                 if (e.key === 'Enter') onSearch();
             });
-            getLocation();
+
+            // Location input: re-search on Enter
+            document.getElementById('location-display').addEventListener('keydown', e => {
+                if (e.key === 'Enter') geocodeAndFetch(document.getElementById('location-display').value.trim());
+            });
+
+            // GPS coords from index page search
+            const urlLat = parseFloat(params.get('lat'));
+            const urlLng = parseFloat(params.get('lng'));
+            const urlLoc = params.get('location') || '';
+
+            if (!isNaN(urlLat) && !isNaN(urlLng)) {
+                // Came from index with GPS detected
+                userLat = urlLat;
+                userLng = urlLng;
+                document.getElementById('location-display').value = urlLoc || 'Your Location';
+                initDesktopMap();
+                fetchWithCoordinates(userLat, userLng);
+            } else if (urlLoc) {
+                // Came from index with text location
+                document.getElementById('location-display').value = urlLoc;
+                geocodeAndFetch(urlLoc);
+            } else {
+                // Fresh visit — try GPS
+                getLocation();
+            }
         });
 
-        // ── Location ──
+        // ── Geocode text → lat/lng using Nominatim ──
+        async function geocodeAndFetch(locationText) {
+            if (!locationText) { getLocation(); return; }
+            showSkeletons();
+            try {
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationText)}&format=json&limit=1&countrycodes=in`
+                );
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    userLat = parseFloat(data[0].lat);
+                    userLng = parseFloat(data[0].lon);
+                    document.getElementById('location-display').value = data[0].display_name.split(',').slice(0, 2).join(',').trim();
+                    initDesktopMap();
+                    fetchWithCoordinates(userLat, userLng);
+                } else {
+                    fallback();
+                }
+            } catch (_) {
+                fallback();
+            }
+        }
+
+        // ── GPS Location ──
         function getLocation() {
             showSkeletons();
-            if (!navigator.geolocation) {
-                fallback();
-                return;
-            }
-            const locationOptions = {
-                enableHighAccuracy: true,  // Brave ko ISP routing hub ki jagah exact GPS coordinate dene par majboor karega
-                timeout: 10000,            // Firefox ko response dene ke liye 10 seconds ka proper window milega
-                maximumAge: 0              // Kisi bhi browser ka purana cached/wrong location data block karega
-            };
-            if (!navigator.geolocation) { fallback(); return; }
+            if (!navigator.geolocation) { showLocationPrompt(); return; }
             navigator.geolocation.getCurrentPosition(
                 pos => {
                     userLat = pos.coords.latitude;
                     userLng = pos.coords.longitude;
                     document.getElementById('location-display').value = 'Your Location';
+                    // Reverse geocode for display
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLat}&lon=${userLng}&format=json`)
+                        .then(r => r.json())
+                        .then(d => {
+                            const area = d.address?.suburb || d.address?.city_district || d.address?.city || 'Your Location';
+                            document.getElementById('location-display').value = area;
+                        })
+                        .catch(() => {});
                     initDesktopMap();
                     fetchWithCoordinates(userLat, userLng);
                 },
-                () => fallback(),
-                { timeout: 8000 }
+                () => showLocationPrompt(),
+                { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
             );
+        }
+
+        function showLocationPrompt() {
+            document.getElementById('result-count').textContent = '';
+            document.getElementById('garage-container').innerHTML = `
+                <div class="text-center py-5">
+                    <svg viewBox="0 0 24 24" fill="#9CA3AF" width="56" height="56" class="mb-3">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    <h5 class="fw-bold mb-2" style="color:var(--color-text);">Location detect nahi hua</h5>
+                    <p class="text-muted mb-4" style="font-size:14px;">Browser mein location permission allow karein, ya search bar mein apna area type karein.</p>
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <button class="btn rounded-pill px-4 text-white fw-bold" style="background:var(--color-primary);" onclick="getLocation()">
+                            📍 Dobara Try Karein
+                        </button>
+                        <button class="btn btn-outline-secondary rounded-pill px-4 fw-bold" onclick="fallback()">
+                            🏙️ Ahmedabad Use Karein
+                        </button>
+                    </div>
+                </div>`;
+            document.getElementById('pagination-info').innerHTML = '';
+            document.getElementById('pagination').innerHTML = '';
         }
 
         function fallback() {
             userLat = 23.0225; userLng = 72.5714;
-            document.getElementById('location-display').value = 'Ahmedabad (approx.)';
+            document.getElementById('location-display').value = 'Ahmedabad';
             initDesktopMap();
             fetchWithCoordinates(userLat, userLng);
+        }
+
+        // ── Radius change ──
+        function changeRadius(val) {
+            searchRadius = parseFloat(val);
+            fetchWithCoordinates(userLat ?? 23.0225, userLng ?? 72.5714);
         }
 
         // ── Fetch ──
         async function fetchWithCoordinates(lat, lng) {
             showSkeletons();
             try {
-                let url = `${getApiBase()}/garage/nearby?lat=${lat}&lng=${lng}&radius=2.0`;
+                let url = `${getApiBase()}/garage/nearby?lat=${lat}&lng=${lng}&radius=${searchRadius}`;
                 if (serviceQuery) url += `&service_name=${encodeURIComponent(serviceQuery)}`;
                 const res = await fetch(url);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -308,7 +394,13 @@
 
         function onSearch() {
             serviceQuery = document.getElementById('service-input').value.trim();
-            fetchWithCoordinates(userLat, userLng);
+            const locText = document.getElementById('location-display').value.trim();
+            // If location text doesn't match current coords (user typed something new), geocode it
+            if (locText && locText !== 'Your Location' && locText !== 'Ahmedabad (approx.)' && userLat === null) {
+                geocodeAndFetch(locText);
+            } else {
+                fetchWithCoordinates(userLat ?? 23.0225, userLng ?? 72.5714);
+            }
         }
 
         // ── Filters ──
@@ -379,7 +471,7 @@
             return `
             <div class="garage-item card border mb-4 rounded-4 shadow-sm overflow-hidden"
                  id="card-${g.id}"
-                 onclick="window.location.href='garage-details.html?id=${g.id}'"
+                 onclick="window.location.href='garage-details/${g.slug || g.id}'"
                  onmouseenter="hoverMarker(${g.id})"
                  onmouseleave="unhoverMarker()">
                 <div class="row g-0">
@@ -404,7 +496,7 @@
                                     <span class="${g.is_open_now ? 'text-success' : 'text-danger'} fw-bold">${g.is_open_now ? 'Open' : 'Closed'}</span>
                                 </div>
                                 <button class="btn btn-sm rounded-pill text-white px-3" style="background:var(--color-primary);"
-                                    onclick="event.stopPropagation();window.location.href='garage-details.html?id=${g.id}'">
+                                    onclick="event.stopPropagation();window.location.href='garage-details/${g.slug || g.id}'">
                                     Book Now
                                 </button>
                             </div>
@@ -499,7 +591,7 @@
                     <div style="font-size:13px;font-weight:700;margin-bottom:3px;">${g.name}</div>
                     <div style="font-size:12px;color:#666;">${g.distance_km} km away</div>
                     <div style="font-size:12px;margin-bottom:6px;">${g.is_open_now ? '<span style="color:#22C55E;">● Open</span>' : '<span style="color:#E53E3E;">● Closed</span>'}</div>
-                    <button class="popup-btn" onclick="window.location.href='garage-details.html?id=${g.id}'">View Garage</button>
+                    <button class="popup-btn" onclick="window.location.href='garage-details/${g.slug || g.id}'">View Garage</button>
                 </div>`;
                 const icon = markerIcon(g.is_open_now);
                 if (desktopMap) {
@@ -578,8 +670,8 @@
         }
     </script>
 
-    <script src="../js/bootstrap.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/script.js"></script>
 </body>
 
 </html>

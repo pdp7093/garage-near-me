@@ -1,4 +1,10 @@
-const API_BASE = window.API_BASE || ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:8000' : 'https://sanctity-litter-machinist.ngrok-free.dev');
+function _resolveApiBase() {
+  const h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:8000';
+  if (/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h)) return `http://${h}:8000`;
+  return window.location.origin;
+}
+const API_BASE = window.API_BASE || _resolveApiBase();
 
 async function loadComponent(elementId, componentPath, callback = null) {
   const container = document.getElementById(elementId);
@@ -12,6 +18,25 @@ async function loadComponent(elementId, componentPath, callback = null) {
     
     const html = await response.text();
     container.innerHTML = html;
+
+    // Normalize internal relative links inside admin/mechanic components
+    try {
+      let prefix = null;
+      if (componentPath.startsWith('/admin/')) prefix = '/admin/';
+      else if (componentPath.startsWith('/mechanic/')) prefix = '/mechanic/';
+      if (prefix) {
+        container.querySelectorAll('a[href]').forEach(a => {
+          const h = a.getAttribute('href');
+          if (!h) return;
+          if (h.startsWith('/') || h.startsWith('http') || h.startsWith('mailto:') || h.startsWith('#')) return;
+          if (h.includes('${')) return; // template variable
+          if (h.startsWith('./') || h.startsWith('../')) return;
+          a.setAttribute('href', prefix + h);
+        });
+      }
+    } catch (e) {
+      console.error('Error normalizing component links', e);
+    }
 
     // Execute callback if provided (e.g., to bind events after load)
     if (callback && typeof callback === 'function') {
@@ -28,7 +53,7 @@ async function loadComponent(elementId, componentPath, callback = null) {
  * Highlights the active link in the sidebar based on current URL
  */
 function setActiveSidebarLink() {
-  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  const currentPath = window.location.pathname.split('/').pop() || 'index';
   const links = document.querySelectorAll('.admin-nav-link, .sidebar-link, .gnm-nav-link');
   
   links.forEach(link => {
@@ -57,15 +82,15 @@ async function initAdminChrome(pageTitle, callback = null) {
   // Enforce secure administrator session lock
   const adminKey = localStorage.getItem("gnm_admin_key");
   if (!adminKey) {
-    window.location.href = "index.html";
+    window.location.href = "index";
     return;
   }
 
-  const v = new Date().getTime();
+  const v = '2506b';
 
   await Promise.all([
-    loadComponent('sidebar-container', 'components/sidebar.html?v=' + v, setActiveSidebarLink),
-    loadComponent('topbar-container', 'components/topbar.html?v=' + v, () => {
+    loadComponent('sidebar-container', '/admin/components/sidebar.html?v=' + v, setActiveSidebarLink),
+    loadComponent('topbar-container', '/admin/components/topbar.html?v=' + v, () => {
       const titleEl = document.getElementById('topbar-title');
       if (titleEl) titleEl.textContent = pageTitle;
     })
@@ -101,17 +126,17 @@ function bindMechanicSidebarToggle() {
 }
 
 async function initMechanicChrome(pageTitle, callback = null, activeHref = null) {
-  const v = new Date().getTime();
+  const v = '2506b';
 
   await Promise.all([
-    loadComponent('sidebar-container', 'components/sidebar.html?v=' + v, () => {
+    loadComponent('sidebar-container', '/mechanic/components/sidebar.html?v=' + v, () => {
       setActiveSidebarLink();
       if (activeHref) {
         const activeLink = document.querySelector(`.sidebar-link[href="${activeHref}"]`);
         if (activeLink) activeLink.classList.add('active');
       }
     }),
-    loadComponent('topbar-container', 'components/topbar.html?v=' + v, () => {
+    loadComponent('topbar-container', '/mechanic/components/topbar.html?v=' + v, () => {
       const titleEl = document.getElementById('topbar-title');
       if (titleEl) titleEl.textContent = pageTitle;
     })
@@ -119,15 +144,100 @@ async function initMechanicChrome(pageTitle, callback = null, activeHref = null)
 
   bindMechanicSidebarToggle();
 
+  // Dynamic data — name, badges, sos dot
+  updateMechanicChrome();
+
+  // FCM — garage notifications (SDK load hone ke baad)
+  loadFirebaseSDKAndInit('garage');
+
   if (callback && typeof callback === 'function') {
     callback();
   }
 }
 
+/**
+ * Mechanic topbar + sidebar dynamic update
+ * - Garage name + initials from API
+ * - Active SOS count → bell dot + sidebar badge
+ * - Pending bookings count → sidebar badge
+ */
+async function updateMechanicChrome() {
+  const token = localStorage.getItem('garage_token');
+  if (!token) return;
+
+  // ── 1. Garage info (name + initials) ──────────────────
+  try {
+    const res = await fetch(`${API_BASE}/api/garage-auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const garage = await res.json();
+      const name = garage.name || 'Partner';
+      const initials = getInitials(name);
+
+      const nameEl   = document.getElementById('topbar-name');
+      const avatarEl = document.getElementById('topbar-avatar');
+      if (nameEl)   nameEl.textContent   = name;
+      if (avatarEl) avatarEl.textContent = initials;
+    }
+  } catch (e) {}
+
+  // ── 2. Active SOS count ────────────────────────────────
+  try {
+    const res = await fetch(`${API_BASE}/api/sos/active`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const list = await res.json();
+      const declined = JSON.parse(localStorage.getItem('declined_sos') || '[]').map(Number);
+      const activeSOS = list.filter(s =>
+        s.status === 'broadcasting' && !declined.includes(Number(s.id))
+      );
+      const count = activeSOS.length;
+
+      // Topbar bell dot
+      const dot = document.getElementById('topbar-sos-dot');
+      if (dot) dot.classList.toggle('d-none', count === 0);
+
+      // Sidebar SOS badge
+      const sosBadge = document.getElementById('sidebar-sos-badge');
+      if (sosBadge) {
+        if (count > 0) {
+          sosBadge.textContent = count;
+          sosBadge.classList.remove('d-none');
+        } else {
+          sosBadge.classList.add('d-none');
+        }
+      }
+    }
+  } catch (e) {}
+
+  // ── 3. Pending bookings count ──────────────────────────
+  try {
+    const res = await fetch(`${API_BASE}/api/bookings/garage/incoming`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const count = Array.isArray(data) ? data.length : (data.total || 0);
+
+      const bkBadge = document.getElementById('sidebar-bookings-badge');
+      if (bkBadge) {
+        if (count > 0) {
+          bkBadge.textContent = count;
+          bkBadge.classList.remove('d-none');
+        } else {
+          bkBadge.classList.add('d-none');
+        }
+      }
+    }
+  } catch (e) {}
+}
+
 async function mechanicCheckLocationSet() {
   const token = localStorage.getItem('garage_token');
   if (!token) {
-    window.location.href = 'index.html';
+    window.location.href = 'index';
     return;
   }
 
@@ -136,7 +246,7 @@ async function mechanicCheckLocationSet() {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) {
-      window.location.href = 'index.html';
+      window.location.href = 'index';
       return;
     }
 
@@ -144,8 +254,8 @@ async function mechanicCheckLocationSet() {
     
     // Check for Credit Lock
     if (garage.is_credit_locked) {
-      const currentPath = window.location.pathname.split('/').pop() || 'dashboard.html';
-      if (currentPath !== 'payout-history.html') {
+      const currentPath = window.location.pathname.split('/').pop() || 'dashboard';
+      if (currentPath !== 'payout-history') {
         showCreditLockOverlay(garage.pending_platform_dues);
         return; // Don't check location if locked
       }
@@ -158,7 +268,7 @@ async function mechanicCheckLocationSet() {
 
     const loc = garage.location;
     if (!loc || !loc.latitude || !loc.longitude) {
-      window.location.href = 'set-location.html';
+      window.location.href = 'set-location';
     }
   } catch (err) {
     console.error('Error in mechanic check:', err);
@@ -223,7 +333,7 @@ function showGracePeriodBanner(duesAmount, graceEndsAt) {
         </p>
       </div>
     </div>
-    <a href="payout-history.html" style="
+    <a href="payout-history" style="
       background: linear-gradient(135deg, #F59E0B, #D97706);
       color: #0F172A;
       text-decoration: none;
@@ -320,7 +430,7 @@ function showCreditLockOverlay(duesAmount) {
       </div>
 
       <div style="margin-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px;">
-        <a href="payout-history.html" style="color: #38BDF8; text-decoration: none; font-size: 13px; font-weight: 600; transition: 0.2s;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">View Past Payouts Ledger</a>
+        <a href="payout-history" style="color: #38BDF8; text-decoration: none; font-size: 13px; font-weight: 600; transition: 0.2s;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">View Past Payouts Ledger</a>
       </div>
     </div>
   `;
@@ -493,19 +603,39 @@ async function initCustomerMenu() {
     const newMenuBtn = menuBtn.cloneNode(true);
     menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
     
+    // Get fresh reference to mobileMenu after DOM update
+    const freshMobileMenu = document.getElementById('mobileMenu');
+    
     newMenuBtn.addEventListener('click', function() {
-      this.classList.toggle('active');
-      mobileMenu.classList.toggle('active');
-      const isExpanded = this.classList.contains('active');
-      this.setAttribute('aria-expanded', isExpanded);
+      if (freshMobileMenu) {
+        freshMobileMenu.classList.toggle('open');
+        const isExpanded = freshMobileMenu.classList.contains('open');
+        this.setAttribute('aria-expanded', isExpanded);
+      }
     });
+    
+    // Close menu when a link is clicked
+    if (freshMobileMenu) {
+      const links = freshMobileMenu.querySelectorAll('a');
+      links.forEach(link => {
+        link.addEventListener('click', function() {
+          freshMobileMenu.classList.remove('open');
+          newMenuBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
   }
 
   await updateCustomerNav();
+
+  // FCM — customer notifications (SDK load hone ke baad)
+  if (localStorage.getItem('gnm_token')) {
+    loadFirebaseSDKAndInit('customer');
+  }
 }
 
 
-// App
+// App — Firebase SDK + Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker
@@ -513,4 +643,38 @@ if ('serviceWorker' in navigator) {
             .then(() => console.log('PWA ready'))
             .catch(err => console.log(err));
     });
+}
+
+// Firebase SDK load karo — chain loading (app pehle, phir messaging)
+function loadFirebaseSDKAndInit(role) {
+    if (typeof firebase !== 'undefined' && firebase.apps !== undefined) {
+        // Already loaded
+        if (typeof initFCM === 'function') initFCM(role).catch(() => {});
+        return;
+    }
+
+    function loadScript(src, onload) {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = onload;
+        s.onerror = (e) => console.error('Firebase script load failed:', src, e);
+        document.head.appendChild(s);
+    }
+
+    // Chain: app-compat → messaging-compat → initFCM (no auth needed for FCM)
+    loadScript(
+        'https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js',
+        () => {
+            loadScript(
+                'https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js',
+                () => {
+                    setTimeout(() => {
+                        if (typeof initFCM === 'function') {
+                            initFCM(role).catch(e => console.error('FCM init error:', e));
+                        }
+                    }, 300);
+                }
+            );
+        }
+    );
 }

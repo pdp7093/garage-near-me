@@ -62,6 +62,7 @@ class Customer(Base):
     email           = Column(String(255), unique=True, nullable=False)
     hashed_password = Column(Text, nullable=False)
     profile_image   = Column(String(500), nullable=True)  # URL to profile image
+    fcm_token       = Column(Text, nullable=True)           # Firebase push notification token
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
 
     bookings        = relationship("Booking", back_populates="customer", cascade="all, delete-orphan")
@@ -179,6 +180,7 @@ class Garage(Base):
     __tablename__ = "garages"
 
     id                   = Column(Integer, primary_key=True, index=True)
+    slug                 = Column(String(300), unique=True, nullable=True, index=True)
     name                 = Column(String(255), nullable=False, index=True)
     owner_name           = Column(String(255), nullable=False)
     phone                = Column(String(15), unique=True, nullable=False, index=True)
@@ -197,6 +199,8 @@ class Garage(Base):
     # GST
     has_gst              = Column(Boolean, default=False)
     gst_number           = Column(String(50), nullable=True)
+
+    fcm_token             = Column(Text, nullable=True)    # Firebase push notification token
 
     # Credit lock & platform dues system
     pending_platform_dues = Column(Numeric(10, 2), default=0.0)
@@ -302,7 +306,6 @@ class GarageService(Base):
     category     = Column(String, nullable=True)
     price        = Column(Numeric(10, 2), nullable=True)
     is_available = Column(Boolean, default=True)
-
     garage       = relationship("Garage", back_populates="services")
 
 
@@ -315,6 +318,7 @@ class Booking(Base):
 
     id                     = Column(Integer, primary_key=True, index=True)
     booking_number         = Column(String(50), unique=True, index=True, nullable=True)
+    slug                   = Column(String(300), unique=True, nullable=True, index=True)
     customer_id            = Column(Integer, ForeignKey("customers.id"), nullable=False)
     garage_id              = Column(Integer, ForeignKey("garages.id"), nullable=False)
     booking_type           = Column(Enum(BookingType), nullable=False)
@@ -383,6 +387,7 @@ class SOS(Base):
     __tablename__ = "sos_requests"
 
     id                  = Column(Integer, primary_key=True, index=True)
+    slug                = Column(String(300), unique=True, nullable=True, index=True)
     sos_number          = Column(String(50), unique=True, index=True, nullable=True)  # e.g. SOS-2026-001
     customer_id         = Column(Integer, ForeignKey("customers.id"), nullable=False)
     garage_id           = Column(Integer, ForeignKey("garages.id"), nullable=True)  # NULL jab tak accept nahi hota
@@ -422,6 +427,7 @@ class SOS(Base):
     # Timestamps
     created_at          = Column(DateTime(timezone=True), server_default=func.now())
     accepted_at         = Column(DateTime(timezone=True), nullable=True)
+    arrived_at          = Column(DateTime(timezone=True), nullable=True)
     responded_at        = Column(DateTime(timezone=True), nullable=True)
     started_at          = Column(DateTime(timezone=True), nullable=True)
     completed_at        = Column(DateTime(timezone=True), nullable=True)

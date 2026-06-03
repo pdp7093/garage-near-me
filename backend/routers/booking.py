@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, cast, Date
 from datetime import datetime
@@ -7,9 +7,12 @@ from fastapi.security import OAuth2PasswordBearer
 import os
 import random
 import string
+import re
+import unicodedata
 
 import models, schemas
 from database import get_db
+from routers.fcm import GarageNotifications, CustomerNotifications
 
 router = APIRouter()
 
@@ -70,6 +73,22 @@ def generate_unique_booking_number(db: Session) -> str:
             return code
 
 
+def _resolve_booking(slug_or_id: str, db: Session) -> models.Booking | None:
+    try:
+        return db.query(models.Booking).filter(models.Booking.id == int(slug_or_id)).first()
+    except (ValueError, TypeError):
+        return db.query(models.Booking).filter(models.Booking.slug == slug_or_id).first()
+
+
+def _make_booking_slug(booking_number: str, booking_id: int) -> str:
+    """Booking number + ID se clean URL slug banao."""
+    s = unicodedata.normalize("NFKD", booking_number).encode("ascii", "ignore").decode()
+    s = re.sub(r"[^\w\s-]", "", s).strip().lower()
+    s = re.sub(r"[\s_]+", "-", s)
+    s = re.sub(r"-+", "-", s)
+    return f"{s}-{booking_id}"
+
+
 # ──────────────────────────────────────────
 # CUSTOMER ENDPOINTS
 # ──────────────────────────────────────────
@@ -119,6 +138,19 @@ def create_booking(
     db.add(booking)
     db.commit()
     db.refresh(booking)
+    booking.slug = _make_booking_slug(booking.booking_number, booking.id)
+    db.commit()
+    db.refresh(booking)
+
+    # FCM — Garage ko new booking ka alert bhejo
+    if garage.fcm_token:
+        GarageNotifications.new_booking(
+            token=garage.fcm_token,
+            booking_id=booking.id,
+            customer_name=current_customer.name,
+            service=booking.service_type or "General Service"
+        )
+
     return booking
 
 
@@ -165,6 +197,9 @@ def create_sos_booking(
         status           = models.BookingStatus.pending,
     )
     db.add(booking)
+    db.commit()
+    db.refresh(booking)
+    booking.slug = _make_booking_slug(booking.booking_number, booking.id)
     db.commit()
     db.refresh(booking)
     return booking
@@ -253,6 +288,127 @@ def update_booking_estimate(
     return booking
 
 
+# ──────────────────────────────────────────
+# ADMIN — ALL BOOKINGS (paginated)
+# GET /api/bookings/admin/all
+# ──────────────────────────────────────────
+
+@router.get("/admin/all")
+def admin_get_all_bookings(
+    page: int = 1,
+    limit: int = 20,
+    type: str = None,      # "normal" | "sos"
+    status_filter: str = None,   # BookingStatus value
+    search: str = None,   # booking number, customer name/phone
+    db: Session = Depends(get_db),
+    x_admin_key: str = Header(None)
+):
+    from routers.garage_requests import check_admin
+    if not x_admin_key:
+        raise HTTPException(status_code=401, detail="Admin key required")
+    check_admin(x_admin_key)
+
+    from sqlalchemy import or_
+    query = db.query(models.Booking)
+
+    if type in ("normal", "sos"):
+        query = query.filter(models.Booking.booking_type == models.BookingType(type))
+
+    if status_filter:
+        try:
+            query = query.filter(models.Booking.status == models.BookingStatus(status_filter))
+        except ValueError:
+            pass
+
+    if search:
+        like = f"%{search}%"
+        query = query.join(models.Customer, models.Booking.customer_id == models.Customer.id, isouter=True)
+        query = query.filter(or_(
+            models.Booking.booking_number.ilike(like),
+            models.Customer.name.ilike(like),
+            models.Customer.phone.ilike(like),
+        ))
+
+    total = query.count()
+    bookings = query.order_by(models.Booking.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
+
+    now = datetime.utcnow()
+    rows = []
+    for b in bookings:
+        garage = db.query(models.Garage).filter(models.Garage.id == b.garage_id).first()
+        garage_loc = garage.location if garage and garage.location else None
+        rows.append({
+            "id":             b.id,
+            "slug":           b.slug,
+            "booking_number": b.booking_number,
+            "booking_type":   b.booking_type.value,
+            "status":         b.status.value,
+            "customer_name":  b.customer.name if b.customer else "—",
+            "customer_phone": b.customer.phone if b.customer else "—",
+            "vehicle_model":  b.vehicle_model or b.vehicle_type,
+            "garage_name":    garage.name if garage else "—",
+            "garage_city":    garage_loc.city if garage_loc else "—",
+            "final_amount":   float(b.final_amount) if b.final_amount else None,
+            "payment_status": b.payment_status,
+            "created_at":     b.created_at.isoformat() if b.created_at else None,
+        })
+
+    return {
+        "total":    total,
+        "page":     page,
+        "limit":    limit,
+        "bookings": rows,
+    }
+
+
+# ──────────────────────────────────────────
+# CANCEL BOOKING (Customer)
+# POST /api/bookings/{booking_id}/cancel
+# ──────────────────────────────────────────
+
+@router.post("/{booking_id}/cancel")
+def cancel_booking(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    """
+    Customer apni booking cancel karta hai.
+    Sirf pending ya accepted status pe cancel ho sakti hai.
+    POST /api/bookings/{booking_id}/cancel
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id          == booking_id,
+        models.Booking.customer_id == current_customer.id
+    ).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    if booking.status not in [
+        models.BookingStatus.pending,
+        models.BookingStatus.accepted,
+    ]:
+        raise HTTPException(
+            status_code=400,
+            detail="Sirf pending ya accepted booking cancel ho sakti hai. Ongoing ya completed bookings cancel nahi hoti."
+        )
+
+    booking.status       = models.BookingStatus.cancelled
+    booking.completed_at = datetime.utcnow()
+    db.commit()
+    db.refresh(booking)
+
+    # FCM — Garage ko cancel ka alert
+    if booking.garage and booking.garage.fcm_token:
+        GarageNotifications.booking_cancelled(
+            token=booking.garage.fcm_token,
+            booking_id=booking_id
+        )
+
+    return {"message": "Booking successfully cancelled", "booking_id": booking_id, "status": "cancelled"}
+
+
 @router.get("/my", response_model=list[schemas.BookingResponse])
 def get_my_bookings(
     db: Session = Depends(get_db),
@@ -332,6 +488,28 @@ def get_my_past_bookings(
     }
 
 
+@router.get("/{booking_slug_or_id}", response_model=schemas.BookingResponse)
+def get_customer_booking(
+    booking_slug_or_id: str,
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    """
+    Customer ek booking dekhe — ID ya slug se.
+    GET /api/bookings/{slug_or_id}
+    """
+    booking = _resolve_booking(booking_slug_or_id, db)
+    if not booking or booking.customer_id != current_customer.id:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking.garage:
+        booking.garage_name = booking.garage.name
+        loc = booking.garage.location
+        if loc:
+            parts = [loc.shop_number, loc.street, loc.city]
+            booking.garage_address = ", ".join(p for p in parts if p)
+    return booking
+
+
 @router.delete("/{booking_id}", status_code=204)
 def cancel_booking(
     booking_id: int,
@@ -395,24 +573,15 @@ def get_all_garage_bookings(
     ).order_by(models.Booking.created_at.desc()).all()
 
 
-@router.get("/garage/{booking_id}", response_model=schemas.BookingResponse)
+@router.get("/garage/{booking_slug_or_id}", response_model=schemas.BookingResponse)
 def get_garage_booking(
-    booking_id: int,
+    booking_slug_or_id: str,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    """
-    Garage ke liye ek specific booking ki details.
-    GET /api/bookings/garage/{booking_id}
-    """
-    booking = db.query(models.Booking).filter(
-        models.Booking.id        == booking_id,
-        models.Booking.garage_id == current_garage.id
-    ).first()
-
-    if not booking:
+    booking = _resolve_booking(booking_slug_or_id, db)
+    if not booking or booking.garage_id != current_garage.id:
         raise HTTPException(status_code=404, detail="Booking not found")
-        
     return booking
 
 
@@ -664,6 +833,28 @@ def update_booking_payment_status(
 
             db.commit()
     
+    # FCM — Status change pe notifications
+    customer = booking.customer
+    if customer and customer.fcm_token:
+        if update.status == models.BookingStatus.accepted:
+            CustomerNotifications.booking_accepted(
+                token=customer.fcm_token,
+                booking_id=booking.id,
+                garage_name=current_garage.name
+            )
+        elif update.status == models.BookingStatus.ongoing:
+            CustomerNotifications.mechanic_on_way(
+                token=customer.fcm_token,
+                booking_id=booking.id,
+                garage_name=current_garage.name
+            )
+        elif update.status == models.BookingStatus.completed:
+            CustomerNotifications.repair_complete(
+                token=customer.fcm_token,
+                booking_id=booking.id,
+                garage_name=current_garage.name
+            )
+
     # Return as dict and inject garage info
     booking_data = schemas.BookingResponse.model_validate(booking).model_dump()
     booking_data['garage_visiting_charge'] = float(current_garage.visiting_charge) if current_garage.visiting_charge else None
@@ -708,6 +899,14 @@ def send_estimate_otp(
     print(f"ESTIMATE OTP for Booking #{booking_id}: {otp}")
     print(f"Customer phone: {booking.customer.phone}")
     print(f"{'='*40}\n")
+
+    # FCM — Customer ko estimate ready ka alert
+    if booking.customer and booking.customer.fcm_token and booking.estimated_amount:
+        CustomerNotifications.estimate_ready(
+            token=booking.customer.fcm_token,
+            booking_id=booking_id,
+            amount=float(booking.estimated_amount)
+        )
 
     return {
         "message": "OTP sent to customer",
@@ -848,29 +1047,17 @@ def verify_additional_otp(
 # GET /api/bookings/{booking_id}/bill
 # ──────────────────────────────────────────
 
-@router.get("/{booking_id}/bill", response_model=schemas.BillResponse)
+@router.get("/{booking_slug_or_id}/bill", response_model=schemas.BillResponse)
 def get_booking_bill(
-    booking_id: int,
+    booking_slug_or_id: str,
     db: Session = Depends(get_db),
     current_customer: models.Customer = Depends(get_current_customer)
 ):
-    """
-    Customer apne booking ka bill dekh sakta hai.
-    Bill sirf paid bookings mein hoga.
-    GET /api/bookings/{booking_id}/bill
-    """
-    booking = db.query(models.Booking).filter(
-        models.Booking.id           == booking_id,
-        models.Booking.customer_id  == current_customer.id
-    ).first()
-
-    if not booking:
+    booking = _resolve_booking(booking_slug_or_id, db)
+    if not booking or booking.customer_id != current_customer.id:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    bill = db.query(models.Bill).filter(
-        models.Bill.booking_id == booking_id
-    ).first()
-
+    bill = db.query(models.Bill).filter(models.Bill.booking_id == booking.id).first()
     if not bill:
         raise HTTPException(status_code=404, detail="Bill not found. Payment may not have been marked as paid yet.")
 

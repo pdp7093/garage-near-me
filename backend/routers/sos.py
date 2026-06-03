@@ -6,7 +6,7 @@ from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 from typing import Optional
 from pydantic import BaseModel
-import os, math, random
+import os, math, random, secrets, string
 
 import models, schemas
 from database import get_db
@@ -80,6 +80,7 @@ class SOSEstimatePayload(BaseModel):
     estimated_amount: float
     description:      Optional[str] = None
     visiting_charge:  Optional[float] = None
+    estimate_details: Optional[list] = None
 
 
 # ──────────────────────────────────────────
@@ -154,10 +155,21 @@ def create_sos(
     db.commit()
     db.refresh(sos_request)
 
+    # Random slug generate karo (koi ID visible nahi)
+    chars = string.ascii_lowercase + string.digits
+    while True:
+        candidate = ''.join(secrets.choice(chars) for _ in range(10))
+        if not db.query(models.SOS).filter(models.SOS.slug == candidate).first():
+            break
+    sos_request.sos_number = f"SOS-{sos_request.id}"
+    sos_request.slug       = candidate
+    db.commit()
+    db.refresh(sos_request)
+
     # TODO: FCM broadcast sabko
     # TODO: Twilio calls (launch pe)
     print(f"\n{'='*50}")
-    print(f"🆘 SOS BROADCAST — SOS #{sos_request.id}")
+    print(f"🆘 SOS BROADCAST — SOS #{sos_request.id} ({sos_request.sos_number})")
     print(f"Customer: {current_customer.name} ({current_customer.phone})")
     print(f"Location: {data.lat}, {data.lng}")
     print(f"Nearby garages notified: {[g['name'] for g in nearby_garages]}")
@@ -166,6 +178,7 @@ def create_sos(
     return {
         "success":        True,
         "sos_id":         sos_request.id,
+        "sos_slug":       sos_request.slug,
         "nearby_garages": nearby_garages,
         "message":        f"{len(nearby_garages)} garages ko alert bheja gaya!"
     }
@@ -189,11 +202,12 @@ def get_active_sos(
     if not loc or not loc.latitude or not loc.longitude:
         return []
 
-    # Pending/Broadcasting SOS requests for this garage
+    # Pending/Broadcasting/Accepted SOS requests for this garage
+    active_garage_statuses = [models.SOSStatus.accepted, models.SOSStatus.on_the_way, models.SOSStatus.in_progress]
     sos_requests = db.query(models.SOS).filter(
         or_(
             models.SOS.status == models.SOSStatus.broadcasting,
-            (models.SOS.status == models.SOSStatus.accepted) & (models.SOS.garage_id == current_garage.id)
+            (models.SOS.status.in_(active_garage_statuses)) & (models.SOS.garage_id == current_garage.id)
         )
     ).order_by(models.SOS.created_at.desc()).all()
 
@@ -258,10 +272,17 @@ def get_sos_detail(
     mins     = int(diff.total_seconds() / 60)
     time_ago = f"{mins} min ago" if mins < 60 else f"{int(mins/60)}h ago"
 
+    customer = db.query(models.Customer).filter(models.Customer.id == sos_request.customer_id).first()
+
     return {
         "id":               sos_request.id,
+        "slug":             sos_request.slug,
         "sos_number":       sos_request.sos_number,
         "status":           sos_request.status.value,
+        "customer_id":      sos_request.customer_id,
+        "customer_name":    customer.name if customer else None,
+        "garage_name":      current_garage.name,
+        "garage_address":   current_garage.location.address if current_garage.location and hasattr(current_garage.location, 'address') else None,
         "vehicle_type":     sos_request.vehicle_type,
         "vehicle_model":    sos_request.vehicle_model,
         "vehicle_number":   sos_request.vehicle_number,
@@ -272,10 +293,13 @@ def get_sos_detail(
         "distance_km":      round(dist, 2) if dist else None,
         "time_ago":         time_ago,
         "estimated_charge": float(sos_request.estimated_charge) if sos_request.estimated_charge else None,
+        "final_charge":     float(sos_request.final_charge) if sos_request.final_charge else None,
+        "visiting_charge":  float(sos_request.visiting_charge) if hasattr(sos_request, 'visiting_charge') and sos_request.visiting_charge else None,
         "estimate_status":  sos_request.estimate_status.value,
         "estimate_details": sos_request.estimate_details,
         "garage_note":      sos_request.garage_note,
         "responded_at":     sos_request.responded_at.isoformat() if sos_request.responded_at else None,
+        "arrived_at":       sos_request.arrived_at.isoformat() if sos_request.arrived_at else None,
         "started_at":       sos_request.started_at.isoformat() if sos_request.started_at else None,
         "completed_at":     sos_request.completed_at.isoformat() if sos_request.completed_at else None,
         "created_at":       sos_request.created_at.isoformat(),
@@ -358,6 +382,7 @@ def send_sos_estimate(
     sos_request.estimated_charge = payload.estimated_amount
     sos_request.garage_note      = payload.description
     sos_request.visiting_charge  = payload.visiting_charge
+    sos_request.estimate_details = payload.estimate_details
     sos_request.estimate_status  = models.EstimateStatus.pending
 
     # OTP generate karo
@@ -418,6 +443,33 @@ def verify_sos_otp(
 # 8. GARAGE — COMPLETE SOS
 # POST /api/sos/{booking_id}/complete
 # ──────────────────────────────────────────
+
+# ──────────────────────────────────────────
+# GARAGE — MARK ARRIVED
+# PATCH /api/sos/{sos_id}/mark-arrived
+# ──────────────────────────────────────────
+
+@router.post("/{sos_id}/mark-arrived")
+def mark_arrived(
+    sos_id: int,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    sos_request = db.query(models.SOS).filter(
+        models.SOS.id        == sos_id,
+        models.SOS.garage_id == current_garage.id,
+        models.SOS.status    == models.SOSStatus.accepted
+    ).first()
+    if not sos_request:
+        raise HTTPException(status_code=404, detail="SOS not found or not in accepted state")
+
+    sos_request.arrived_at = datetime.utcnow()
+    # Status 'accepted' hi rehega — frontend arrived_at check karta hai
+    db.commit()
+    db.refresh(sos_request)
+
+    return {"message": "Arrived marked!", "arrived_at": sos_request.arrived_at.isoformat()}
+
 
 @router.post("/{sos_id}/complete")
 def complete_sos(
@@ -482,14 +534,15 @@ def get_sos_history(
 
 @router.get("/customer/{sos_id}")
 def get_sos_status_customer(
-    sos_id: int,
+    sos_id: str,
     db: Session = Depends(get_db),
     current_customer: models.Customer = Depends(get_current_customer)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id          == sos_id,
-        models.SOS.customer_id == current_customer.id,
-    ).first()
+    q = db.query(models.SOS).filter(models.SOS.customer_id == current_customer.id)
+    if sos_id.isdigit():
+        sos_request = q.filter(models.SOS.id == int(sos_id)).first()
+    else:
+        sos_request = q.filter(models.SOS.slug == sos_id).first()
     if not sos_request:
         raise HTTPException(status_code=404, detail="SOS request not found")
 
@@ -520,6 +573,7 @@ def get_sos_status_customer(
         "started_at":       sos_request.started_at.isoformat() if sos_request.started_at else None,
         "completed_at":     sos_request.completed_at.isoformat() if sos_request.completed_at else None,
         "created_at":       sos_request.created_at.isoformat(),
+        "estimate_details": sos_request.estimate_details,
     }
 
 
@@ -530,15 +584,18 @@ def get_sos_status_customer(
 
 @router.post("/customer/{sos_id}/cancel")
 def cancel_sos_customer(
-    sos_id: int,
+    sos_id: str,
     db: Session = Depends(get_db),
     current_customer: models.Customer = Depends(get_current_customer)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id          == sos_id,
+    q = db.query(models.SOS).filter(
         models.SOS.customer_id == current_customer.id,
         models.SOS.status.notin_([models.SOSStatus.completed, models.SOSStatus.cancelled])
-    ).first()
+    )
+    if sos_id.isdigit():
+        sos_request = q.filter(models.SOS.id == int(sos_id)).first()
+    else:
+        sos_request = q.filter(models.SOS.slug == sos_id).first()
     if not sos_request:
         raise HTTPException(status_code=404, detail="SOS request not found or cannot be cancelled")
 
@@ -548,3 +605,35 @@ def cancel_sos_customer(
     db.refresh(sos_request)
 
     return {"message": "SOS cancelled", "status": sos_request.status.value}
+
+
+# ──────────────────────────────────────────
+# 11b. CUSTOMER — GET ACTIVE SOS
+# GET /api/sos/customer/active
+# ──────────────────────────────────────────
+
+@router.get("/customer/active")
+def get_customer_active_sos(
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    active_statuses = [
+        models.SOSStatus.broadcasting,
+        models.SOSStatus.accepted,
+        models.SOSStatus.on_the_way,
+        models.SOSStatus.in_progress
+    ]
+    
+    active_sos = db.query(models.SOS).filter(
+        models.SOS.customer_id == current_customer.id,
+        models.SOS.status.in_(active_statuses)
+    ).order_by(models.SOS.created_at.desc()).first()
+    
+    if active_sos:
+        return {
+            "has_active": True,
+            "sos_id": active_sos.id,
+            "sos_slug": active_sos.slug if hasattr(active_sos, 'slug') else active_sos.id,
+            "status": active_sos.status.value
+        }
+    return {"has_active": False}

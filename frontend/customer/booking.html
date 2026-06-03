@@ -7,8 +7,8 @@
     <title>Book Service — GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#DC2626">
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
@@ -68,7 +68,7 @@
     <!-- NAVBAR -->
     <nav class="gnm-nav sticky-top shadow-sm border-bottom">
         <div class="gnm-nav-inner justify-content-between">
-            <a href="index.html" class="gnm-logo text-decoration-none">
+            <a href="index" class="gnm-logo text-decoration-none">
                 <div class="gnm-logo-icon">
                     <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
                         <path
@@ -91,7 +91,7 @@
     <div class="container py-4 py-md-5 flex-grow-1">
 
         <div class="mb-4">
-            <a id="back-link" href="garage-details.html"
+            <a id="back-link" href="garage-details"
                 class="text-decoration-none text-muted d-inline-flex align-items-center gap-2" style="font-size:14px;">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
                     <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
@@ -401,23 +401,24 @@
             </p>
             <p class="text-muted mb-4" style="font-size:13px;">You will receive a notification once the garage accepts it.
             </p>
-            <a href="my-bookings.html" class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm mb-2"
+            <a href="my-bookings" class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm mb-2"
                 style="background:var(--color-primary);font-size:15px;">
                 View My Bookings
             </a>
-            <a href="dashboard.html" class="btn w-100 btn-outline-secondary rounded-pill py-2" style="font-size:14px;">
+            <a href="dashboard" class="btn w-100 btn-outline-secondary rounded-pill py-2" style="font-size:14px;">
                 Go to Dashboard
             </a>
         </div>
     </div>
 
-    <script src="../js/bootstrap.js"></script>
-    <script src="../js/config.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/script.js"></script>
     <script>
 
         const params = new URLSearchParams(location.search);
         const garageId = params.get('garage_id');
+        const garageSlug = params.get('garage_slug') || garageId;
         const garageNameParam = params.get('garage_name');
         const garageAddr = params.get('garage_address');
         const visitCharge = params.get('visiting_charge') || '0';
@@ -432,12 +433,12 @@
         window.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
             if (!token) {
-                window.location.href = `login.html?redirect=${encodeURIComponent(location.href)}`;
+                window.location.href = `login?redirect=${encodeURIComponent(location.href)}`;
                 return;
             }
 
             // Back link
-            if (garageId) document.getElementById('back-link').href = `garage-details.html?id=${garageId}`;
+            if (garageSlug) document.getElementById('back-link').href = `garage-details/${garageSlug}`;
 
             // Garage info
             if (garageNameParam) {
@@ -663,22 +664,27 @@
 
             const daySchedule = garageWorkingHours.find(wh => wh.day === dayOfWeek);
 
-            if (!daySchedule || !daySchedule.is_open || !daySchedule.open_time || !daySchedule.close_time) {
-                timeSelect.innerHTML = '<option value="">Garage is closed on this day</option>';
-                timeSelect.disabled = true;
-                return;
+            // If no working hours set for this day, use default 9am-9pm
+            let startHour = 9, startMin = 0, endHour = 21, endMinute = 0;
+            if (daySchedule) {
+                if (!daySchedule.is_open) {
+                    timeSelect.innerHTML = '<option value="">Garage is closed on this day</option>';
+                    timeSelect.disabled = true;
+                    return;
+                }
+                if (daySchedule.open_time && daySchedule.close_time) {
+                    const op = daySchedule.open_time.split(':');
+                    const cl = daySchedule.close_time.split(':');
+                    startHour = parseInt(op[0]); startMin = parseInt(op[1]);
+                    endHour = parseInt(cl[0]); endMinute = parseInt(cl[1]);
+                }
             }
 
             timeSelect.disabled = false;
             timeSelect.innerHTML = '<option value="">Select time slot</option>';
 
-            const openTimeParts = daySchedule.open_time.split(':');
-            const closeTimeParts = daySchedule.close_time.split(':');
-            
-            let currentHour = parseInt(openTimeParts[0]);
-            let currentMinute = parseInt(openTimeParts[1]);
-            const endHour = parseInt(closeTimeParts[0]);
-            const endMinute = parseInt(closeTimeParts[1]);
+            let currentHour = startHour;
+            let currentMinute = startMin;
 
             const now = new Date();
             // Checking if selected date is today
@@ -712,7 +718,7 @@
         async function submitBooking() {
             const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
             if (!token) {
-                window.location.href = `login.html?redirect=${encodeURIComponent(location.href)}`;
+                window.location.href = `login?redirect=${encodeURIComponent(location.href)}`;
                 return;
             }
 
@@ -804,7 +810,7 @@
                 });
 
                 if (res.status === 401) {
-                    window.location.href = `login.html?redirect=${encodeURIComponent(location.href)}`;
+                    window.location.href = `login?redirect=${encodeURIComponent(location.href)}`;
                     return;
                 }
                 if (!res.ok) {

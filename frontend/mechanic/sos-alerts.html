@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Emergency SOS Alerts - GarageNearMe</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
   <link rel="stylesheet" href="../css/bootstrap.css" />
   <link rel="stylesheet" href="../css/style.css" />
@@ -92,37 +92,16 @@
   </main>
 </div>
 
-<!-- Persistent SOS Sound (hidden audio) -->
-<audio id="sos-sound" loop>
-  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA..." type="audio/wav">
-</audio>
-
-<script src="../js/mechanic-auth.js"></script>
+  <script src="../js/config.js"></script><script src="../js/mechanic-auth.js"></script>
 <script src="../js/components.js"></script>
+<script src="../js/sos-notification-handler.js"></script>
 <script src="../js/bootstrap.js"></script>
 <script>
   initMechanicChrome('Active SOS Radar');
 
   const API = () => getApiBase();
   let refreshInterval = null;
-  let alertSound = null;
-
-  // Simple beep using Web Audio API (no file needed)
-  function playBeep() {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.5);
-    } catch(e) {}
-  }
+  let _lastAlertIds   = null; // Smart re-render tracker
 
   function getDeclinedSOS() {
     return JSON.parse(localStorage.getItem('declined_sos') || '[]');
@@ -136,22 +115,48 @@
     }
   }
 
-  async function loadSOSAlerts() {
+  async function loadSOSAlerts(forceRender = false) {
     try {
-      const res = await fetch(`${API()}/api/sos/active`, {
+      const res = await fetch(`${API()}/sos/active`, {
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error(await res.text());
       let alerts = await res.json();
+      
+      // Check if mechanic already has an active SOS
+      let myActive = alerts.find(a => ['accepted', 'on_the_way', 'in_progress'].includes(a.status));
+      if (myActive) {
+          const activeHtml = `
+            <div class="col-12 col-md-10 col-lg-8 mb-4">
+              <div class="rounded-4 p-4 sos-card position-relative text-center" style="border-color:#10B981; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);">
+                <div class="mb-3"><span style="font-size:40px;">🔧</span></div>
+                <h4 class="fw-bold mb-2">You have an Active SOS!</h4>
+                <p class="text-muted mb-4">You have already accepted SOS #${myActive.id}. Please complete it.</p>
+                <button onclick="window.location.href='sos-detail.html?id=${myActive.id}'" class="btn btn-success fw-bold rounded-pill px-5 py-2">Open SOS Details</button>
+              </div>
+            </div>`;
+          document.getElementById('sos-container').innerHTML = activeHtml;
+          document.getElementById('header-title').textContent = 'Active SOS Found';
+          document.getElementById('header-sub').textContent = 'Complete your current task first.';
+          stopRingtone();
+          return;
+      }
 
+      // Sirf broadcasting wale + declined filter
+      alerts = alerts.filter(a => a.status === 'broadcasting');
       const declined = getDeclinedSOS();
       alerts = alerts.filter(a => !declined.includes(a.id));
 
+      // Smart re-render — sirf tab jab IDs change ho ya force karo
+      const currentIds = JSON.stringify(alerts.map(a => a.id).sort());
+      if (!forceRender && _lastAlertIds === currentIds) return;
+      _lastAlertIds = currentIds;
+
       renderAlerts(alerts);
       loadHistory();
-    } catch {
+    } catch(err) {
       document.getElementById('header-title').textContent = 'SOS load nahi hua';
-      document.getElementById('header-sub').textContent   = 'Server check karo.';
+      document.getElementById('header-sub').textContent   = 'Error: ' + err.message;
       document.getElementById('sos-container').innerHTML  = '';
     }
   }
@@ -162,6 +167,7 @@
     const sub       = document.getElementById('header-sub');
 
     if (alerts.length === 0) {
+      stopRingtone();
       title.textContent = 'Koi active SOS nahi hai';
       sub.textContent   = 'Jab koi SOS aayega, yahan dikhega.';
       container.innerHTML = `
@@ -175,9 +181,8 @@
     title.textContent = `${alerts.length} Emergency Request${alerts.length > 1 ? 's' : ''} Nearby`;
     sub.textContent   = 'Accept fast! First mechanic to accept gets the job.';
 
-    // Play beep for new alerts
-    playBeep();
-    setTimeout(playBeep, 800);
+    // Play loop ringtone
+    startRingtone();
 
     container.innerHTML = alerts.map(a => buildSOSCard(a)).join('');
   }
@@ -234,14 +239,27 @@
       </div>`;
   }
 
+  // ── Sab alerts band karo ─────────────────────────────────────────────────
+  function stopAllAlerts() {
+    if (typeof stopRingtone === 'function') stopRingtone();
+    const overlay = document.getElementById('gnm-incoming-call');
+    if (overlay) overlay.remove();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.getNotifications({ tag: 'sos-alert' }).then(notifs => notifs.forEach(n => n.close()));
+      });
+    }
+  }
+
   async function acceptSOS(id) {
     try {
-      const res = await fetch(`${API()}/api/sos/${id}/accept`, {
+      const res = await fetch(`${API()}/sos/${id}/accept`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
       if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
-      window.location.href = `sos-detail.html?id=${id}`;
+      stopAllAlerts();
+      window.location.href = `/mechanic/sos-detail?id=${id}`;
     } catch(e) {
       showToast(e.message || 'Accept nahi hua. Try again.', 'danger');
     }
@@ -249,25 +267,22 @@
 
   async function rejectSOS(id, btn) {
     btn.disabled = true; btn.textContent = 'Declining...';
+    addDeclinedSOS(id);
+    stopAllAlerts();
+    _lastAlertIds = null; // Force re-render on next poll
+    await loadSOSAlerts(true);
+    // Backend ko bhi batao (silently)
     try {
-      const res = await fetch(`${API()}/api/sos/${id}/reject`, {
+      await fetch(`${API()}/sos/${id}/decline`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
-      if (!res.ok) throw new Error();
-      
-      addDeclinedSOS(id);
-      loadSOSAlerts();
-    } catch { 
-      btn.disabled = false; 
-      btn.textContent = 'Decline';
-      showToast('Decline nahi hua. Try again.', 'danger');
-    }
+    } catch { /* ignore */ }
   }
 
   async function loadHistory() {
     try {
-      const res = await fetch(`${API()}/api/sos/history/all`, {
+      const res = await fetch(`${API()}/sos/history/all`, {
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
       if (!res.ok) return;
@@ -314,9 +329,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    loadSOSAlerts();
-    // Auto refresh every 30 seconds
-    refreshInterval = setInterval(loadSOSAlerts, 30000);
+    loadSOSAlerts(true); // Pehla load force karo
+    // Polling — sirf data change hone pe re-render hoga
+    refreshInterval = setInterval(() => loadSOSAlerts(), 5000);
   });
 </script>
 </body>
