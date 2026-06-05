@@ -31,6 +31,7 @@ def verify_admin(x_admin_key: str = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid or expired session token")
 
 @router.get("/", response_model=List[schemas.CommissionRuleResponse])
+@router.get("", response_model=List[schemas.CommissionRuleResponse], include_in_schema=False)
 def get_commission_rules(
     x_admin_key: str = Header(None),
     db: Session = Depends(get_db)

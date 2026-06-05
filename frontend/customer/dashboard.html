@@ -194,6 +194,26 @@
 
     <script>
         const token = localStorage.getItem('gnm_token');
+        const pastStatuses = ['completed', 'cancelled', 'rejected'];
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "—";
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function statusBadge(status) {
+            const map = {
+                pending:   ['warning',   'Pending'],
+                accepted:  ['primary',   'Accepted'],
+                ongoing:   ['info',      'Ongoing'],
+                completed: ['success',   'Completed'],
+                cancelled: ['danger',    'Cancelled'],
+                rejected:  ['danger',    'Rejected'],
+            };
+            const [color, label] = map[status] || ['secondary', status];
+            return `<span class="badge bg-${color}">${label}</span>`;
+        }
 
         function authHeaders() {
             return {
@@ -295,6 +315,7 @@
 
         // ── Active Booking ──
         function renderActiveBooking(bookings) {
+            const activeStatuses = ['pending', 'accepted', 'ongoing'];
             const active = bookings.find(b => activeStatuses.includes(b.status));
             const card = document.getElementById("activeBookingCard");
 

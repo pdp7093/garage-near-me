@@ -6,9 +6,9 @@
   <title>SOS Detail - GarageNearMe</title>
   <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/mechanic.css" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
   <style>
     body { background-color: #FEF2F2; }
@@ -173,14 +173,28 @@
     </div>
   </div>
 </div>
-  <script src="../js/config.js"></script><script src="../js/mechanic-auth.js"></script>
-<script src="../js/components.js"></script>
-<script src="../js/bootstrap.js"></script>
+  <script src="/js/config.js"></script><script src="/js/mechanic-auth.js"></script>
+<script src="/js/components.js"></script>
+<script src="/js/bootstrap.js"></script>
 <script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const bookingId = urlParams.get('id');
+  const urlParams  = new URLSearchParams(window.location.search);
+  // Try query param first, then try slug from path: /mechanic/sos-detail/<id>
+  let queryId    = urlParams.get('id');
+  if (queryId) queryId = String(queryId).trim(); // Ensure it's a string and trimmed
+  const _slug      = window.location.pathname.split('/').filter(p => p && p !== 'mechanic' && p !== 'sos-detail' && p !== 'sos-detail.html' && !p.endsWith('.html')).pop();
+  const bookingId  = queryId || _slug;
+  console.log('[SOS-DETAIL] Full Debug:', { 
+    href: window.location.href,
+    search: window.location.search,
+    pathname: window.location.pathname,
+    queryId: queryId,
+    queryIdType: typeof queryId,
+    _slug: _slug,
+    bookingId: bookingId,
+    bookingIdType: typeof bookingId,
+    bookingIdTruthy: !!bookingId
+  });
   initMechanicChrome(`SOS #${bookingId}`, null, 'sos-alerts.html');
-
   const API = () => getApiBase();
   let booking = null;
   let detailRefreshInterval = null;
@@ -193,15 +207,25 @@
   let selectedGarageServices = new Set();
 
   async function loadDetail() {
-    if (!bookingId) { window.location.replace('sos-alerts.html'); return; }
+    console.log('[SOS-DETAIL] loadDetail() called, bookingId:', bookingId);
+    if (!bookingId) { 
+      console.error('[SOS-DETAIL] REDIRECT: bookingId is falsy!', bookingId);
+      window.location.replace('sos-alerts.html'); 
+      return; 
+    }
     if (_loadLock) return;  // concurrent call aa gayi — skip karo
     _loadLock = true;
     try {
       const res = await fetch(`${API()}/sos/${bookingId}`, {
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('[SOS-DETAIL] API error:', res.status, errText);
+        throw new Error(`API Error: ${res.status}`);
+      }
       booking = await res.json();
+      console.log('[SOS-DETAIL] Booking loaded:', booking);
 
       // Backend 'estimated_charge' field ko frontend ke saath align karo
       if (booking.estimated_charge !== undefined) {
@@ -254,7 +278,9 @@
       if (!detailRefreshInterval) {
         detailRefreshInterval = setInterval(loadDetail, 10000);
       }
-    } catch {
+    } catch (err) {
+      _loadLock = false;  // Reset the lock on error so retry can work
+      console.error('[SOS-DETAIL] Error loading detail:', err);
       clearInterval(detailRefreshInterval);
       detailRefreshInterval = null;
       document.getElementById('page-skeleton').style.display = '';

@@ -715,6 +715,10 @@ def update_booking_status(
             current_garage.pending_platform_dues = 0.0
         current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
 
+        if current_garage.pending_platform_dues >= 500.0 and current_garage.grace_period_ends_at is None:
+            from datetime import timedelta
+            current_garage.grace_period_ends_at = datetime.utcnow() + timedelta(hours=24)
+
     booking.status      = update.status
     booking.garage_note = update.garage_note
 
@@ -830,6 +834,10 @@ def update_booking_payment_status(
             if current_garage.pending_platform_dues is None:
                 current_garage.pending_platform_dues = 0.0
             current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
+
+            if current_garage.pending_platform_dues >= 500.0 and current_garage.grace_period_ends_at is None:
+                from datetime import timedelta
+                current_garage.grace_period_ends_at = datetime.utcnow() + timedelta(hours=24)
 
             db.commit()
     

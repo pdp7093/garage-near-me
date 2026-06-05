@@ -399,6 +399,20 @@
     function startPolling() {
         checkStatus();
         pollTimer = setInterval(checkStatus, 5000);
+        // Har 10 seconds pe rebroadcast — taaki jo mechanic baad mein page khole use bhi mile
+        rebroadcastOnce();
+        setInterval(rebroadcastOnce, 10000);
+    }
+
+    async function rebroadcastOnce() {
+        if (!bookingId) return;
+        const token = localStorage.getItem("gnm_token") || localStorage.getItem("access_token");
+        try {
+            await fetch(`${getApiBase()}/sos/customer/${bookingId}/rebroadcast`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+        } catch(e) { /* silent fail — polling handle kar lega */ }
     }
 
     async function checkStatus() {

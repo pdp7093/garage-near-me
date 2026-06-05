@@ -6,9 +6,9 @@
   <title>Emergency SOS Alerts - GarageNearMe</title>
   <link rel="manifest" href="/mechanic/manifest.json">
   <meta name="theme-color" content="#DC2626">
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css" />
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/mechanic.css" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
   <style>
     body { background-color: #FEF2F2; }
@@ -70,7 +70,7 @@
       <div class="bg-white rounded-4 border p-4 shadow-sm mt-5 position-relative z-2" id="history-section" style="display:none;">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h5 class="fw-bold mb-0 text-dark" style="font-family:var(--font-head);">Recent SOS History</h5>
-          <a href="sos-history.html" class="btn btn-sm btn-outline-danger rounded-pill px-3">View Full History</a>
+          <a href="./sos-history.html" class="btn btn-sm btn-outline-danger rounded-pill px-3">View Full History</a>
         </div>
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
@@ -81,6 +81,7 @@
                 <th class="fw-medium pb-3 border-bottom">Date &amp; Time</th>
                 <th class="fw-medium pb-3 border-bottom">Status</th>
                 <th class="fw-medium pb-3 border-bottom text-end">Earning</th>
+                <th class="fw-medium pb-3 border-bottom text-center">Action</th>
               </tr>
             </thead>
             <tbody id="history-tbody"></tbody>
@@ -92,10 +93,11 @@
   </main>
 </div>
 
-  <script src="../js/config.js"></script><script src="../js/mechanic-auth.js"></script>
-<script src="../js/components.js"></script>
-<script src="../js/sos-notification-handler.js"></script>
-<script src="../js/bootstrap.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/mechanic-auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/sos-notification-handler.js"></script>
 <script>
   initMechanicChrome('Active SOS Radar');
 
@@ -115,6 +117,11 @@
     }
   }
 
+  function goToSOSDetail(sosId) {
+    console.log('[SOS-ALERTS] Navigating to detail with sosId:', sosId);
+    window.location.href = `/mechanic/sos-detail/${sosId}`;
+  }
+
   async function loadSOSAlerts(forceRender = false) {
     try {
       const res = await fetch(`${API()}/sos/active`, {
@@ -132,7 +139,7 @@
                 <div class="mb-3"><span style="font-size:40px;">🔧</span></div>
                 <h4 class="fw-bold mb-2">You have an Active SOS!</h4>
                 <p class="text-muted mb-4">You have already accepted SOS #${myActive.id}. Please complete it.</p>
-                <button onclick="window.location.href='sos-detail.html?id=${myActive.id}'" class="btn btn-success fw-bold rounded-pill px-5 py-2">Open SOS Details</button>
+                <button onclick="goToSOSDetail('${myActive.slug || myActive.id}')" class="btn btn-success fw-bold rounded-pill px-5 py-2">Open SOS Details</button>
               </div>
             </div>`;
           document.getElementById('sos-container').innerHTML = activeHtml;
@@ -228,7 +235,7 @@
           </div>` : ''}
 
           <div class="d-flex flex-column flex-sm-row gap-3">
-            <button onclick="acceptSOS(${a.id})" class="btn btn-danger flex-grow-1 fw-bold rounded-pill py-3 shadow fs-5">
+            <button onclick="acceptSOS('${a.slug || a.id}')" class="btn btn-danger flex-grow-1 fw-bold rounded-pill py-3 shadow fs-5">
               ACCEPT SOS
             </button>
             <button onclick="rejectSOS(${a.id}, this)" class="btn btn-outline-secondary rounded-pill px-4 py-3 fw-bold">
@@ -259,7 +266,7 @@
       });
       if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
       stopAllAlerts();
-      window.location.href = `/mechanic/sos-detail?id=${id}`;
+      window.location.href = `/mechanic/sos-detail/${id}`;
     } catch(e) {
       showToast(e.message || 'Accept nahi hua. Try again.', 'danger');
     }
@@ -311,8 +318,11 @@
           <td><div class="text-dark">${h.customer_address || '—'}</div></td>
           <td><div class="text-dark small">${date}, ${time}</div></td>
           <td>${sc}</td>
-          <td class="text-end fw-bold ${h.final_amount ? 'text-success' : 'text-muted'}">
-            ${h.final_amount ? '₹' + h.final_amount : '--'}
+          <td class="text-end fw-bold ${h.final_charge ? 'text-success' : 'text-muted'}">
+            ${h.final_charge ? '₹' + h.final_charge : '--'}
+          </td>
+          <td class="text-center">
+            <a href="/mechanic/sos-detail/${h.slug || h.id}" class="btn btn-sm btn-outline-danger rounded-pill px-3">View</a>
           </td>
         </tr>`;
       }).join('');

@@ -24,7 +24,8 @@ self.addEventListener('fetch', e => {
   // CSS/JS: cache-first with network fallback
   e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
     if (res.ok && (url.pathname.startsWith('/css/') || url.pathname.startsWith('/js/'))) {
-      caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+      const cloneToCache = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, cloneToCache));
     }
     return res;
   }).catch(() => cached)));

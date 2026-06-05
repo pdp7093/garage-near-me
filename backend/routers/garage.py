@@ -545,7 +545,7 @@ def get_dashboard_summary(
 
     today = datetime.utcnow().date()
 
-    todays_earnings = db.query(
+    booking_earnings = db.query(
         func.coalesce(func.sum(models.Booking.final_amount), 0)
     ).filter(
         models.Booking.garage_id == current_garage.id,
@@ -553,19 +553,24 @@ def get_dashboard_summary(
         cast(models.Booking.completed_at, Date) == today
     ).scalar() or 0
 
+    sos_earnings = db.query(
+        func.coalesce(func.sum(models.SOS.final_charge), 0)
+    ).filter(
+        models.SOS.garage_id == current_garage.id,
+        models.SOS.status == models.SOSStatus.completed,
+        cast(models.SOS.completed_at, Date) == today
+    ).scalar() or 0
+
+    todays_earnings = float(booking_earnings) + float(sos_earnings)
+
     jobs_completed = db.query(models.Booking).filter(
         models.Booking.garage_id == current_garage.id,
         models.Booking.status == models.BookingStatus.completed
     ).count()
 
-    active_sos = db.query(models.Booking).filter(
-        models.Booking.garage_id == current_garage.id,
-        models.Booking.booking_type == models.BookingType.sos,
-        models.Booking.status.in_([
-            models.BookingStatus.pending,
-            models.BookingStatus.accepted,
-            models.BookingStatus.ongoing
-        ])
+    sos_completed = db.query(models.SOS).filter(
+        models.SOS.garage_id == current_garage.id,
+        models.SOS.status == models.SOSStatus.completed
     ).count()
 
     # Rating model abhi codebase mein nahi hai, isliye fake rating return nahi karte.
@@ -589,7 +594,7 @@ def get_dashboard_summary(
         # Business Metrics
         "todays_earnings": float(todays_earnings),
         "jobs_completed": jobs_completed,
-        "active_sos": active_sos,
+        "sos_completed": sos_completed,
         "customer_rating": customer_rating,
 
         # Setup Metrics

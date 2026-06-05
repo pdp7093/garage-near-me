@@ -10,6 +10,47 @@ import os, math, random, secrets, string
 
 import models, schemas
 from database import get_db
+from routers.websocket_manager import ws_manager
+
+# ── Firebase FCM ──────────────────────────
+import firebase_admin
+from firebase_admin import credentials, messaging as fcm_messaging
+
+_FCM_INITIALIZED = False
+def _init_fcm():
+    global _FCM_INITIALIZED
+    if _FCM_INITIALIZED:
+        return
+    try:
+        sa_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "firebase-service-account.json"))
+        if os.path.isfile(sa_path):
+            if not firebase_admin._apps:
+                firebase_admin.initialize_app(credentials.Certificate(sa_path))
+            _FCM_INITIALIZED = True
+            print("✅ Firebase FCM initialized")
+        else:
+            print(f"⚠️  firebase-service-account.json not found at: {sa_path}")
+    except Exception as e:
+        print(f"⚠️  Firebase init error: {e}")
+
+_init_fcm()
+
+async def send_fcm_multicast(tokens: list, title: str, body: str, data: dict = None):
+    if not _FCM_INITIALIZED or not tokens:
+        return 0
+    try:
+        msg = fcm_messaging.MulticastMessage(
+            notification=fcm_messaging.Notification(title=title, body=body),
+            data={k: str(v) for k, v in (data or {}).items()},
+            tokens=tokens,
+            android=fcm_messaging.AndroidConfig(priority="high"),
+        )
+        resp = fcm_messaging.send_each_for_multicast(msg)
+        print(f"✅ FCM: {resp.success_count}/{len(tokens)} delivered")
+        return resp.success_count
+    except Exception as e:
+        print(f"⚠️  FCM multicast error: {e}")
+        return 0
 
 router = APIRouter()
 
@@ -62,6 +103,13 @@ def haversine(lat1, lng1, lat2, lng2):
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
 
 
+def _resolve_sos(sos_id: str, db) -> models.SOS:
+    """Slug ya integer ID se SOS lookup karo."""
+    if sos_id.isdigit():
+        return db.query(models.SOS).filter(models.SOS.id == int(sos_id)).first()
+    return db.query(models.SOS).filter(models.SOS.slug == sos_id).first()
+
+
 # ──────────────────────────────────────────
 # SCHEMAS
 # ──────────────────────────────────────────
@@ -89,7 +137,7 @@ class SOSEstimatePayload(BaseModel):
 # ──────────────────────────────────────────
 
 @router.post("/create")
-def create_sos(
+async def create_sos(
     data: SOSCreateRequest,
     db: Session = Depends(get_db),
     current_customer: models.Customer = Depends(get_current_customer)
@@ -166,13 +214,46 @@ def create_sos(
     db.commit()
     db.refresh(sos_request)
 
-    # TODO: FCM broadcast sabko
-    # TODO: Twilio calls (launch pe)
+    # WebSocket + FCM broadcast — nearby garages ko notification
+    nearby_garage_ids = [g["id"] for g in nearby_garages]
+    vt_label = "2 Wheeler" if data.vehicle_type == "two_wheeler" else "4 Wheeler" if data.vehicle_type == "four_wheeler" else data.vehicle_type or "Vehicle"
+
+    notif_title = f"🆘 Emergency SOS — {vt_label} Breakdown"
+    notif_body  = "A vehicle needs immediate assistance nearby. Open the app to respond."
+
+    # WebSocket (foreground mechanics)
+    await ws_manager.broadcast_to_garages(nearby_garage_ids, {
+        "type":   "sos_alert",
+        "sos_id": sos_request.id,
+        "slug":   sos_request.slug,
+        "title":  notif_title,
+        "body":   notif_body,
+        "screen": "sos-alerts",
+    })
+
+    # FCM (background mechanics) — sirf ek baar, create pe only
+    nearby_garage_objs = [g for g in garages if g.id in nearby_garage_ids]
+    fcm_tokens = [g.fcm_token for g in nearby_garage_objs if g.fcm_token]
+    if fcm_tokens:
+        import asyncio
+        asyncio.create_task(send_fcm_multicast(
+            tokens=fcm_tokens,
+            title=notif_title,
+            body=notif_body,
+            data={
+                "type":   "sos_alert",
+                "sos_id": str(sos_request.id),
+                "slug":   sos_request.slug or "",
+                "screen": "sos-alerts",
+            }
+        ))
+
     print(f"\n{'='*50}")
-    print(f"🆘 SOS BROADCAST — SOS #{sos_request.id} ({sos_request.sos_number})")
+    print(f"SOS BROADCAST — SOS #{sos_request.id} ({sos_request.sos_number})")
     print(f"Customer: {current_customer.name} ({current_customer.phone})")
     print(f"Location: {data.lat}, {data.lng}")
-    print(f"Nearby garages notified: {[g['name'] for g in nearby_garages]}")
+    print(f"WS notified: {[g['name'] for g in nearby_garages]}")
+    print(f"FCM tokens: {len(fcm_tokens)}")
     print(f"{'='*50}\n")
 
     return {
@@ -226,6 +307,7 @@ def get_active_sos(
 
         results.append({
             "id":              s.id,
+            "slug":            s.slug,
             "sos_number":      s.sos_number,
             "customer_id":     s.customer_id,
             "vehicle_type":    s.vehicle_type,
@@ -251,15 +333,12 @@ def get_active_sos(
 
 @router.get("/{sos_id}")
 def get_sos_detail(
-    sos_id: int,
+    sos_id: str,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id           == sos_id,
-        models.SOS.garage_id    == current_garage.id
-    ).first()
-    if not sos_request:
+    sos_request = _resolve_sos(sos_id, db)
+    if not sos_request or sos_request.garage_id != current_garage.id:
         raise HTTPException(status_code=404, detail="SOS request not found")
 
     loc  = current_garage.location
@@ -313,15 +392,12 @@ def get_sos_detail(
 
 @router.post("/{sos_id}/accept")
 def accept_sos(
-    sos_id: int,
+    sos_id: str,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id           == sos_id,
-        models.SOS.status       == models.SOSStatus.broadcasting
-    ).first()
-    if not sos_request:
+    sos_request = _resolve_sos(sos_id, db)
+    if not sos_request or sos_request.status != models.SOSStatus.broadcasting:
         raise HTTPException(status_code=404, detail="SOS not found or already taken")
 
     sos_request.garage_id    = current_garage.id
@@ -331,9 +407,9 @@ def accept_sos(
     db.commit()
     db.refresh(sos_request)
 
-    print(f"\n✅ SOS #{sos_id} accepted by Garage #{current_garage.id} — {current_garage.name}")
+    print(f"\n✅ SOS #{sos_request.id} accepted by Garage #{current_garage.id} — {current_garage.name}")
 
-    return { "message": "SOS accepted!", "sos_id": sos_request.id, "status": "accepted" }
+    return {"message": "SOS accepted!", "sos_id": sos_request.id, "slug": sos_request.slug, "status": "accepted"}
 
 
 # ──────────────────────────────────────────
@@ -343,15 +419,12 @@ def accept_sos(
 
 @router.post("/{sos_id}/reject")
 def reject_sos(
-    sos_id: int,
+    sos_id: str,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id           == sos_id,
-        models.SOS.status       == models.SOSStatus.broadcasting
-    ).first()
-    if not sos_request:
+    sos_request = _resolve_sos(sos_id, db)
+    if not sos_request or sos_request.status != models.SOSStatus.broadcasting:
         raise HTTPException(status_code=404, detail="SOS not found")
 
     # Locally reject for this garage only (frontend will hide it)
@@ -366,17 +439,13 @@ def reject_sos(
 
 @router.patch("/{sos_id}/estimate")
 def send_sos_estimate(
-    sos_id: int,
+    sos_id: str,
     payload: SOSEstimatePayload,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id           == sos_id,
-        models.SOS.garage_id    == current_garage.id,
-        models.SOS.status       == models.SOSStatus.accepted
-    ).first()
-    if not sos_request:
+    sos_request = _resolve_sos(sos_id, db)
+    if not sos_request or sos_request.garage_id != current_garage.id or sos_request.status != models.SOSStatus.accepted:
         raise HTTPException(status_code=404, detail="SOS request not found or not accepted")
 
     sos_request.estimated_charge = payload.estimated_amount
@@ -414,16 +483,13 @@ def send_sos_estimate(
 
 @router.post("/{sos_id}/verify-otp")
 def verify_sos_otp(
-    sos_id: int,
+    sos_id: str,
     otp: str,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id           == sos_id,
-        models.SOS.garage_id    == current_garage.id
-    ).first()
-    if not sos_request:
+    sos_request = _resolve_sos(sos_id, db)
+    if not sos_request or sos_request.garage_id != current_garage.id:
         raise HTTPException(status_code=404, detail="SOS request not found")
     if sos_request.estimate_otp != otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
@@ -451,17 +517,15 @@ def verify_sos_otp(
 
 @router.post("/{sos_id}/mark-arrived")
 def mark_arrived(
-    sos_id: int,
+    sos_id: str,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id        == sos_id,
-        models.SOS.garage_id == current_garage.id,
-        models.SOS.status    == models.SOSStatus.accepted
-    ).first()
-    if not sos_request:
+    sos_request = _resolve_sos(sos_id, db)
+    if not sos_request or sos_request.garage_id != current_garage.id:
         raise HTTPException(status_code=404, detail="SOS not found or not in accepted state")
+    if sos_request.status != models.SOSStatus.accepted:
+        raise HTTPException(status_code=400, detail="SOS not in accepted state")
 
     sos_request.arrived_at = datetime.utcnow()
     # Status 'accepted' hi rehega — frontend arrived_at check karta hai
@@ -473,25 +537,51 @@ def mark_arrived(
 
 @router.post("/{sos_id}/complete")
 def complete_sos(
-    sos_id: int,
+    sos_id: str,
     final_amount: float,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    sos_request = db.query(models.SOS).filter(
-        models.SOS.id           == sos_id,
-        models.SOS.garage_id    == current_garage.id,
-        models.SOS.status       == models.SOSStatus.in_progress
-    ).first()
+    sos_request = _resolve_sos(sos_id, db)
     if not sos_request:
-        raise HTTPException(status_code=404, detail="SOS request not found or not in progress")
+        raise HTTPException(status_code=404, detail="SOS not found")
+    if sos_request.garage_id != current_garage.id:
+        raise HTTPException(status_code=403, detail="Not your SOS")
+    if sos_request.status not in [models.SOSStatus.accepted, models.SOSStatus.in_progress]:
+        raise HTTPException(status_code=400, detail="SOS not in acceptable state to complete")
 
     sos_request.status       = models.SOSStatus.completed
     sos_request.final_charge = final_amount
     sos_request.completed_at = datetime.utcnow()
+
+    # Calculate platform commission
+    final_charge_float = float(final_amount)
+    commission_rule = db.query(models.CommissionRule).filter(
+        models.CommissionRule.is_active == True,
+        models.CommissionRule.min_amount <= final_charge_float,
+        (models.CommissionRule.max_amount >= final_charge_float) | (models.CommissionRule.max_amount == None)
+    ).first()
+
+    platform_commission = 0.0
+    if commission_rule:
+        platform_commission = (final_charge_float * float(commission_rule.percentage)) / 100.0
+
+    garage_earnings = final_charge_float - platform_commission
+
+    sos_request.platform_commission = platform_commission
+    sos_request.garage_earnings = garage_earnings
+
+    if current_garage.pending_platform_dues is None:
+        current_garage.pending_platform_dues = 0.0
+    current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
+
+    if current_garage.pending_platform_dues >= 500.0 and current_garage.grace_period_ends_at is None:
+        from datetime import timedelta
+        current_garage.grace_period_ends_at = datetime.utcnow() + timedelta(hours=24)
+
     db.commit()
 
-    return { "message": "SOS completed!", "final_amount": final_amount }
+    return {"message": "SOS completed!", "final_amount": final_amount, "slug": sos_request.slug}
 
 
 # ──────────────────────────────────────────
@@ -522,6 +612,8 @@ def get_sos_history(
         "description":     s.description,
         "address":         s.address,
         "final_charge":    float(s.final_charge) if s.final_charge else None,
+        "platform_commission": float(s.platform_commission) if s.platform_commission else None,
+        "garage_earnings": float(s.garage_earnings) if s.garage_earnings else None,
         "created_at":      s.created_at.isoformat(),
         "completed_at":    s.completed_at.isoformat() if s.completed_at else None,
     } for s in sos_requests]
@@ -531,6 +623,54 @@ def get_sos_history(
 # 10. CUSTOMER — GET SOS STATUS
 # GET /api/sos/customer/{booking_id}
 # ──────────────────────────────────────────
+
+@router.get("/customer/history")
+def get_customer_sos_history(
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    """
+    Customer ke saari SOS requests (active + completed + cancelled)
+    GET /api/sos/customer/history
+    """
+    sos_requests = db.query(models.SOS).filter(
+        models.SOS.customer_id == current_customer.id
+    ).order_by(models.SOS.created_at.desc()).all()
+
+    result = []
+    for sos in sos_requests:
+        garage = sos.garage
+        dist = None
+        if garage and garage.location and garage.location.latitude and sos.latitude:
+            dist = haversine(
+                garage.location.latitude, garage.location.longitude,
+                sos.latitude, sos.longitude
+            )
+
+        result.append({
+            "id": sos.id,
+            "sos_number": sos.sos_number,
+            "slug": sos.slug,
+            "status": sos.status.value,
+            "garage_name": garage.name if garage else None,
+            "distance_km": round(dist, 2) if dist else None,
+            "estimated_charge": float(sos.estimated_charge) if sos.estimated_charge else None,
+            "estimate_status": sos.estimate_status.value,
+            "final_charge": float(sos.final_charge) if sos.final_charge else None,
+            "vehicle_type": sos.vehicle_type,
+            "vehicle_model": sos.vehicle_model,
+            "vehicle_number": sos.vehicle_number,
+            "description": sos.description,
+            "address": sos.address,
+            "responded_at": sos.responded_at.isoformat() if sos.responded_at else None,
+            "started_at": sos.started_at.isoformat() if sos.started_at else None,
+            "completed_at": sos.completed_at.isoformat() if sos.completed_at else None,
+            "created_at": sos.created_at.isoformat(),
+            "estimate_details": sos.estimate_details,
+        })
+
+    return result
+
 
 @router.get("/customer/{sos_id}")
 def get_sos_status_customer(
@@ -575,6 +715,71 @@ def get_sos_status_customer(
         "created_at":       sos_request.created_at.isoformat(),
         "estimate_details": sos_request.estimate_details,
     }
+
+
+# ──────────────────────────────────────────
+# CUSTOMER — REBROADCAST SOS (repeat WS blast)
+# POST /api/sos/customer/{sos_id}/rebroadcast
+# ──────────────────────────────────────────
+
+@router.post("/customer/{sos_id}/rebroadcast")
+async def rebroadcast_sos(
+    sos_id: str,
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    sos_request = _resolve_sos(sos_id, db)
+    if not sos_request:
+        raise HTTPException(status_code=404, detail="SOS not found")
+
+    # Sirf broadcasting status mein hi rebroadcast karo
+    if sos_request.status != models.SOSStatus.broadcasting:
+        return {"rebroadcast": False, "reason": "SOS not broadcasting"}
+
+    # Sirf customer apna hi SOS rebroadcast kar sakta hai
+    if sos_request.customer_id != current_customer.id:
+        raise HTTPException(status_code=403, detail="Not your SOS")
+
+    # Nearby garages dhundho (same logic)
+    garages = (
+        db.query(models.Garage)
+        .join(models.GarageLocation)
+        .filter(
+            models.Garage.is_active        == True,
+            models.Garage.is_verified      == True,
+            models.Garage.is_sos_available == True,
+            models.GarageLocation.latitude  != None,
+            models.GarageLocation.longitude != None,
+        )
+        .all()
+    )
+
+    radius = sos_request.broadcast_radius_km or 2.0
+    nearby_ids = []
+    for g in garages:
+        loc = g.location
+        if not loc: continue
+        dist = haversine(sos_request.latitude, sos_request.longitude, loc.latitude, loc.longitude)
+        if dist <= radius:
+            nearby_ids.append(g.id)
+
+    if not nearby_ids:
+        return {"rebroadcast": False, "reason": "No nearby garages"}
+
+    vt = sos_request.vehicle_type or "Vehicle"
+    vt_label = "2 Wheeler" if vt == "two_wheeler" else "4 Wheeler" if vt == "four_wheeler" else vt
+
+    # Sirf WebSocket — FCM repeat nahi karna (ek baar pehle ja chuka)
+    await ws_manager.broadcast_to_garages(nearby_ids, {
+        "type":   "sos_alert",
+        "sos_id": sos_request.id,
+        "slug":   sos_request.slug,
+        "title":  f"🆘 Emergency SOS — {vt_label} Breakdown",
+        "body":   "A vehicle needs immediate assistance nearby. Open the app to respond.",
+        "screen": "sos-alerts",
+    })
+
+    return {"rebroadcast": True, "garages_notified": len(nearby_ids)}
 
 
 # ──────────────────────────────────────────

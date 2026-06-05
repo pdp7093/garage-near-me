@@ -120,10 +120,18 @@
             <div class="col-lg-9">
                 <h3 class="fw-bold mb-4" style="font-family:var(--font-head); color:var(--color-text);">My Bookings</h3>
 
+                <!-- Search Box -->
+                <div class="mb-4">
+                    <input type="text" id="bookingSearchBox" class="form-control rounded-3 px-4 py-3" placeholder="Search by garage name, vehicle number, or booking ID..." style="border: 1px solid #E5E7EB;">
+                </div>
+
                 <!-- Booking Tabs -->
                 <ul class="nav nav-pills mb-4" id="bookingTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active fw-medium border shadow-sm me-2" id="active-tab" data-bs-toggle="pill" data-bs-target="#active" type="button" role="tab">Active Bookings</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-medium border shadow-sm me-2" id="sos-tab" data-bs-toggle="pill" data-bs-target="#sos" type="button" role="tab">🚨 SOS Bookings</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <a class="nav-link fw-medium border shadow-sm me-2" href="past-history">Past History</a>
@@ -139,6 +147,17 @@
                                 <p>Loading active bookings...</p>
                             </div>
                         </div>
+                        <div id="activePaginationContainer" class="mt-4"></div>
+                    </div>
+
+                    <!-- SOS BOOKINGS -->
+                    <div class="tab-pane fade" id="sos" role="tabpanel">
+                        <div id="sosBookingsContainer">
+                            <div class="text-center py-5 text-muted">
+                                <p>Loading SOS bookings...</p>
+                            </div>
+                        </div>
+                        <div id="sosPaginationContainer" class="mt-4"></div>
                     </div>
 
                 </div>
@@ -157,6 +176,15 @@
     <script src="/js/script.js"></script>
     <script>
         const token = localStorage.getItem('gnm_token');
+        const ITEMS_PER_PAGE = 5;
+        
+        // State management
+        let allActiveBookings = [];
+        let allSOSBookings = [];
+        let currentActiveBookingPage = 1;
+        let currentSOSPage = 1;
+        let activeSearchQuery = '';
+        let sosSearchQuery = '';
 
         function authHeaders() {
             return { 'Authorization': `Bearer ${token}` };
@@ -212,16 +240,69 @@
             }
         }
 
+        // Filter bookings based on search query
+        function filterBookings(bookings, searchQuery) {
+            if (!searchQuery.trim()) return bookings;
+            const query = searchQuery.toLowerCase();
+            return bookings.filter(b => 
+                (b.garage_name && b.garage_name.toLowerCase().includes(query)) ||
+                (b.vehicle_number && b.vehicle_number.toLowerCase().includes(query)) ||
+                b.id.toString().includes(query)
+            );
+        }
+
+        // Get paginated items
+        function getPaginatedItems(items, page) {
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            return items.slice(start, start + ITEMS_PER_PAGE);
+        }
+
+        // Render pagination controls
+        function renderPagination(totalItems, currentPage, containerId, onPageChange) {
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            const container = document.getElementById(containerId);
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<nav><ul class="pagination justify-content-center">';
+            
+            // Previous button
+            if (currentPage > 1) {
+                html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${currentPage - 1})">← Previous</button></li>`;
+            } else {
+                html += `<li class="page-item disabled"><span class="page-link">← Previous</span></li>`;
+            }
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+                } else {
+                    html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${i})">${i}</button></li>`;
+                }
+            }
+
+            // Next button
+            if (currentPage < totalPages) {
+                html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${currentPage + 1})">Next →</button></li>`;
+            } else {
+                html += `<li class="page-item disabled"><span class="page-link">Next →</span></li>`;
+            }
+
+            html += '</ul></nav>';
+            container.innerHTML = html;
+        }
 
         async function loadActiveBookings() {
             try {
                 if (!token) {
-                    console.error('No token found');
                     document.getElementById('activeBookingsContainer').innerHTML = '<div class="text-center py-5 text-danger"><p>Not authenticated. Please login.</p></div>';
                     return;
                 }
 
-                console.log('Fetching bookings from:', `${getApiBase()}/bookings/my`);
                 const response = await fetch(`${getApiBase()}/bookings/my`, {
                     headers: authHeaders()
                 });
@@ -231,74 +312,241 @@
                 }
 
                 const bookings = await response.json();
-                console.log('All bookings:', bookings);
+                allActiveBookings = bookings.filter(b => (b.status === 'pending' || b.status === 'accepted' || b.status === 'ongoing') && b.booking_type !== 'sos');
+                
+                displayActiveBookings(1);
+            } catch (err) {
+                console.error('Error loading active bookings:', err);
+                document.getElementById('activeBookingsContainer').innerHTML = `<div class="text-center py-5"><div class="text-danger"><p><strong>Error loading bookings.</strong></p><p style="font-size: 12px;">${err.message}</p></div><button class="btn btn-sm btn-outline-primary mt-3" onclick="loadActiveBookings()">Retry</button></div>`;
+            }
+        }
 
-                const activeBookings = bookings.filter(b => b.status === 'pending' || b.status === 'accepted' || b.status === 'ongoing');
-                console.log('Active bookings:', activeBookings);
+        function displayActiveBookings(page) {
+            currentActiveBookingPage = page;
+            const filteredBookings = filterBookings(allActiveBookings, activeSearchQuery);
+            const paginatedBookings = getPaginatedItems(filteredBookings, page);
+            const container = document.getElementById('activeBookingsContainer');
 
-                const container = document.getElementById('activeBookingsContainer');
+            if (filteredBookings.length === 0) {
+                container.innerHTML = '<div class="text-center py-5 text-muted"><p>No active bookings found.</p></div>';
+                document.getElementById('activePaginationContainer').innerHTML = '';
+                return;
+            }
 
-                if (activeBookings.length === 0) {
-                    container.innerHTML = '<div class="text-center py-5 text-muted"><p>No active bookings at the moment.</p></div>';
+            let html = '';
+            paginatedBookings.forEach(booking => {
+                const date = new Date(booking.created_at).toLocaleDateString('en-IN');
+                const amount = booking.final_amount ? `₹${parseFloat(booking.final_amount).toLocaleString()}` : 'Estimating...';
+                const serviceName = booking.service_type || 'General Service';
+
+                let statusBadge = '';
+                if (booking.status === 'pending') {
+                    statusBadge = '<span class="badge bg-info text-white rounded-pill px-3 py-1">Waiting for Garage</span>';
+                } else if (booking.status === 'accepted') {
+                    statusBadge = '<span class="badge bg-primary text-white rounded-pill px-3 py-1">Accepted</span>';
+                } else if (booking.status === 'ongoing') {
+                    statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3 py-1">In Progress</span>';
+                }
+
+                const paymentBadge = booking.payment_status === 'paid'
+                    ? '<span class="badge bg-success rounded-pill ms-2">Paid ✓</span>'
+                    : '<span class="badge bg-light border border-secondary rounded-pill ms-2" style="color: #666;">Pending</span>';
+
+                html += `
+                    <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="card-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+                            <div class="fw-medium">Booking ID: #GNM-${booking.id}</div>
+                            <div>${statusBadge}${paymentBadge}</div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">${serviceName}</h5>
+                                    <p class="text-muted small mb-0">${booking.garage_name || 'Searching for garage...'}</p>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold fs-5 text-dark">${amount}</div>
+                                    <div class="text-muted small">${booking.payment_status === 'paid' ? 'Paid' : 'Pending'}</div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                                <span>Date: <strong class="text-dark">${date}</strong></span>
+                                <span>Vehicle: <strong class="text-dark">${booking.vehicle_number || 'N/A'}</strong></span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-4" onclick="trackBooking('${booking.slug || booking.id}')">Track Status</button>
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="cancelBooking(${booking.id})">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            renderPagination(filteredBookings.length, page, 'activePaginationContainer', 'displayActiveBookings');
+        }
+
+        async function loadSOSBookings() {
+            try {
+                if (!token) {
+                    document.getElementById('sosBookingsContainer').innerHTML = '<div class="text-center py-5 text-danger"><p>Not authenticated. Please login.</p></div>';
                     return;
                 }
 
-                let html = '';
-                activeBookings.forEach(booking => {
-                    const date = new Date(booking.created_at).toLocaleDateString('en-IN');
-                    const amount = booking.final_amount ? `₹${parseFloat(booking.final_amount).toLocaleString()}` : 'Estimating...';
-                    const serviceName = booking.service_type || (booking.booking_type === 'sos' ? 'Emergency SOS' : 'General Service');
-
-                    // Status badge for active
-                    let statusBadge = '';
-                    if (booking.status === 'pending') {
-                        statusBadge = '<span class="badge bg-info text-white rounded-pill px-3 py-1">Waiting for Garage</span>';
-                    } else if (booking.status === 'accepted') {
-                        statusBadge = '<span class="badge bg-primary text-white rounded-pill px-3 py-1">Accepted</span>';
-                    } else if (booking.status === 'ongoing') {
-                        statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3 py-1">In Progress</span>';
-                    }
-
-                    // Payment status
-                    const paymentBadge = booking.payment_status === 'paid'
-                        ? '<span class="badge bg-success rounded-pill ms-2">Paid ✓</span>'
-                        : '<span class="badge bg-light border border-secondary rounded-pill ms-2" style="color: #666;">Pending</span>';
-
-                    html += `
-                        <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-4">
-                            <div class="card-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
-                                <div class="fw-medium">Booking ID: #GNM-${booking.id}</div>
-                                <div>${statusBadge}${paymentBadge}</div>
-                            </div>
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">${serviceName}</h5>
-                                        <p class="text-muted small mb-0">${booking.garage_name || 'Searching for garage...'}</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold fs-5 text-dark">${amount}</div>
-                                        <div class="text-muted small">${booking.payment_status === 'paid' ? 'Paid' : 'Pending'}</div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
-                                    <span>Date: <strong class="text-dark">${date}</strong></span>
-                                    <span>Vehicle: <strong class="text-dark">${booking.vehicle_number || 'N/A'}</strong></span>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-4" onclick="trackBooking('${booking.slug || booking.id}')">Track Status</button>
-                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="cancelBooking(${booking.id})">Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                const response = await fetch(`${getApiBase()}/sos/customer/history`, {
+                    headers: authHeaders()
                 });
 
-                container.innerHTML = html;
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const sosRequests = await response.json();
+                allSOSBookings = sosRequests || [];
+                
+                displaySOSBookings(1);
             } catch (err) {
-                console.error('Error loading active bookings:', err);
-                document.getElementById('activeBookingsContainer').innerHTML = `<div class="text-center py-5"><div class="text-danger"><p><strong>Error loading active bookings.</strong></p><p style="font-size: 12px;">${err.message}</p></div><button class="btn btn-sm btn-outline-primary mt-3" onclick="location.reload()">Retry</button></div>`;
+                console.error('Error loading SOS bookings:', err);
+                document.getElementById('sosBookingsContainer').innerHTML = `<div class="text-center py-5"><div class="text-danger"><p><strong>Error loading SOS bookings.</strong></p><p style="font-size: 12px;">${err.message}</p></div><button class="btn btn-sm btn-outline-danger mt-3" onclick="loadSOSBookings()">Retry</button></div>`;
+            }
+        }
+
+        function displaySOSBookings(page) {
+            currentSOSPage = page;
+            const filteredBookings = filterBookings(allSOSBookings, sosSearchQuery);
+            const paginatedBookings = getPaginatedItems(filteredBookings, page);
+            const container = document.getElementById('sosBookingsContainer');
+
+            if (filteredBookings.length === 0) {
+                container.innerHTML = '<div class="text-center py-5 text-muted"><p>No SOS bookings found.</p></div>';
+                document.getElementById('sosPaginationContainer').innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            paginatedBookings.forEach(sos => {
+                const date = new Date(sos.created_at).toLocaleDateString('en-IN');
+                const time = new Date(sos.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                const amount = sos.final_charge ? `₹${parseFloat(sos.final_charge).toLocaleString()}` : (sos.estimated_charge ? `₹${parseFloat(sos.estimated_charge).toLocaleString()}` : 'Estimating...');
+
+                let statusBadge = '';
+                let headerClass = 'bg-danger';
+                
+                const status = sos.status;
+                if (status === 'broadcasting') {
+                    statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3 py-1">🆘 Broadcasting</span>';
+                } else if (status === 'accepted') {
+                    statusBadge = '<span class="badge bg-info text-white rounded-pill px-3 py-1">✓ Accepted</span>';
+                } else if (status === 'on_the_way') {
+                    statusBadge = '<span class="badge bg-success text-white rounded-pill px-3 py-1">🚗 On The Way</span>';
+                } else if (status === 'in_progress') {
+                    statusBadge = '<span class="badge bg-success text-white rounded-pill px-3 py-1">⚙️ In Progress</span>';
+                } else if (status === 'completed') {
+                    statusBadge = '<span class="badge bg-secondary text-white rounded-pill px-3 py-1">✓ Completed</span>';
+                    headerClass = 'bg-secondary';
+                } else if (status === 'cancelled') {
+                    statusBadge = '<span class="badge bg-light border border-danger rounded-pill px-3 py-1" style="color: #DC2626;">✕ Cancelled</span>';
+                    headerClass = 'bg-light border border-danger';
+                }
+
+                const isActive = ['broadcasting', 'accepted', 'on_the_way', 'in_progress'].includes(status);
+
+                html += `
+                    <div class="card border-2 border-danger shadow-sm rounded-4 overflow-hidden mb-4" style="background: #FFFBFA;">
+                        <div class="card-header ${headerClass} text-white p-3 d-flex justify-content-between align-items-center">
+                            <div class="fw-medium d-flex align-items-center gap-2">
+                                <span style="font-size: 18px;">🚨</span>
+                                ${sos.sos_number || 'SOS #' + sos.id}
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">Emergency Assistance</h5>
+                                    <p class="text-muted small mb-0">${sos.garage_name || 'Searching for mechanic...'}</p>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold fs-5" style="color: #EF4444;">${amount}</div>
+                                    <div class="text-muted small">Pending</div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                                <span>Date: <strong class="text-dark">${date} ${time}</strong></span>
+                                <span>Vehicle: <strong class="text-dark">${sos.vehicle_number || 'N/A'}</strong></span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="trackSOS('${sos.slug || sos.id}')">View Details</button>
+                                ${isActive ? `<button class="btn btn-sm btn-outline-secondary rounded-pill px-4" onclick="cancelSOS(${sos.id})">Cancel SOS</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            renderPagination(filteredBookings.length, page, 'sosPaginationContainer', 'displaySOSBookings');
+        }
+
+        function trackSOS(sosSlug) {
+            window.location.href = `/customer/sos-tracking?sos=${sosSlug}`;
+        }
+
+        function cancelSOS(sosId) {
+            showSOSCancelConfirm(sosId);
+        }
+
+        function showSOSCancelConfirm(sosId) {
+            document.getElementById('sossCancelConfirmBox')?.remove();
+
+            const box = document.createElement('div');
+            box.id = 'sossCancelConfirmBox';
+            box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;';
+            box.innerHTML = `
+                <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        </div>
+                        <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">SOS Cancel Karna Hai?</h6>
+                        <p style="color:#6B7280;font-size:13px;margin:0;">Ek baar cancel kiya toh mechanic notification cancel ho jayega.</p>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="document.getElementById('sossCancelConfirmBox').remove()"
+                            style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
+                            Nahi, Rakho
+                        </button>
+                        <button id="confirmSOSCancelBtn"
+                            onclick="doSOSCancel(${sosId})"
+                            style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
+                            Haan, Cancel Karo
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(box);
+        }
+
+        async function doSOSCancel(sosId) {
+            const btn = document.getElementById('confirmSOSCancelBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
+
+            try {
+                const res = await fetch(`${getApiBase()}/sos/${sosId}/cancel`, {
+                    method: 'POST',
+                    headers: authHeaders()
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Cancel nahi hua');
+                }
+                document.getElementById('sossCancelConfirmBox')?.remove();
+                showToast('SOS cancel ho gayi!', 'success');
+                setTimeout(() => loadSOSBookings(), 1000);
+            } catch (e) {
+                document.getElementById('sossCancelConfirmBox')?.remove();
+                showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
             }
         }
 
@@ -307,13 +555,10 @@
         }
 
         function cancelBooking(bookingId) {
-            // Show confirm UI
-            const card = document.querySelector(`[data-booking-id="${bookingId}"]`);
             showCancelConfirm(bookingId);
         }
 
         function showCancelConfirm(bookingId) {
-            // Remove existing if any
             document.getElementById('cancelConfirmBox')?.remove();
 
             const box = document.createElement('div');
@@ -326,7 +571,7 @@
                             <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                         </div>
                         <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">Booking Cancel Karna Hai?</h6>
-                        <p style="color:#6B7280;font-size:13px;margin:0;">Ek baar cancel kiya toh wapas nahi hoga. Confirm karo.</p>
+                        <p style="color:#6B7280;font-size:13px;margin:0;">Ek baar cancel kiya toh wapas nahi hoga.</p>
                     </div>
                     <div style="display:flex;gap:10px;">
                         <button onclick="document.getElementById('cancelConfirmBox').remove()"
@@ -374,13 +619,103 @@
             setTimeout(() => t.remove(), 3000);
         }
 
-        function rebook(bookingId) {
-            alert('Rebook feature coming soon!');
+        function trackSOS(sosSlug) {
+            window.location.href = `/customer/sos-tracking?sos=${sosSlug}`;
+        }
+
+        function cancelSOS(sosId) {
+            showSOSCancelConfirm(sosId);
+        }
+
+        function showSOSCancelConfirm(sosId) {
+            document.getElementById('sossCancelConfirmBox')?.remove();
+
+            const box = document.createElement('div');
+            box.id = 'sossCancelConfirmBox';
+            box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;';
+            box.innerHTML = `
+                <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        </div>
+                        <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">SOS Cancel Karna Hai?</h6>
+                        <p style="color:#6B7280;font-size:13px;margin:0;">Mechanic notification cancel ho jayega.</p>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="document.getElementById('sossCancelConfirmBox').remove()"
+                            style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
+                            Nahi, Rakho
+                        </button>
+                        <button id="confirmSOSCancelBtn"
+                            onclick="doSOSCancel(${sosId})"
+                            style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
+                            Haan, Cancel Karo
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(box);
+        }
+
+        async function doSOSCancel(sosId) {
+            const btn = document.getElementById('confirmSOSCancelBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
+
+            try {
+                const res = await fetch(`${getApiBase()}/sos/${sosId}/cancel`, {
+                    method: 'POST',
+                    headers: authHeaders()
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Cancel nahi hua');
+                }
+                document.getElementById('sossCancelConfirmBox')?.remove();
+                showToast('SOS cancel ho gayi!', 'success');
+                setTimeout(() => loadSOSBookings(), 1000);
+            } catch (e) {
+                document.getElementById('sossCancelConfirmBox')?.remove();
+                showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadUserInfo();
             loadActiveBookings();
+
+            const searchBox = document.getElementById('bookingSearchBox');
+            
+            // Search functionality
+            searchBox?.addEventListener('input', (e) => {
+                activeSearchQuery = e.target.value;
+                sosSearchQuery = e.target.value;
+                
+                // Re-display based on active tab
+                const activeTab = document.querySelector('.tab-pane.show.active');
+                if (activeTab?.id === 'active') {
+                    displayActiveBookings(1);
+                } else if (activeTab?.id === 'sos') {
+                    displaySOSBookings(1);
+                }
+            });
+
+            // Load SOS when tab is clicked
+            document.getElementById('sos-tab')?.addEventListener('click', () => {
+                if (allSOSBookings.length === 0) {
+                    loadSOSBookings();
+                } else {
+                    displaySOSBookings(1);
+                }
+            });
+
+            // Load Active Bookings when tab is clicked
+            document.getElementById('active-tab')?.addEventListener('click', () => {
+                if (allActiveBookings.length === 0) {
+                    loadActiveBookings();
+                } else {
+                    displayActiveBookings(1);
+                }
+            });
         });
     </script>
 </body>

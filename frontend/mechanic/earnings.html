@@ -93,32 +93,68 @@
       if (!token) return;
 
       try {
-        const response = await fetch(`${API}/bookings/garage/all`, {
+        const bookingsRes = await fetch(`${API}/bookings/garage/all`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const sosRes = await fetch(`${API}/sos/history/all`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!response.ok) throw new Error();
-
-        const bookings = await response.json();
+        if (!bookingsRes.ok) throw new Error('Bookings API error');
         
-        // Filter for completed bookings
-        const completedBookings = bookings.filter(b => b.status === 'completed' && b.final_amount);
+        const bookings = await bookingsRes.json();
+        let sosData = [];
+        if (sosRes.ok) {
+          sosData = await sosRes.json();
+        }
+        
+        // Filter and normalize bookings
+        const completedBookings = bookings
+          .filter(b => b.status === 'completed' && b.final_amount)
+          .map(b => ({
+            id: `#BK-${b.id}`,
+            customer_name: b.customer_name,
+            vehicle: b.vehicle_model || b.vehicle_type,
+            completed_at: b.completed_at || b.updated_at,
+            final_amount: parseFloat(b.final_amount) || 0,
+            platform_commission: parseFloat(b.platform_commission) || 0,
+            garage_earnings: parseFloat(b.garage_earnings) || 0,
+            is_paid: b.payment_status === 'paid',
+            invoice_link: `invoice.html?id=${b.id}`
+          }));
+
+        // Filter and normalize SOS
+        const completedSOS = sosData
+          .filter(s => s.status === 'completed' && s.final_charge)
+          .map(s => ({
+            id: `#SOS-${s.sos_number || s.id}`,
+            customer_name: 'SOS Emergency',
+            vehicle: s.vehicle_model || s.vehicle_type,
+            completed_at: s.completed_at || s.created_at,
+            final_amount: parseFloat(s.final_charge) || 0,
+            platform_commission: parseFloat(s.platform_commission) || 0,
+            garage_earnings: parseFloat(s.garage_earnings) || (parseFloat(s.final_charge) || 0),
+            is_paid: true, // Assuming SOS are paid instantly on completion
+            invoice_link: `invoice-sos.html?id=${s.slug || s.id}`
+          }));
+          
+        const allCompleted = [...completedBookings, ...completedSOS];
         
         // Sort descending by completion date
-        completedBookings.sort((a, b) => new Date(b.completed_at || b.updated_at) - new Date(a.completed_at || a.updated_at));
+        allCompleted.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
 
         let totalGross = 0;
         let totalComm = 0;
         let totalNet = 0;
 
         const tbody = document.getElementById('billsBody');
-        if (completedBookings.length === 0) {
+        if (allCompleted.length === 0) {
           tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No completed bills yet.</td></tr>';
         } else {
-          tbody.innerHTML = completedBookings.map(b => {
-            const finalAmt = parseFloat(b.final_amount) || 0;
-            const comm = parseFloat(b.platform_commission) || 0;
-            const net = parseFloat(b.garage_earnings) || (finalAmt - comm);
+          tbody.innerHTML = allCompleted.map(b => {
+            const finalAmt = b.final_amount;
+            const comm = b.platform_commission;
+            const net = b.garage_earnings || (finalAmt - comm);
 
             totalGross += finalAmt;
             totalComm += comm;
@@ -126,17 +162,16 @@
 
             const dateStr = b.completed_at ? new Date(b.completed_at).toLocaleDateString('en-IN') : '-';
             
-            const isPaid = b.payment_status === 'paid';
-            const statusBadge = isPaid
+            const statusBadge = b.is_paid
               ? `<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1.5 fw-bold border border-success border-opacity-10">Paid</span>`
-              : `<a href="invoice.html?id=${b.id}" class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1.5 fw-bold text-decoration-none border border-warning border-opacity-10" title="Click to mark as Paid">Pending Payment ➔</a>`;
+              : `<a href="${b.invoice_link}" class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1.5 fw-bold text-decoration-none border border-warning border-opacity-10" title="Click to mark as Paid">Pending Payment ➔</a>`;
 
             return `
               <tr>
-                <td class="fw-bold text-dark">#GNM-${b.id}</td>
+                <td class="fw-bold text-dark">${b.id}</td>
                 <td>
                   <div class="fw-bold text-dark">${b.customer_name || 'Customer'}</div>
-                  <div class="text-muted small">${b.vehicle_model || b.vehicle_type}</div>
+                  <div class="text-muted small">${b.vehicle || 'Vehicle'}</div>
                 </td>
                 <td class="text-muted">${dateStr}</td>
                 <td class="text-end fw-bold">₹${finalAmt.toFixed(2)}</td>
