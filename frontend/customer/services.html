@@ -5,47 +5,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Services — GarageNearMe</title>
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#DC2626">
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
 </head>
 
 <body style="background:var(--color-bg); min-height:100vh; display: flex; flex-direction: column;">
 
-    <!-- ═══ NAVBAR ═══ -->
-    <nav class="gnm-nav sticky-top shadow-sm border-bottom">
-        <div class="gnm-nav-inner">
-            <a href="index.html" class="gnm-logo text-decoration-none">
-                <div class="gnm-logo-icon">
-                    <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                        <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
-                    </svg>
-                </div>
-                <span class="gnm-logo-text">GarageNearMe</span>
-            </a>
-
-            <div class="gnm-nav-center d-none d-lg-flex">
-                <a href="index.html" class="gnm-nav-link">Home</a>
-                <a href="search-results.html" class="gnm-nav-link">Garages</a>
-                <a href="services.html" class="gnm-nav-link active">Services</a>
-                <a href="about.html" class="gnm-nav-link">About</a>
-            </div>
-
-            <div class="gnm-nav-right">
-                <a href="login.html" class="gnm-btn-login d-none d-md-flex">Login</a>
-                <button class="gnm-hamburger d-lg-none" id="menuBtn" aria-label="Toggle menu">
-                    <span></span><span></span><span></span>
-                </button>
-            </div>
-        </div>
-        <div class="gnm-mobile-menu" id="mobileMenu">
-            <a href="index.html">Home</a>
-            <a href="search-results.html">Garages</a>
-            <a href="services.html" class="active">Services</a>
-            <a href="about.html">About</a>
-            <a href="login.html" class="gnm-mobile-login">Login</a>
-        </div>
-    </nav>
+    <div id="navbar-container"></div>
 
     <!-- ═══ SERVICES HERO ═══ -->
     <div class="bg-white border-bottom py-5">
@@ -78,7 +47,7 @@
                                     <h3 class="fw-bold mb-0 text-danger" style="font-family:var(--font-head);">Emergency SOS Breakdown</h3>
                                 </div>
                                 <p class="text-danger mb-4" style="line-height:1.6; opacity:0.9; font-size:16px;">Immediate roadside assistance for Cars & Bikes. Flat tyre, dead battery, or major breakdown on the highway — our radar alerts nearby mechanics instantly. First to accept gets dispatched.</p>
-                                <a href="sos-tracking.html" class="btn btn-danger rounded-pill px-5 py-3 fw-bold d-inline-flex align-items-center gap-2 shadow" style="font-size:16px;">
+                                <a href="sos-tracking" class="btn btn-danger rounded-pill px-5 py-3 fw-bold d-inline-flex align-items-center gap-2 shadow" style="font-size:16px;">
                                     Request SOS Now
                                 </a>
                             </div>
@@ -95,7 +64,7 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">General Service (Car & Bike)</h4>
                         <p class="text-muted small mb-4" style="line-height:1.6;">Regular maintenance for both two-wheelers and four-wheelers including oil changes, filter replacements, fluid checks, and comprehensive inspections.</p>
-                        <a href="search-results.html" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
+                        <a href="search-results" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
                     </div>
                 </div>
             </div>
@@ -108,7 +77,7 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">AC Repair & Gas Refill</h4>
                         <p class="text-muted small mb-4" style="line-height:1.6;">Complete AC checkup, cooling coil cleaning, compressor repair, and fresh gas refilling to keep you cool.</p>
-                        <a href="search-results.html" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
+                        <a href="search-results" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
                     </div>
                 </div>
             </div>
@@ -121,7 +90,7 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Denting & Painting</h4>
                         <p class="text-muted small mb-4" style="line-height:1.6;">Remove scratches, fix dents, and get a brand-new paint job. High-quality paint matching and ceramic coating available.</p>
-                        <a href="search-results.html" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
+                        <a href="search-results" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
                     </div>
                 </div>
             </div>
@@ -134,7 +103,7 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Wash & Detailing</h4>
                         <p class="text-muted small mb-4" style="line-height:1.6;">Premium foam wash, interior cleaning, and polishing for both cars and bikes to give your vehicle a showroom finish.</p>
-                        <a href="search-results.html" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
+                        <a href="search-results" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
                     </div>
                 </div>
             </div>
@@ -147,7 +116,7 @@
                     <div class="card-body p-4 d-flex flex-column">
                         <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:var(--color-text);">Wheel Alignment</h4>
                         <p class="text-muted small mb-4" style="line-height:1.6;">Laser-precision wheel alignment, computerized balancing, tyre rotation, and new tyre replacement services.</p>
-                        <a href="search-results.html" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
+                        <a href="search-results" class="btn btn-outline-primary mt-auto rounded-pill w-100 fw-medium">Find Garages</a>
                     </div>
                 </div>
             </div>
@@ -157,53 +126,21 @@
         </div>
     </div>
 
-    <!-- ═══ FOOTER ═══ -->
-    <footer class="gnm-footer mt-auto">
-        <div class="gnm-footer-top">
-            <div class="gnm-footer-brand">
-                <a href="index.html" class="gnm-logo">
-                    <div class="gnm-logo-icon">
-                        <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
-                            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
-                        </svg>
-                    </div>
-                    <span class="gnm-logo-text">GarageNearMe</span>
-                </a>
-                <p class="gnm-footer-tagline">Your trusted vehicle repair partner — anytime, anywhere in the city.</p>
-            </div>
+    <div id="footer-container"></div>
 
-            <div class="gnm-footer-col">
-                <div class="gnm-footer-heading">Platform</div>
-                <a href="search-results.html" class="gnm-footer-link">Find Garages</a>
-                <a href="sos-tracking.html" class="gnm-footer-link">Emergency SOS</a>
-                <a href="services.html" class="gnm-footer-link">Services</a>
-                <a href="about.html" class="gnm-footer-link">About Us</a>
-            </div>
+    <script src="/js/components.js"></script>
+    <script>
+      Promise.all([
+        loadComponent('navbar-container', 'components/navbar.html', () => {
+          setActiveSidebarLink();
+          initCustomerMenu();
+        }),
+        loadComponent('footer-container', 'components/footer.html')
+      ]);
+    </script>
 
-            <div class="gnm-footer-col">
-                <div class="gnm-footer-heading">For Garages</div>
-                <a href="register.html" class="gnm-footer-link">Register Garage</a>
-                <a href="login.html" class="gnm-footer-link">Mechanic Login</a>
-            </div>
-
-            <div class="gnm-footer-col">
-                <div class="gnm-footer-heading">Contact</div>
-                <p class="gnm-footer-link">support@garagenearme.in</p>
-                <p class="gnm-footer-link">+91 98765 43210</p>
-                <p class="gnm-footer-link">New Delhi, India</p>
-            </div>
-        </div>
-        <div class="gnm-footer-bottom">
-            <span>&copy; 2026 GarageNearMe. All rights reserved.</span>
-            <div class="gnm-footer-legal">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Use</a>
-            </div>
-        </div>
-    </footer>
-
-    <script src="../js/bootstrap.bundle.min.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/script.js"></script>
 </body>
 
 </html>

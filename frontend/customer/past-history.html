@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Past History — GarageNearMe</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#DC2626">
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
+        rel="stylesheet" />
+    <style>
+        .dashboard-nav .nav-link {
+            color: var(--color-text-muted);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+        .dashboard-nav .nav-link:hover {
+            background-color: rgba(0,0,0,0.03);
+            color: var(--color-text);
+        }
+        .dashboard-nav .nav-link.active {
+            background-color: rgba(255, 107, 53, 0.1);
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+        .filter-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.08);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .pagination .page-link {
+            color: var(--color-text);
+            border: none;
+            margin: 0 4px;
+            border-radius: 8px;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--color-primary);
+            color: #fff;
+        }
+        .pagination .page-link:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+
+<body style="background:var(--color-bg); min-height:100vh; display: flex; flex-direction: column;">
+
+    <!-- ═══ NAVBAR ═══ -->
+    <nav class="gnm-nav sticky-top shadow-sm border-bottom">
+        <div class="gnm-nav-inner justify-content-between">
+            <a href="index" class="gnm-logo text-decoration-none">
+                <div class="gnm-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
+                        <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+                    </svg>
+                </div>
+                <span class="gnm-logo-text">GarageNearMe</span>
+            </a>
+            
+            <div class="d-none d-md-flex align-items-center gap-3">
+                <a href="search-results" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
+                <div class="dropdown">
+                    <div id="topAvatarCircle" class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer overflow-hidden" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown"></div>
+                </div>
+            </div>
+            
+            <button class="gnm-hamburger d-md-none" id="menuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <div class="container py-4 py-md-5 flex-grow-1">
+        <div class="row g-4 g-lg-5">
+            
+            <!-- ── LEFT SIDEBAR ── -->
+            <div class="col-lg-3">
+                <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:100px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div id="sidebarAvatarCircle" class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0 overflow-hidden" style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);"></div>
+                            <div>
+                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">John Doe</h6>
+                                <p class="text-muted small mb-0">+91 98765 43210</p>
+                            </div>
+                        </div>
+
+                        <hr class="mb-4">
+
+                        <nav class="nav flex-column dashboard-nav">
+                            <a class="nav-link d-flex align-items-center gap-3" href="dashboard">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                                Dashboard Overview
+                            </a>
+                            <a class="nav-link d-flex align-items-center gap-3" href="my-bookings">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+                                My Bookings
+                            </a>
+                            <a class="nav-link d-flex align-items-center gap-3" href="my-vehicles">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
+                                My Vehicles
+                            </a>
+                            <a class="nav-link active d-flex align-items-center gap-3" href="past-history">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                                Past History
+                            </a>
+                            <a class="nav-link d-flex align-items-center gap-3" href="profile">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                Profile Settings
+                            </a>
+                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                                Logout
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── RIGHT CONTENT (Past History) ── -->
+            <div class="col-lg-9">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+                    <h3 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">Past History</h3>
+                    <a href="my-bookings" class="btn btn-outline-secondary rounded-pill px-4 fw-medium d-inline-flex align-items-center gap-2 align-self-start align-self-sm-auto">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                        Back to Bookings
+                    </a>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-card shadow-sm">
+                    <form id="filterForm" class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted fw-medium mb-1">Garage Name</label>
+                            <input type="text" id="filterGarage" class="form-control" placeholder="Search by name">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted fw-medium mb-1">Date</label>
+                            <input type="date" id="filterDate" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted fw-medium mb-1">Status</label>
+                            <select id="filterStatus" class="form-select">
+                                <option value="">All</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100 fw-medium">Apply</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- History List Container -->
+                <div id="pastBookingsContainer">
+                    <div class="text-center py-5 text-muted">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading past history...</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation" class="mt-4" id="paginationNav" style="display: none;">
+                    <ul class="pagination justify-content-center" id="paginationContainer">
+                        <!-- Dynamically populated -->
+                    </ul>
+                </nav>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="gnm-footer mt-auto py-3 bg-white border-top text-center text-muted" style="font-size:13px;">
+        &copy; 2026 GarageNearMe. All rights reserved.
+    </footer>
+
+    <!-- Jobcard Modal -->
+    <div class="modal fade" id="jobcardModal" tabindex="-1" aria-labelledby="jobcardModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <p class="text-muted small mb-1" id="jobcardBookingId">Booking</p>
+                        <h5 class="modal-title fw-bold" id="jobcardModalLabel" style="font-family:var(--font-head); color:var(--color-text);">Jobcard</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" id="jobcardModalBody">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        const token = localStorage.getItem('gnm_token');
+        let currentPage = 1;
+        const pageSize = 15;
+        let pastBookingCache = [];
+
+        function authHeaders() {
+            return { 'Authorization': `Bearer ${token}` };
+        }
+
+        async function loadUserInfo() {
+            if (!token) {
+                window.location.href = 'login';
+                return;
+            }
+            try {
+                const response = await fetch(`${getApiBase()}/auth/me`, {
+                    headers: authHeaders()
+                });
+                if (!response.ok) throw new Error('Failed to load user info');
+                const data = await response.json();
+                const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'JD';
+                const avatarHtml = data.profile_image
+                    ? `<img src="${window.location.origin}${data.profile_image}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
+                    : initials;
+
+                const topAvatar = document.getElementById('topAvatarCircle');
+                const sidebarAvatar = document.getElementById('sidebarAvatarCircle');
+                if (topAvatar) topAvatar.innerHTML = avatarHtml;
+                if (sidebarAvatar) sidebarAvatar.innerHTML = avatarHtml;
+
+                document.querySelectorAll('h6').forEach(el => {
+                    if (el.textContent.trim() === 'John Doe') {
+                        el.textContent = data.name || 'John Doe';
+                        if (el.nextElementSibling) {
+                            el.nextElementSibling.textContent = data.phone || '+91 98765 43210';
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('User info load error:', err);
+                localStorage.removeItem('gnm_token');
+                window.location.href = 'login';
+            }
+        }
+
+        async function loadPastHistory(page = 1) {
+            currentPage = page;
+            const garageName = document.getElementById('filterGarage').value;
+            const date = document.getElementById('filterDate').value;
+            const status = document.getElementById('filterStatus').value;
+
+            const container = document.getElementById('pastBookingsContainer');
+            const paginationNav = document.getElementById('paginationNav');
+            
+            container.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Loading history...</p>
+                </div>
+            `;
+            paginationNav.style.display = 'none';
+
+            try {
+                // Build query params
+                let queryParams = new URLSearchParams();
+                queryParams.append('page', page);
+                queryParams.append('size', pageSize);
+                if (garageName) queryParams.append('garage_name', garageName);
+                if (date) queryParams.append('date', date);
+                if (status) queryParams.append('status', status);
+
+                const response = await fetch(`${getApiBase()}/bookings/my/past?${queryParams.toString()}`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) throw new Error('Failed to load bookings');
+
+                const data = await response.json();
+                const pastBookings = data.items;
+                const totalPages = data.pages;
+                pastBookingCache = pastBookings;
+
+                if (pastBookings.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5 text-muted border rounded-4 bg-white">
+                            <p class="mb-0">No past bookings found.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                pastBookings.forEach(booking => {
+                    const isCompleted = booking.status === 'completed';
+                    const isPaid = booking.payment_status === 'paid';
+                    const bookingDate = booking.completed_at ? new Date(booking.completed_at).toLocaleDateString('en-IN') : new Date(booking.created_at).toLocaleDateString('en-IN');
+                    const amount = booking.final_amount ? `₹${parseFloat(booking.final_amount).toLocaleString()}` : 'N/A';
+                    const serviceName = booking.service_type || (booking.booking_type === 'sos' ? 'Emergency SOS' : 'General Service');
+                    
+                    const statusBadge = isCompleted 
+                        ? '<span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">Completed</span>'
+                        : '<span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-1">Cancelled</span>';
+                    
+                    const paymentBadge = isPaid 
+                        ? '<span class="badge bg-success rounded-pill px-3 py-1 ms-2">Paid ✓</span>'
+                        : '<span class="badge bg-warning rounded-pill px-3 py-1 ms-2">Pending Payment</span>';
+
+                    html += `
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">${serviceName}</h5>
+                                        <p class="text-muted small mb-0">${booking.garage_name || 'Garage'}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold fs-5 text-dark mb-2">${amount}</div>
+                                        <div>${statusBadge}${paymentBadge}</div>
+                                    </div>
+                                </div>
+                                <hr class="border-secondary opacity-25">
+                                <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                                    <span>Date: <strong class="text-dark">${bookingDate}</strong></span>
+                                    <span>Vehicle: <strong class="text-dark">${booking.vehicle_number || 'N/A'}</strong></span>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-sm btn-primary rounded-pill px-4 fw-medium" onclick="openJobcard(${booking.id})">View Jobcard</button>
+                                    ${isPaid && isCompleted ? `<a href="view-bill/${booking.slug || booking.id}" class="btn btn-sm btn-outline-primary rounded-pill px-4 fw-medium">View Bill</a>` : ''}
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-4 fw-medium" onclick="rebook(${booking.id})">Rebook</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+                renderPagination(totalPages);
+            } catch (err) {
+                console.error('Error loading past bookings:', err);
+                container.innerHTML = '<div class="text-center py-5 text-danger border rounded-4 bg-white"><p>Error loading booking history.</p></div>';
+            }
+        }
+
+        function renderPagination(totalPages) {
+            if (totalPages <= 1) return;
+            const paginationContainer = document.getElementById('paginationContainer');
+            document.getElementById('paginationNav').style.display = 'block';
+            let html = '';
+            
+            // Previous
+            html += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} > 1) loadPastHistory(${currentPage - 1})">Previous</a>
+                </li>
+            `;
+            
+            // Pages
+            for (let i = 1; i <= totalPages; i++) {
+                html += `
+                    <li class="page-item ${currentPage === i ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="event.preventDefault(); loadPastHistory(${i})">${i}</a>
+                    </li>
+                `;
+            }
+            
+            // Next
+            html += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} < ${totalPages}) loadPastHistory(${currentPage + 1})">Next</a>
+                </li>
+            `;
+            
+            paginationContainer.innerHTML = html;
+        }
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return 'N/A';
+            const amount = Number(value);
+            return Number.isNaN(amount) ? 'N/A' : `₹${amount.toLocaleString('en-IN')}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function normalizeWorkItem(item, index) {
+            const title = item.name || item.service || item.title || item.description || `Work item ${index + 1}`;
+            const amount = item.price ?? item.amount ?? item.total ?? item.cost;
+            return { title, amount };
+        }
+
+        function renderWorkItems(booking) {
+            const estimateItems = Array.isArray(booking.estimate_details) ? booking.estimate_details : [];
+            const additionalItems = Array.isArray(booking.additional_estimate_details) ? booking.additional_estimate_details : [];
+            const items = [...estimateItems, ...additionalItems];
+
+            if (!items.length) {
+                const fallbackWork = booking.description || booking.service_type || (booking.booking_type === 'sos' ? 'Emergency SOS' : 'General Service');
+                return `
+                    <div class="border rounded-3 p-3 d-flex justify-content-between align-items-center">
+                        <span class="fw-medium">${escapeHtml(fallbackWork)}</span>
+                        <span class="text-muted small">Work details</span>
+                    </div>
+                `;
+            }
+
+            return items.map((item, index) => {
+                const work = normalizeWorkItem(item, index);
+                return `
+                    <div class="border rounded-3 p-3 d-flex justify-content-between gap-3 align-items-start mb-2">
+                        <span class="fw-medium">${escapeHtml(work.title)}</span>
+                        <span class="fw-bold text-dark flex-shrink-0">${formatCurrency(work.amount)}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openJobcard(bookingId) {
+            const booking = pastBookingCache.find(item => item.id === bookingId);
+            if (!booking) return;
+
+            const serviceName = booking.service_type || (booking.booking_type === 'sos' ? 'Emergency SOS' : 'General Service');
+            const statusText = booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'N/A';
+            const statusClass = booking.status === 'completed' ? 'bg-success-subtle text-success border-success' : 'bg-danger-subtle text-danger border-danger';
+            const estimatedTotal = (Number(booking.estimated_amount) || 0) + (Number(booking.additional_estimate) || 0);
+            const totalAmount = booking.final_amount ?? (estimatedTotal > 0 ? estimatedTotal : null);
+            const completedDate = booking.completed_at ? new Date(booking.completed_at).toLocaleDateString('en-IN') : 'N/A';
+
+            document.getElementById('jobcardBookingId').textContent = `Booking ID: #GNM-${booking.id}`;
+            document.getElementById('jobcardModalLabel').textContent = serviceName;
+            document.getElementById('jobcardModalBody').innerHTML = `
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="border rounded-3 p-3 h-100">
+                            <div class="text-muted small mb-1">Garage</div>
+                            <div class="fw-bold">${escapeHtml(booking.garage_name || 'Garage')}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded-3 p-3 h-100">
+                            <div class="text-muted small mb-1">Vehicle</div>
+                            <div class="fw-bold">${escapeHtml(booking.vehicle_number || booking.vehicle_model || 'N/A')}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <div class="text-muted small mb-1">Status</div>
+                            <span class="badge border rounded-pill px-3 py-2 ${statusClass}">${escapeHtml(statusText)}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <div class="text-muted small mb-1">Completed On</div>
+                            <div class="fw-bold">${completedDate}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded-3 p-3 h-100">
+                            <div class="text-muted small mb-1">Total Amount</div>
+                            <div class="fw-bold fs-5 text-dark">${formatCurrency(totalAmount)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3" style="font-family:var(--font-head); color:var(--color-text);">Work Details</h6>
+                <div class="mb-3">
+                    ${renderWorkItems(booking)}
+                </div>
+
+                ${booking.additional_estimate_note ? `
+                    <div class="alert alert-warning border-0 rounded-3 mb-0">
+                        <div class="fw-bold mb-1">Additional Note</div>
+                        <div>${escapeHtml(booking.additional_estimate_note)}</div>
+                    </div>
+                ` : ''}
+            `;
+
+            new bootstrap.Modal(document.getElementById('jobcardModal')).show();
+        }
+
+        function rebook(bookingId) {
+            alert('Rebook feature coming soon!');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            loadPastHistory(1);
+
+            document.getElementById('filterForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                loadPastHistory(1);
+            });
+        });
+    </script>
+</body>
+
+</html>

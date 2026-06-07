@@ -5,280 +5,484 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Manage Garages - Admin | GarageNearMe</title>
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ── Status Chips ── */
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-chip.chip-pending {
+      background: #FEF3C7;
+      color: #92400E;
+      border-color: #FDE68A;
+    }
+
+    .status-chip.chip-pending.active-chip {
+      background: #D97706;
+      color: #fff;
+      border-color: #D97706;
+    }
+
+    .status-chip.chip-review {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border-color: #BFDBFE;
+    }
+
+    .status-chip.chip-review.active-chip {
+      background: #2563EB;
+      color: #fff;
+      border-color: #2563EB;
+    }
+
+    .status-chip.chip-visit {
+      background: #F5F3FF;
+      color: #6D28D9;
+      border-color: #DDD6FE;
+    }
+
+    .status-chip.chip-visit.active-chip {
+      background: #7C3AED;
+      color: #fff;
+      border-color: #7C3AED;
+    }
+
+    .status-chip.chip-verify {
+      background: #ECFDF5;
+      color: #065F46;
+      border-color: #A7F3D0;
+    }
+
+    .status-chip.chip-verify.active-chip {
+      background: #059669;
+      color: #fff;
+      border-color: #059669;
+    }
+
+    /* ── Offcanvas ── */
+    .detail-offcanvas {
+      width: 500px !important;
+    }
+
+    .oc-section-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9CA3AF;
+      border-bottom: 1px solid #F3F4F6;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+
+    .info-row .lbl {
+      min-width: 115px;
+      font-size: 0.78rem;
+      color: #6B7280;
+    }
+
+    .info-row .val {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1B1F2E;
+    }
+
+    /* ── Step progress ── */
+    .step-track {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      position: relative;
+    }
+
+    .step-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 13px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: #E5E7EB;
+      z-index: 0;
+    }
+
+    .step-item.done::after {
+      background: #22C55E;
+    }
+
+    .step-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid #E5E7EB;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #9CA3AF;
+      z-index: 1;
+      position: relative;
+    }
+
+    .step-item.done .step-dot {
+      background: #22C55E;
+      border-color: #22C55E;
+      color: #fff;
+    }
+
+    .step-item.active .step-dot {
+      background: #FF6B35;
+      border-color: #FF6B35;
+      color: #fff;
+    }
+
+    .step-lbl {
+      font-size: 0.6rem;
+      font-weight: 600;
+      color: #9CA3AF;
+      margin-top: 4px;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .step-item.done .step-lbl {
+      color: #22C55E;
+    }
+
+    .step-item.active .step-lbl {
+      color: #FF6B35;
+    }
+
+    /* ── Action panel ── */
+    .action-panel {
+      background: #F8FAFC;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .action-panel-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 0.75rem;
+    }
+
+    .gnm-input {
+      border: 1.5px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+      background: #fff;
+      color: #1B1F2E;
+    }
+
+    .gnm-input:focus {
+      border-color: #FF6B35;
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+
+    .gnm-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+    }
+
+    .check-row input[type=checkbox] {
+      width: 16px;
+      height: 16px;
+      accent-color: #22C55E;
+      flex-shrink: 0;
+    }
+
+    .check-row label {
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .btn-action-primary {
+      background: #1B1F2E;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      width: 100%;
+      transition: background 0.15s;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-action-primary:hover {
+      background: #2d3348;
+    }
+
+    .btn-action-primary.green {
+      background: #16A34A;
+    }
+
+    .btn-action-primary.green:hover {
+      background: #15803D;
+    }
+
+    .btn-reject-link {
+      background: none;
+      border: 1.5px solid #FCA5A5;
+      color: #DC2626;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-reject-link:hover {
+      background: #FEF2F2;
+    }
+
+    /* ── Table action buttons ── */
+    .tbl-btn {
+      font-size: 0.73rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1.5px solid;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .tbl-btn-view {
+      background: #F8FAFC;
+      border-color: #E5E7EB;
+      color: #374151;
+    }
+
+    .tbl-btn-view:hover {
+      background: #1B1F2E;
+      border-color: #1B1F2E;
+      color: #fff;
+    }
+
+    .tbl-btn-action {
+      background: #FF6B35;
+      border-color: #FF6B35;
+      color: #fff;
+    }
+
+    .tbl-btn-action:hover {
+      background: #e55a25;
+      border-color: #e55a25;
+    }
+
+    /* ── Type pill ── */
+    .type-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .tp-four {
+      background: #EFF6FF;
+      color: #1D4ED8;
+    }
+
+    .tp-two {
+      background: #FFF7ED;
+      color: #C2410C;
+    }
+
+    .tp-both {
+      background: #F0FDF4;
+      color: #15803D;
+    }
+  </style>
 </head>
 
 <body>
 
   <div class="admin-layout">
-    
-    <!-- ═══ ADMIN SIDEBAR ═══ -->
-    <aside class="admin-sidebar" id="sidebar">
-      <div class="admin-sidebar-header">
-        <a href="dashboard.html" class="text-white text-decoration-none d-flex align-items-center gap-2">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
-          </svg>
-          <span class="fs-5 fw-bold" style="font-family: var(--font-head); letter-spacing: -0.5px;">GNM<span class="text-white-50">Admin</span></span>
-        </a>
-      </div>
 
-      <div class="admin-sidebar-menu">
-        <div class="admin-nav-title">Overview</div>
-        <div class="admin-nav-item">
-          <a href="dashboard.html" class="admin-nav-link">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-            Dashboard
-          </a>
-        </div>
+    <!-- SIDEBAR COMPONENT -->
+    <div id="sidebar-container"></div>
 
-        <div class="admin-nav-title">Management</div>
-        <div class="admin-nav-item">
-          <a href="garages.html" class="admin-nav-link active">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-            Garages & Partners
-          </a>
-        </div>
-        <div class="admin-nav-item">
-          <a href="customers.html" class="admin-nav-link">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-            Customers
-          </a>
-        </div>
-        <div class="admin-nav-item">
-          <a href="bookings.html" class="admin-nav-link">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
-            All Bookings
-          </a>
-        </div>
-
-        <div class="admin-nav-title">Operations</div>
-        <div class="admin-nav-item">
-          <a href="sos-monitor.html" class="admin-nav-link text-danger">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-            Live SOS Monitor
-          </a>
-        </div>
-        <div class="admin-nav-item">
-          <a href="payouts.html" class="admin-nav-link">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-            Financials & Payouts
-          </a>
-        </div>
-      </div>
-
-      <div class="p-3 mt-auto">
-        <a href="index.html" class="btn btn-outline-light w-100 rounded-pill d-flex align-items-center justify-content-center gap-2" style="border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-          Logout Admin
-        </a>
-      </div>
-    </aside>
-
-    <!-- ═══ MAIN CONTENT ═══ -->
+    <!-- MAIN -->
     <main class="admin-content">
-      
-      <!-- Topbar -->
-      <header class="admin-topbar">
-        <div class="d-flex align-items-center gap-3">
-          <button class="btn d-lg-none p-0 border-0 shadow-none text-dark" id="sidebarToggle">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-          </button>
-          <h4 class="mb-0 fw-bold" style="font-family: var(--font-head);">Manage Garages & Partners</h4>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-          <div class="position-relative cursor-pointer">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="#64748B"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" style="font-size: 0.6rem;">3</span>
-          </div>
-          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-family: var(--font-head);">
-            SA
-          </div>
-        </div>
-      </header>
 
-      <!-- Page Header & Actions -->
+      <!-- TOPBAR COMPONENT -->
+      <div id="topbar-container"></div>
+
+      <!-- Tabs row -->
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        
-        <!-- Filters/Tabs -->
         <ul class="nav nav-pills gap-2" id="garageTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active rounded-pill fw-medium px-4" id="all-tab" data-bs-toggle="pill" data-bs-target="#all" type="button" role="tab">All Garages</button>
+          <li class="nav-item">
+            <button class="nav-link rounded-pill fw-medium px-4" id="all-tab" data-bs-toggle="pill"
+              data-bs-target="#all" type="button">All Garages</button>
           </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-pill fw-medium px-4" id="pending-tab" data-bs-toggle="pill" data-bs-target="#pending" type="button" role="tab">
-              Pending Approvals <span class="badge bg-danger rounded-pill ms-1">2</span>
+          <li class="nav-item">
+            <button class="nav-link active rounded-pill fw-medium px-4" id="pending-tab" data-bs-toggle="pill"
+              data-bs-target="#pipeline" type="button">
+              Onboarding Pipeline <span class="badge bg-danger rounded-pill ms-1" id="pipelineBadge">...</span>
             </button>
           </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-pill fw-medium px-4" id="blocked-tab" data-bs-toggle="pill" data-bs-target="#blocked" type="button" role="tab">Blocked</button>
+          <li class="nav-item">
+            <button class="nav-link rounded-pill fw-medium px-4" id="blocked-tab" data-bs-toggle="pill"
+              data-bs-target="#blocked" type="button">Blocked</button>
           </li>
         </ul>
-
-        <!-- Search & Actions -->
-        <div class="d-flex gap-3 align-items-center">
-          <div class="position-relative">
-            <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-            </span>
-            <input type="text" class="form-control rounded-pill ps-5 bg-white border" placeholder="Search garages..." style="width: 250px;">
-          </div>
-          <a href="add-garage.html" class="btn btn-admin-primary rounded-pill px-4 fw-bold d-flex align-items-center gap-2">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            Add Garage
-          </a>
-        </div>
+        <a href="add-garage"
+          class="btn btn-admin-primary rounded-pill px-4 fw-bold d-flex align-items-center gap-2">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </svg>
+          Add Garage
+        </a>
       </div>
 
-      <!-- Main Table Card -->
+      <!-- Tab content -->
       <div class="bg-white rounded-4 border shadow-sm overflow-hidden mb-4">
-        <div class="tab-content" id="garageTabsContent">
-          
-          <!-- ALL GARAGES TAB -->
-          <div class="tab-pane fade show active" id="all" role="tabpanel">
+        <div class="tab-content">
+
+          <!-- ALL GARAGES -->
+          <!-- ALL GARAGES -->
+          <div class="tab-pane fade" id="all" role="tabpanel">
             <div class="table-responsive">
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Garage Info</th>
-                    <th>Contact & Owner</th>
+                    <th>Garage</th>
+                    <th>Owner & Contact</th>
                     <th>Location</th>
-                    <th>Total Jobs</th>
+                    <th>Type</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <!-- Item 1 -->
+                <tbody id="allGaragesTbody">
                   <tr>
-                    <td>
-                      <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 48px; height: 48px;">
-                          S
-                        </div>
-                        <div>
-                          <div class="fw-bold text-dark fs-6">Sharma Auto Works</div>
-                          <div class="text-muted small d-flex align-items-center gap-1">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="#F59E0B"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                            4.8 (120 reviews)
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Ramesh Sharma</div>
-                      <div class="text-muted small">+91 98765 43210</div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Andheri East</div>
-                      <div class="text-muted small">Mumbai, MH</div>
-                    </td>
-                    <td>
-                      <div class="fw-bold text-dark">450</div>
-                      <div class="text-success small">+12 this week</div>
-                    </td>
-                    <td>
-                      <span class="badge badge-admin-success rounded-pill px-3 py-2 fw-medium">Active</span>
-                    </td>
-                    <td class="text-end">
-                      <div class="dropdown">
-                        <button class="btn btn-sm btn-light rounded-circle p-2 border" type="button" data-bs-toggle="dropdown">
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                          <li><a class="dropdown-item py-2" href="#">View Full Profile</a></li>
-                          <li><a class="dropdown-item py-2" href="#">View Payouts</a></li>
-                          <li><hr class="dropdown-divider"></li>
-                          <li><a class="dropdown-item py-2 text-danger" href="#">Block Garage</a></li>
-                        </ul>
-                      </div>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                      <div class="spinner-border spinner-border-sm me-2"></div>Loading...
                     </td>
                   </tr>
-
-                  <!-- Item 2 -->
-                  <tr>
-                    <td>
-                      <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 48px; height: 48px;">
-                          R
-                        </div>
-                        <div>
-                          <div class="fw-bold text-dark fs-6">Royal Enfield Specialists</div>
-                          <div class="text-muted small d-flex align-items-center gap-1">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="#F59E0B"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                            4.5 (85 reviews)
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Vikram Singh</div>
-                      <div class="text-muted small">+91 99887 76655</div>
-                    </td>
-                    <td>
-                      <div class="fw-medium text-dark">Koramangala</div>
-                      <div class="text-muted small">Bangalore, KA</div>
-                    </td>
-                    <td>
-                      <div class="fw-bold text-dark">210</div>
-                      <div class="text-muted small">0 this week</div>
-                    </td>
-                    <td>
-                      <span class="badge badge-admin-success rounded-pill px-3 py-2 fw-medium">Active</span>
-                    </td>
-                    <td class="text-end">
-                      <div class="dropdown">
-                        <button class="btn btn-sm btn-light rounded-circle p-2 border" type="button" data-bs-toggle="dropdown">
-                          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                          <li><a class="dropdown-item py-2" href="#">View Full Profile</a></li>
-                          <li><a class="dropdown-item py-2" href="#">View Payouts</a></li>
-                          <li><hr class="dropdown-divider"></li>
-                          <li><a class="dropdown-item py-2 text-danger" href="#">Block Garage</a></li>
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-
                 </tbody>
               </table>
             </div>
-            <!-- Pagination -->
-            <div class="p-3 border-top d-flex justify-content-between align-items-center">
-              <span class="text-muted small">Showing 1 to 10 of 842 entries</span>
-              <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">Next</a></li>
-              </ul>
-            </div>
           </div>
 
-          <!-- PENDING TAB -->
-          <div class="tab-pane fade" id="pending" role="tabpanel">
+          <!-- ONBOARDING PIPELINE -->
+          <div class="tab-pane fade show active" id="pipeline" role="tabpanel">
+
+            <!-- Filter chips -->
+            <div class="d-flex align-items-center gap-2 flex-wrap p-3 border-bottom" style="background:#FAFAFA;">
+              <span class="text-muted small fw-medium me-1">Stage:</span>
+              <span class="status-chip chip-pending active-chip" data-status="pending"
+                onclick="setFilter('pending',this)">
+                <span class="chip-dot"></span>New Requests<span class="badge rounded-pill bg-white text-dark ms-1"
+                  id="cnt-pending" style="font-size:0.7rem;">0</span>
+              </span>
+              <span class="status-chip chip-review" data-status="under_review" onclick="setFilter('under_review',this)">
+                <span class="chip-dot"></span>Under Review<span class="badge rounded-pill bg-white text-dark ms-1"
+                  id="cnt-review" style="font-size:0.7rem;">0</span>
+              </span>
+              <span class="status-chip chip-visit" data-status="site_visit_scheduled"
+                onclick="setFilter('site_visit_scheduled',this)">
+                <span class="chip-dot"></span>Visit Scheduled<span class="badge rounded-pill bg-white text-dark ms-1"
+                  id="cnt-visit" style="font-size:0.7rem;">0</span>
+              </span>
+              <span class="status-chip chip-verify" data-status="verification_completed"
+                onclick="setFilter('verification_completed',this)">
+                <span class="chip-dot"></span>Ready to Approve<span class="badge rounded-pill bg-white text-dark ms-1"
+                  id="cnt-verify" style="font-size:0.7rem;">0</span>
+              </span>
+            </div>
+
             <div class="table-responsive">
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Garage Info</th>
-                    <th>Contact & Owner</th>
+                    <th>Garage</th>
+                    <th>Owner & Contact</th>
                     <th>Location</th>
-                    <th>Submitted On</th>
-                    <th>Documents</th>
+                    <th>Submitted</th>
+                    <th>Stage</th>
                     <th class="text-end">Actions</th>
                   </tr>
                 </thead>
-                <tbody id="pendingRequestsTableBody">
+                <tbody id="pipelineTbody">
                   <tr>
                     <td colspan="6" class="text-center py-4 text-muted">
-                      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                      Loading pending requests...
+                      <div class="spinner-border spinner-border-sm me-2"></div>Loading...
                     </td>
                   </tr>
                 </tbody>
@@ -286,145 +490,694 @@
             </div>
           </div>
 
-          <!-- BLOCKED TAB -->
+          <!-- BLOCKED -->
           <div class="tab-pane fade" id="blocked" role="tabpanel">
             <div class="p-5 text-center">
-              <svg viewBox="0 0 24 24" width="64" height="64" fill="#CBD5E1" class="mb-3"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>
-              <h5 class="fw-bold text-muted">No Blocked Garages</h5>
-              <p class="text-muted small mb-0">There are currently no garages in the blocked list.</p>
+              <svg viewBox="0 0 24 24" width="52" height="52" fill="#CBD5E1" class="mb-2">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z" />
+              </svg>
+              <h6 class="fw-bold text-muted">No blocked garages</h6>
             </div>
           </div>
 
         </div>
       </div>
-
     </main>
   </div>
 
-  <script src="../js/bootstrap.bundle.js"></script>
+
+  <!-- ═══════════════════════════════════
+     DETAIL OFFCANVAS
+═══════════════════════════════════ -->
+  <div class="offcanvas offcanvas-end detail-offcanvas" tabindex="-1" id="detailOffcanvas">
+    <div class="offcanvas-header border-bottom px-4 py-3">
+      <div>
+        <h5 class="offcanvas-title fw-bold mb-0" style="font-family:var(--font-head);">Garage Request</h5>
+        <p class="text-muted small mb-0" id="oc-meta">—</p>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body px-4 py-3" style="overflow-y:auto;">
+
+      <!-- Step progress -->
+      <div class="step-track mb-4" id="oc-steps"></div>
+
+      <!-- Garage info -->
+      <div class="mb-4">
+        <div class="oc-section-title">Garage Details</div>
+        <div class="info-row"><span class="lbl">Name</span><span class="val" id="oc-gname">—</span></div>
+        <div class="info-row"><span class="lbl">Type</span><span class="val" id="oc-gtype">—</span></div>
+        <div class="info-row"><span class="lbl">Owner</span><span class="val" id="oc-owner">—</span></div>
+        <div class="info-row"><span class="lbl">Phone</span><span class="val" id="oc-phone">—</span></div>
+        <div class="info-row"><span class="lbl">Email</span><span class="val" id="oc-email">—</span></div>
+        <div class="info-row"><span class="lbl">Address</span><span class="val" id="oc-addr">—</span></div>
+        <div class="info-row"><span class="lbl">City / PIN</span><span class="val" id="oc-city">—</span></div>
+      </div>
+
+      <!-- Visit info -->
+      <div class="mb-4 d-none" id="oc-visit-section">
+        <div class="oc-section-title">Site Visit</div>
+        <div class="info-row"><span class="lbl">Date</span><span class="val" id="oc-vdate">—</span></div>
+        <div class="info-row"><span class="lbl">Notes</span><span class="val" id="oc-vnotes">—</span></div>
+      </div>
+
+      <!-- Verification info -->
+      <div class="mb-4 d-none" id="oc-verify-section">
+        <div class="oc-section-title">Verification Results</div>
+        <div class="info-row"><span class="lbl">Site Visit</span><span class="val" id="oc-site-v">—</span></div>
+        <div class="info-row"><span class="lbl">Documents</span><span class="val" id="oc-docs-v">—</span></div>
+        <div class="info-row"><span class="lbl">Notes</span><span class="val" id="oc-verify-n">—</span></div>
+      </div>
+
+      <!-- Action panel — injected per status -->
+      <div id="oc-documents-section"></div>
+      <div id="oc-action"></div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════
+     REJECT MODAL
+═══════════════════════════════════ -->
+  <div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 rounded-4 shadow">
+        <div class="modal-body p-4">
+          <div class="text-center mb-3">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
+              style="width:52px;height:52px;background:#FEE2E2;">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="#DC2626">
+                <path
+                  d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </svg>
+            </div>
+            <h5 class="fw-bold mb-1">Reject Request?</h5>
+            <p class="text-muted small mb-0">For: <strong id="reject-gname">—</strong></p>
+          </div>
+          <label class="gnm-label">Reason for rejection <span class="text-danger">*</span></label>
+          <textarea class="gnm-input" id="reject-reason" rows="3"
+            placeholder="e.g. Incomplete documents, invalid address..."></textarea>
+          <div class="text-danger small mt-1 d-none" id="reject-err">Please enter a reason.</div>
+        </div>
+        <div class="modal-footer border-0 justify-content-center gap-2 pb-4 pt-0">
+          <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger rounded-pill px-4 fw-bold" id="reject-confirm-btn">
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="reject-sp"></span>
+            Confirm Reject
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════
+     APPROVE MODAL
+═══════════════════════════════════ -->
+  <div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content border-0 rounded-4 shadow">
+        <div class="modal-body p-4 text-center">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+            style="width:52px;height:52px;background:#DCFCE7;">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="#16A34A">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+            </svg>
+          </div>
+          <h5 class="fw-bold mb-2">Make it Live!</h5>
+          <p class="text-muted small mb-1">Approving:</p>
+          <p class="fw-bold text-dark mb-3" id="approve-gname">—</p>
+          <p class="text-muted small mb-0">Garage account will be created. Owner can login via OTP immediately.</p>
+        </div>
+        <div class="modal-footer border-0 justify-content-center gap-2 pb-4 pt-0">
+          <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success rounded-pill px-4 fw-bold" id="approve-confirm-btn">
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="approve-sp"></span>
+            Yes, Approve
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+    <div id="gnmToast" class="toast align-items-center text-white border-0 rounded-3" role="alert">
+      <div class="d-flex">
+        <div class="toast-body fw-medium" id="toastMsg"></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="/js/components.js"></script>
   <script>
-    const ADMIN_KEY = 'gnm_admin_secret_2026'; // Dev secret
+    initAdminChrome('Manage Garages & Partners');
+  </script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /* ══════════════════════════════════════
+       CONFIG & STATE
+    ══════════════════════════════════════ */
+    const API = getApiBase();
+    const AKEY = localStorage.getItem('gnm_admin_key');
+    if (!AKEY) {
+      window.location.href = 'index';
+    }
+    const H = { 'X-Admin-Key': AKEY };
+    const HJ = { 'X-Admin-Key': AKEY, 'Content-Type': 'application/json' };
 
-    // Sidebar Toggle Logic
-    document.getElementById('sidebarToggle').addEventListener('click', function() {
-      document.getElementById('sidebar').classList.toggle('show');
-    });
+    let allRequests = [];
+    let currentFilter = 'pending';
+    let activeId = null;
+    let rejectId = null;
 
-    // Fetch Pending Requests
-    async function fetchPendingRequests() {
-      const tbody = document.getElementById('pendingRequestsTableBody');
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading pending requests...</td></tr>`;
+    /* ══════════════════════════════════════
+       HELPERS
+    ══════════════════════════════════════ */
+    function showToast(msg, type = 'success') {
+      const el = document.getElementById('gnmToast');
+      el.className = `toast align-items-center text-white border-0 rounded-3 bg-${type === 'success' ? 'success' : 'danger'}`;
+      document.getElementById('toastMsg').textContent = msg;
+      new bootstrap.Toast(el, { delay: 3500 }).show();
+    }
+
+    function typePill(t) {
+      const m = { four_wheeler: ['tp-four', 'Car Specialist'], two_wheeler: ['tp-two', 'Bike Specialist'], both: ['tp-both', 'Car & Bike'] };
+      const [c, l] = m[t] || ['', t];
+      return `<span class="type-pill ${c}">${l}</span>`;
+    }
+
+    function stageBadge(s) {
+      const m = {
+        pending: ['#FEF3C7', '#92400E', 'New Request'],
+        documents_pending: ['#FEF3C7', '#92400E', 'Docs Uploaded'],
+        under_review: ['#EFF6FF', '#1D4ED8', 'Under Review'],
+        site_visit_scheduled: ['#F5F3FF', '#6D28D9', 'Visit Scheduled'],
+        verification_completed: ['#ECFDF5', '#065F46', 'Ready to Approve'],
+      };
+      const [bg, color, lbl] = m[s] || ['#F3F4F6', '#6B7280', s];
+      return `<span style="background:${bg};color:${color};padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;">${lbl}</span>`;
+    }
+
+    function fmtDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    /* ══════════════════════════════════════
+       LOAD ALL PIPELINE STAGES
+    ══════════════════════════════════════ */
+    const STAGES = ['pending', 'documents_pending', 'under_review', 'site_visit_scheduled', 'verification_completed'];
+
+    async function loadPipeline() {
+      document.getElementById('pipelineTbody').innerHTML =
+        `<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Loading...</td></tr>`;
 
       try {
-        const response = await fetch('http://localhost:8000/api/garage-requests/admin/all?status=pending', {
-          headers: {
-            'X-Admin-Key': ADMIN_KEY
-          }
-        });
-        
-        if (!response.ok) throw new Error('Failed to fetch requests');
-        const requests = await response.json();
+        const results = await Promise.all(
+          STAGES.map(s => fetch(`${API}/garage-requests/admin/all?status=${s}`, { headers: H })
+            .then(r => r.ok ? r.json() : []))
+        );
 
-        if (requests.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">No pending garage requests at the moment.</td></tr>`;
+        allRequests = results.flat();
+
+        // Update counts
+        document.getElementById('cnt-pending').textContent = results[0].length + results[1].length;
+        document.getElementById('cnt-review').textContent = results[2].length;
+        document.getElementById('cnt-visit').textContent = results[3].length;
+        document.getElementById('cnt-verify').textContent = results[4].length;
+        document.getElementById('pipelineBadge').textContent = allRequests.length;
+
+        renderTable();
+      } catch {
+        document.getElementById('pipelineTbody').innerHTML =
+          `<tr><td colspan="6" class="text-center py-4 text-danger small">Could not load. Is backend running at ${API}?</td></tr>`;
+      }
+    }
+
+    /* ══════════════════════════════════════
+       RENDER TABLE
+    ══════════════════════════════════════ */
+    function renderTable() {
+      const tbody = document.getElementById('pipelineTbody');
+      const rows = allRequests.filter(r =>
+        currentFilter === 'pending'
+          ? ['pending', 'documents_pending'].includes(r.status)
+          : r.status === currentFilter
+      );
+
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">
+      <div class="fw-medium">No requests in this stage</div>
+    </td></tr>`;
+        return;
+      }
+
+      const nextLabel = {
+        pending: 'Start Review',
+        documents_pending: 'Start Review',
+        under_review: 'Schedule Visit',
+        site_visit_scheduled: 'Verify',
+        verification_completed: '✓ Go Live',
+      };
+
+      tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>
+        <div class="fw-bold text-dark">${r.garage_name}</div>
+        <div class="mt-1">${typePill(r.garage_type)}</div>
+      </td>
+      <td>
+        <div class="fw-medium text-dark">${r.owner_name}</div>
+        <div class="text-muted small">+91 ${r.phone}</div>
+      </td>
+      <td>
+        <div class="text-dark small">${r.address || '—'}</div>
+        <div class="text-muted small">${r.city}, ${r.pincode}</div>
+      </td>
+      <td><div class="text-dark small">${fmtDate(r.created_at)}</div></td>
+      <td>${stageBadge(r.status)}</td>
+      <td class="text-end">
+        <div class="d-flex gap-1 justify-content-end flex-wrap">
+          <button class="tbl-btn tbl-btn-view" onclick="openDetail(${r.id})">Details</button>
+          <button class="tbl-btn tbl-btn-action" onclick="openDetail(${r.id})">${nextLabel[r.status]}</button>
+        </div>
+      </td>
+    </tr>`).join('');
+    }
+
+    /* ══════════════════════════════════════
+       FILTER CHIPS
+    ══════════════════════════════════════ */
+    function setFilter(status, el) {
+      currentFilter = status;
+      document.querySelectorAll('.status-chip').forEach(c => c.classList.remove('active-chip'));
+      el.classList.add('active-chip');
+      renderTable();
+    }
+
+    /* ══════════════════════════════════════
+       OPEN DETAIL OFFCANVAS
+    ══════════════════════════════════════ */
+    function openDetail(id) {
+      const req = allRequests.find(r => r.id === id);
+      if (!req) return;
+      activeId = id;
+
+      document.getElementById('oc-meta').textContent = `Request #${req.id}  ·  Submitted ${fmtDate(req.created_at)}`;
+
+      // Step progress
+      const steps = [
+        { key: 'pending', label: 'Received' },
+        { key: 'under_review', label: 'Reviewing' },
+        { key: 'site_visit_scheduled', label: 'Site Visit' },
+        { key: 'verification_completed', label: 'Verified' },
+        { key: 'approved', label: 'Live' },
+      ];
+      const order = steps.map(s => s.key);
+      const cur = order.indexOf(req.status === 'documents_pending' ? 'pending' : req.status);
+      document.getElementById('oc-steps').innerHTML = steps.map((s, i) => {
+        const cls = i < cur ? 'done' : i === cur ? 'active' : '';
+        const icon = i < cur ? `<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>` : (i + 1);
+        return `<div class="step-item ${cls}">
+      <div class="step-dot">${icon}</div>
+      <div class="step-lbl">${s.label}</div>
+    </div>`;
+      }).join('');
+
+      // Info
+      document.getElementById('oc-gname').textContent = req.garage_name;
+      document.getElementById('oc-gtype').innerHTML = typePill(req.garage_type);
+      document.getElementById('oc-owner').textContent = req.owner_name;
+      document.getElementById('oc-phone').textContent = `+91 ${req.phone}`;
+      document.getElementById('oc-email').textContent = req.email || '—';
+      document.getElementById('oc-addr').textContent = req.address || '—';
+      document.getElementById('oc-city').textContent = `${req.city} — ${req.pincode}`;
+
+      // Visit section
+      const vs = document.getElementById('oc-visit-section');
+      if (['site_visit_scheduled', 'verification_completed', 'approved'].includes(req.status)) {
+        vs.classList.remove('d-none');
+        document.getElementById('oc-vdate').textContent = fmtDate(req.visit_date);
+        document.getElementById('oc-vnotes').textContent = req.visit_notes || '—';
+      } else { vs.classList.add('d-none'); }
+
+      // Verify section
+      const vfs = document.getElementById('oc-verify-section');
+      if (['verification_completed', 'approved'].includes(req.status)) {
+        vfs.classList.remove('d-none');
+        document.getElementById('oc-site-v').innerHTML = req.is_site_verified
+          ? '<span class="text-success fw-bold">✓ Verified</span>' : '<span class="text-danger fw-bold">✗ Not verified</span>';
+        document.getElementById('oc-docs-v').innerHTML = req.is_documents_verified
+          ? '<span class="text-success fw-bold">✓ Verified</span>' : '<span class="text-danger fw-bold">✗ Not verified</span>';
+        document.getElementById('oc-verify-n').textContent = req.verification_notes || '—';
+      } else { vfs.classList.add('d-none'); }
+
+      // Documents and action panel
+      document.getElementById('oc-documents-section').innerHTML = buildDocumentsPanel(req);
+      document.getElementById('oc-action').innerHTML = buildAction(req);
+
+      new bootstrap.Offcanvas(document.getElementById('detailOffcanvas')).show();
+    }
+
+    /* ══════════════════════════════════════
+       BUILD ACTION PANEL
+    ══════════════════════════════════════ */
+    const REJECT_BTN = `<button class="btn-reject-link mt-2" onclick="openReject()">Reject This Request</button>`;
+
+    function buildDocumentsPanel(req) {
+      if (['approved', 'rejected'].includes(req.status)) return '';
+
+      const labels = {
+        aadhar: 'Aadhar Card',
+        pan: 'PAN Card',
+        shop_license: 'Shop License'
+      };
+      const docs = req.documents || [];
+      const docRows = docs.length
+        ? docs.map(doc => `
+      <div class="d-flex justify-content-between align-items-center gap-2 py-2 border-bottom">
+        <div>
+          <div class="fw-semibold small text-dark">${labels[doc.document_type] || doc.document_type}</div>
+          <div class="text-muted" style="font-size:0.72rem;">Uploaded ${fmtDate(doc.uploaded_at)}</div>
+        </div>
+        <a href="${window.location.origin}${doc.file_url}" target="_blank" class="tbl-btn tbl-btn-view text-decoration-none">View</a>
+      </div>`).join('')
+        : `<div class="text-muted small py-2">No documents uploaded yet.</div>`;
+
+      return `
+    <div class="mb-4">
+      <div class="oc-section-title">Documents</div>
+      <div class="action-panel">
+        <div class="mb-3">${docRows}</div>
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-sm-5">
+            <label class="gnm-label">Document Type</label>
+            <select class="gnm-input" id="req-doc-type">
+              <option value="aadhar">Aadhar Card</option>
+              <option value="pan">PAN Card</option>
+              <option value="shop_license">Shop License</option>
+            </select>
+          </div>
+          <div class="col-12 col-sm-7">
+            <label class="gnm-label">Upload File</label>
+            <input class="gnm-input" type="file" id="req-doc-file" accept="image/*,.pdf">
+          </div>
+        </div>
+        <div class="text-danger small mt-2 d-none" id="doc-upload-err"></div>
+        <button class="btn-action-primary mt-3" type="button" id="doc-upload-btn" onclick="doUploadRequestDocument()">
+          <span class="spinner-border spinner-border-sm d-none" id="doc-upload-sp"></span>Upload Document
+        </button>
+      </div>
+    </div>`;
+    }
+
+    function buildAction(req) {
+      if (['pending', 'documents_pending'].includes(req.status)) return `
+    <div class="action-panel">
+      <div class="action-panel-title">👀 Step 1 — Start Review</div>
+      <p class="text-muted small mb-3">Confirm you've seen this request and it's now being reviewed by the team.</p>
+      <button class="btn-action-primary" onclick="doStartReview()">
+        <span class="spinner-border spinner-border-sm d-none" id="act-sp"></span>Start Review
+      </button>
+      ${REJECT_BTN}
+    </div>`;
+
+      if (req.status === 'under_review') return `
+    <div class="action-panel">
+      <div class="action-panel-title">📅 Step 2 — Schedule Site Visit</div>
+      <div class="mb-2">
+        <label class="gnm-label">Visit Date *</label>
+        <input type="date" class="gnm-input" id="act-date" min="${new Date().toISOString().split('T')[0]}">
+      </div>
+      <div class="mb-3">
+        <label class="gnm-label">Notes (optional)</label>
+        <textarea class="gnm-input" id="act-vnotes" rows="2" placeholder="Who visits, what to inspect..."></textarea>
+      </div>
+      <div class="text-danger small mb-2 d-none" id="act-err"></div>
+      <button class="btn-action-primary" onclick="doScheduleVisit()">
+        <span class="spinner-border spinner-border-sm d-none" id="act-sp"></span>Confirm Visit Date
+      </button>
+      ${REJECT_BTN}
+    </div>`;
+
+      if (req.status === 'site_visit_scheduled') return `
+    <div class="action-panel">
+      <div class="action-panel-title">✅ Step 3 — Complete Verification</div>
+      <div class="check-row">
+        <input type="checkbox" id="chk-site">
+        <label for="chk-site">Site visit completed successfully</label>
+      </div>
+      <div class="check-row mb-3">
+        <input type="checkbox" id="chk-docs">
+        <label for="chk-docs">All documents verified &amp; valid</label>
+      </div>
+      <div class="mb-3">
+        <label class="gnm-label">Verification Notes (optional)</label>
+        <textarea class="gnm-input" id="act-verifynotes" rows="2" placeholder="Any observations, conditions noted..."></textarea>
+      </div>
+      <div class="text-danger small mb-2 d-none" id="act-err"></div>
+      <button class="btn-action-primary" onclick="doCompleteVerification()">
+        <span class="spinner-border spinner-border-sm d-none" id="act-sp"></span>Submit Verification
+      </button>
+      ${REJECT_BTN}
+    </div>`;
+
+      if (req.status === 'verification_completed') return `
+    <div class="action-panel" style="background:#F0FDF4;border-color:#86EFAC;">
+      <div class="action-panel-title" style="color:#166534;">🚀 Step 4 — Approve & Go Live</div>
+      <p class="small mb-3" style="color:#166534;">All checks passed. Approving will create the garage account on the platform.</p>
+      <button class="btn-action-primary green" onclick="openApproveModal()">
+        <span class="spinner-border spinner-border-sm d-none" id="act-sp"></span>Approve &amp; Make Live
+      </button>
+      ${REJECT_BTN}
+    </div>`;
+
+      if (req.status === 'approved') return `
+    <div class="action-panel" style="background:#F0FDF4;border-color:#86EFAC;">
+      <div class="text-center py-2">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="#16A34A" class="mb-2"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        <div class="fw-bold text-success">Garage is Live!</div>
+        <div class="text-muted small mt-1">Owner can login with OTP on +91 ${req.phone}</div>
+      </div>
+    </div>`;
+
+      if (req.status === 'rejected') return `
+    <div class="action-panel" style="background:#FEF2F2;border-color:#FECACA;">
+      <div class="action-panel-title" style="color:#991B1B;">Request Rejected</div>
+      <div class="text-muted small">Reason: <strong>${req.admin_note || '—'}</strong></div>
+    </div>`;
+
+      return '';
+    }
+
+    /* ══════════════════════════════════════
+       API CALLS
+    ══════════════════════════════════════ */
+    function sp(show) {
+      const el = document.getElementById('act-sp');
+      if (el) el.classList.toggle('d-none', !show);
+    }
+    function actErr(msg) {
+      const el = document.getElementById('act-err');
+      if (el) { el.textContent = msg; el.classList.remove('d-none'); }
+    }
+    function closeOC() {
+      const oc = bootstrap.Offcanvas.getInstance(document.getElementById('detailOffcanvas'));
+      if (oc) oc.hide();
+    }
+    async function api(url, method = 'POST', body = null) {
+      const opts = { method, headers: body ? HJ : H };
+      if (body) opts.body = JSON.stringify(body);
+      const r = await fetch(API + url, opts);
+      return r;
+    }
+
+    async function doStartReview() {
+      sp(true);
+      const r = await api(`/garage-requests/admin/${activeId}/start-review`);
+      if (r.ok) {
+        closeOC(); showToast('Review started!'); await loadPipeline();
+        setFilter('under_review', document.querySelector('[data-status="under_review"]'));
+      } else { const e = await r.json(); actErr(e.detail || 'Error'); }
+      sp(false);
+    }
+
+    async function doScheduleVisit() {
+      const date = document.getElementById('act-date')?.value;
+      const notes = document.getElementById('act-vnotes')?.value.trim();
+      if (!date) { actErr('Please select a visit date.'); return; }
+      sp(true);
+      const r = await api(`/garage-requests/admin/${activeId}/schedule-visit`, 'POST', { visit_date: date, visit_notes: notes });
+      if (r.ok) {
+        closeOC(); showToast('Site visit scheduled!'); await loadPipeline();
+        setFilter('site_visit_scheduled', document.querySelector('[data-status="site_visit_scheduled"]'));
+      } else { const e = await r.json(); actErr(e.detail || 'Error'); }
+      sp(false);
+    }
+
+    async function doCompleteVerification() {
+      const siteOk = document.getElementById('chk-site')?.checked;
+      const docsOk = document.getElementById('chk-docs')?.checked;
+      const notes = document.getElementById('act-verifynotes')?.value.trim();
+      if (!siteOk || !docsOk) { actErr('Please check both verification boxes.'); return; }
+      sp(true);
+      const r = await api(`/garage-requests/admin/${activeId}/complete-verification`, 'POST',
+        { is_site_verified: true, is_documents_verified: true, verification_notes: notes });
+      if (r.ok) {
+        closeOC(); showToast('Verification done!'); await loadPipeline();
+        setFilter('verification_completed', document.querySelector('[data-status="verification_completed"]'));
+      } else { const e = await r.json(); actErr(e.detail || 'Error'); }
+      sp(false);
+    }
+
+    async function doUploadRequestDocument() {
+      const typeEl = document.getElementById('req-doc-type');
+      const fileEl = document.getElementById('req-doc-file');
+      const errEl = document.getElementById('doc-upload-err');
+      const btn = document.getElementById('doc-upload-btn');
+      const spEl = document.getElementById('doc-upload-sp');
+      const file = fileEl?.files?.[0];
+
+      if (!file) {
+        errEl.textContent = 'Please choose a file to upload.';
+        errEl.classList.remove('d-none');
+        return;
+      }
+
+      errEl.classList.add('d-none');
+      btn.disabled = true;
+      spEl.classList.remove('d-none');
+
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const r = await fetch(`${API}/garage-requests/${activeId}/documents?document_type=${encodeURIComponent(typeEl.value)}`, {
+          method: 'POST',
+          body: fd
+        });
+
+        if (!r.ok) {
+          const e = await r.json();
+          errEl.textContent = e.detail || 'Document upload failed.';
+          errEl.classList.remove('d-none');
           return;
         }
 
-        tbody.innerHTML = requests.map(req => {
-          const date = new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-          const garageTypeLabel = req.garage_type === 'four_wheeler' ? 'Car Specialist' : 
-                                  (req.garage_type === 'two_wheeler' ? 'Bike Specialist' : 'Car & Bike Specialist');
-          
-          return `
-            <tr>
-              <td>
-                <div class="fw-bold text-dark fs-6">${req.garage_name}</div>
-                <div class="text-muted small">${garageTypeLabel}</div>
-              </td>
-              <td>
-                <div class="fw-medium text-dark">${req.owner_name}</div>
-                <div class="text-muted small">+91 ${req.phone}</div>
-              </td>
-              <td>
-                <div class="fw-medium text-dark">${req.address || ''}</div>
-                <div class="text-muted small">${req.city}, ${req.pincode}</div>
-              </td>
-              <td>
-                <div class="fw-medium text-dark">${date}</div>
-              </td>
-              <td>
-                <span class="badge badge-admin-warning rounded-pill px-3 py-2 fw-medium">Pending Review</span>
-              </td>
-              <td class="text-end">
-                <button onclick="approveRequest(${req.id})" class="btn btn-sm btn-success rounded-pill px-3 fw-medium me-1">Approve</button>
-                <button onclick="rejectRequest(${req.id})" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-medium">Reject</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Error fetching data. Please ensure backend is running.</td></tr>`;
-      }
-    }
-
-    // Approve Request
-    async function approveRequest(id) {
-      if (!confirm('Are you sure you want to approve this garage?')) return;
-      
-      try {
-        const response = await fetch(`http://localhost:8000/api/garage-requests/admin/${id}/approve`, {
-          method: 'POST',
-          headers: {
-            'X-Admin-Key': ADMIN_KEY
-          }
-        });
-        
-        if (response.ok) {
-          alert('Garage approved and created successfully!');
-          fetchPendingRequests();
-        } else {
-          const err = await response.json();
-          alert('Error: ' + err.detail);
+        showToast('Document uploaded.');
+        await loadPipeline();
+        const updated = allRequests.find(r => r.id === activeId);
+        if (updated) {
+          document.getElementById('oc-documents-section').innerHTML = buildDocumentsPanel(updated);
+          document.getElementById('oc-action').innerHTML = buildAction(updated);
         }
-      } catch (e) {
-        alert('Network Error');
+      } catch {
+        errEl.textContent = 'Network error while uploading document.';
+        errEl.classList.remove('d-none');
+      } finally {
+        btn.disabled = false;
+        spEl.classList.add('d-none');
       }
     }
 
-    // Reject Request
-    async function rejectRequest(id) {
-      const reason = prompt('Please provide a reason for rejection:');
-      if (reason === null) return; // Cancelled
-      
-      try {
-        const response = await fetch(`http://localhost:8000/api/garage-requests/admin/${id}/reject`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Admin-Key': ADMIN_KEY
-          },
-          body: JSON.stringify({ admin_note: reason })
-        });
-        
-        if (response.ok) {
-          alert('Garage request rejected.');
-          fetchPendingRequests();
-        } else {
-          const err = await response.json();
-          alert('Error: ' + err.detail);
-        }
-      } catch (e) {
-        alert('Network Error');
-      }
+    function openApproveModal() {
+      const req = allRequests.find(r => r.id === activeId);
+      document.getElementById('approve-gname').textContent = req?.garage_name || '—';
+      closeOC();
+      new bootstrap.Modal(document.getElementById('approveModal')).show();
     }
 
-    // Fetch data when Pending tab is shown
-    document.getElementById('pending-tab').addEventListener('shown.bs.tab', function (event) {
-      fetchPendingRequests();
+    document.getElementById('approve-confirm-btn').addEventListener('click', async function () {
+      const sp = document.getElementById('approve-sp');
+      this.disabled = true; sp.classList.remove('d-none');
+      const r = await api(`/garage-requests/admin/${activeId}/approve`);
+      if (r.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('approveModal')).hide();
+        showToast('🎉 Garage approved and is now live!');
+        await loadPipeline();
+      } else { const e = await r.json(); showToast(e.detail || 'Error', 'danger'); }
+      this.disabled = false; sp.classList.add('d-none');
     });
 
-    // Optionally load immediately if we want it pre-loaded
-    // fetchPendingRequests();
+    function openReject() {
+      rejectId = activeId;
+      const req = allRequests.find(r => r.id === activeId);
+      document.getElementById('reject-gname').textContent = req?.garage_name || '—';
+      document.getElementById('reject-reason').value = '';
+      document.getElementById('reject-err').classList.add('d-none');
+      closeOC();
+      new bootstrap.Modal(document.getElementById('rejectModal')).show();
+    }
+
+    document.getElementById('reject-confirm-btn').addEventListener('click', async function () {
+      const reason = document.getElementById('reject-reason').value.trim();
+      if (!reason) { document.getElementById('reject-err').classList.remove('d-none'); return; }
+      document.getElementById('reject-err').classList.add('d-none');
+      const sp = document.getElementById('reject-sp');
+      this.disabled = true; sp.classList.remove('d-none');
+      const r = await api(`/garage-requests/admin/${rejectId}/reject`, 'POST', { admin_note: reason });
+      if (r.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+        showToast('Request rejected.', 'danger');
+        await loadPipeline();
+      } else { const e = await r.json(); showToast(e.detail || 'Error', 'danger'); }
+      this.disabled = false; sp.classList.add('d-none');
+    });
+
+    // Load data when page starts
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPipeline();
+      loadAllGarages();
+    });
+    /* ══════════════════════════════════════
+       INIT
+    ══════════════════════════════════════ */
+    document.getElementById('pending-tab').addEventListener('shown.bs.tab', loadPipeline);
+    document.getElementById('all-tab').addEventListener('shown.bs.tab', loadAllGarages);
+
+    async function loadAllGarages() {
+      const tbody = document.getElementById('allGaragesTbody');
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">
+    <div class="spinner-border spinner-border-sm me-2"></div>Loading...</td></tr>`;
+      try {
+        const res = await fetch(`${API}/garage/admin/all`, { headers: H });
+        const garages = res.ok ? await res.json() : [];
+        if (!garages.length) {
+          tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted fw-medium">No active garages found.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = garages.map(g => `
+      <tr>
+        <td>
+          <div class="fw-bold text-dark">${g.name}</div>
+          <div class="text-muted small">ID: #${g.id}</div>
+        </td>
+        <td>
+          <div class="fw-medium text-dark">${g.owner_name}</div>
+          <div class="text-muted small">+91 ${g.phone}</div>
+        </td>
+        <td>
+          <div class="text-dark small">${g.location?.street || '—'}</div>
+          <div class="text-muted small">${g.location?.city || '—'}</div>
+        </td>
+        <td>${typePill(g.garage_type)}</td>
+        <td>${g.is_active
+            ? '<span style="background:#F0FDF4;color:#15803D;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;">✓ Active</span>'
+            : '<span style="background:#FEF2F2;color:#DC2626;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;">Inactive</span>'}</td>
+        <td class="text-end">
+          <button class="tbl-btn tbl-btn-view" onclick="window.location.href='garage-detail/${g.slug || g.id}'">View</button>
+        </td>
+      </tr>`).join('');
+      } catch {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger small">Could not load garages.</td></tr>`;
+      }
+    }// load immediately since pipeline tab is default active
   </script>
 </body>
 

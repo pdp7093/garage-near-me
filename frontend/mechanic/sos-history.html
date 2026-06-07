@@ -1,262 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SOS History - GarageNearMe</title>
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
-    rel="stylesheet" />
+  <link rel="manifest" href="/mechanic/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/mechanic.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    .skeleton { background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:6px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  </style>
 </head>
-
 <body>
+<div class="mechanic-layout">
+  <div id="sidebar-container"></div>
+  <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index:1030;"></div>
 
-  <div class="mechanic-layout">
-    
-    <!-- ═══ SIDEBAR ═══ -->
-    <aside class="mechanic-sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <a href="dashboard.html" class="d-flex align-items-center text-white text-decoration-none gap-2">
-          <div class="rounded bg-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; color: var(--color-primary);">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-              <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
-            </svg>
-          </div>
-          <span class="fw-bold" style="font-family: var(--font-head); font-size: 1.1rem;">GarageNearMe</span>
-        </a>
+  <main class="mechanic-main">
+    <div id="topbar-container"></div>
+    <div class="mechanic-content pt-2">
+
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+          <h4 class="fw-bold text-dark mb-1" style="font-family:var(--font-head);">Emergency SOS History</h4>
+          <p class="text-muted mb-0 small">Tumhare saare SOS responses ka record.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <select id="filter-status" class="form-select rounded-pill border shadow-sm w-auto" onchange="applyFilter()">
+            <option value="">All Status</option>
+            <option value="completed">Completed</option>
+            <option value="rejected">Missed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
       </div>
 
-      <nav class="sidebar-nav">
-        <a href="dashboard.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-          Dashboard
-        </a>
-        <a href="sos-alerts.html" class="sidebar-link text-danger active" style="border-left-color: #EF4444;">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-          Emergency SOS <span class="badge bg-danger ms-auto rounded-pill pulse-dot">1</span>
-        </a>
-        <a href="requests.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-          Bookings <span class="badge bg-primary ms-auto rounded-pill">1</span>
-        </a>
-        <a href="services.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-          Services
-        </a>
-        <a href="profile.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-          Profile
-        </a>
-      </nav>
-
-      <div class="mt-auto pb-4">
-        <a href="index.html" class="sidebar-link" style="color: #EF4444;">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="#EF4444"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-          Logout
-        </a>
+      <!-- Stats row -->
+      <div class="row g-3 mb-4" id="stats-row" style="display:none!important;">
+        <div class="col-6 col-md-3">
+          <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
+            <div class="fw-bold text-success" style="font-size:22px;" id="stat-total">0</div>
+            <div class="text-muted" style="font-size:12px;">Total SOS</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
+            <div class="fw-bold text-success" style="font-size:22px;" id="stat-completed">0</div>
+            <div class="text-muted" style="font-size:12px;">Completed</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
+            <div class="fw-bold text-muted" style="font-size:22px;" id="stat-missed">0</div>
+            <div class="text-muted" style="font-size:12px;">Missed</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
+            <div class="fw-bold" style="font-size:22px;color:var(--color-primary);" id="stat-earnings">₹0</div>
+            <div class="text-muted" style="font-size:12px;">Total Earned</div>
+          </div>
+        </div>
       </div>
-    </aside>
 
-    <!-- Overlay for mobile sidebar -->
-    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index: 1030;"></div>
-
-    <!-- ═══ MAIN CONTENT ═══ -->
-    <main class="mechanic-main">
-      
-      <!-- Topbar -->
-      <header class="mechanic-topbar border-bottom-0">
-        <div class="d-flex align-items-center gap-3">
-          <button class="btn d-lg-none p-0 border-0 shadow-none text-dark" id="sidebarToggle">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-          </button>
-          
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-              <li class="breadcrumb-item"><a href="sos-alerts.html" class="text-decoration-none text-danger fw-bold">SOS Radar</a></li>
-              <li class="breadcrumb-item active text-dark" aria-current="page">SOS History</li>
-            </ol>
-          </nav>
+      <!-- Table -->
+      <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+              <tr>
+                <th class="fw-semibold text-muted py-3 ps-4 border-bottom">Date &amp; Time</th>
+                <th class="fw-semibold text-muted py-3 border-bottom">Vehicle</th>
+                <th class="fw-semibold text-muted py-3 border-bottom">Issue / Location</th>
+                <th class="fw-semibold text-muted py-3 border-bottom text-center">Status</th>
+                <th class="fw-semibold text-muted py-3 pe-4 border-bottom text-end">Earnings</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <!-- Skeleton rows -->
+              ${[1,2,3,4].map(() => `
+              <tr>
+                <td class="ps-4 py-3"><div class="skeleton mb-1" style="height:16px;width:80px;"></div><div class="skeleton" style="height:12px;width:50px;"></div></td>
+                <td><div class="skeleton mb-1" style="height:16px;width:100px;"></div><div class="skeleton" style="height:12px;width:70px;"></div></td>
+                <td><div class="skeleton mb-1" style="height:16px;width:80px;"></div><div class="skeleton" style="height:12px;width:60px;"></div></td>
+                <td class="text-center"><div class="skeleton mx-auto" style="height:22px;width:80px;border-radius:20px;"></div></td>
+                <td class="pe-4 text-end"><div class="skeleton ms-auto" style="height:16px;width:50px;"></div></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
         </div>
-
-        <div class="d-flex align-items-center gap-3">
-          <div class="d-flex align-items-center gap-2 border-start ps-3 ms-1">
-            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; color: var(--color-primary); font-size: 14px;">
-              SA
-            </div>
-            <div class="d-none d-md-block">
-              <div class="fw-bold" style="font-size: 14px; line-height: 1.2;">Sharma Auto</div>
-              <div class="text-muted" style="font-size: 12px;">Partner</div>
-            </div>
-          </div>
+        <div class="p-3 border-top d-flex justify-content-between align-items-center" id="pagination-bar">
+          <span class="text-muted small" id="pagination-info"></span>
+          <nav><ul class="pagination pagination-sm mb-0 gap-1" id="pagination"></ul></nav>
         </div>
-      </header>
-
-      <!-- Content Area -->
-      <div class="mechanic-content pt-2">
-        
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
-          <div>
-            <h4 class="fw-bold text-dark mb-1" style="font-family: var(--font-head);">Emergency SOS History</h4>
-            <p class="text-muted mb-0 small">A complete log of all distress calls you've received.</p>
-          </div>
-          
-          <div class="d-flex gap-2">
-            <select class="form-select rounded-pill border shadow-sm w-auto">
-              <option selected>This Month</option>
-              <option value="1">Last Month</option>
-              <option value="2">Last 3 Months</option>
-            </select>
-            <select class="form-select rounded-pill border shadow-sm w-auto">
-              <option selected>All Status</option>
-              <option value="1">Completed</option>
-              <option value="2">Missed/Ignored</option>
-              <option value="3">Cancelled</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Full History Table -->
-        <div class="bg-white rounded-4 border shadow-sm overflow-hidden">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th scope="col" class="fw-semibold text-muted py-3 ps-4 border-bottom">Date & Time</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom">Customer Details</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom">Issue / Location</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 border-bottom text-center">Status</th>
-                  <th scope="col" class="fw-semibold text-muted py-3 pe-4 border-bottom text-end">Earnings</th>
-                </tr>
-              </thead>
-              <tbody class="border-top-0">
-                <!-- Completed SOS -->
-                <tr>
-                  <td class="ps-4 py-3">
-                    <div class="fw-bold text-dark">26 Apr 2026</div>
-                    <div class="text-muted small">10:30 AM</div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">Vikas Singh</div>
-                    <div class="text-muted small">Maruti Swift (GJ01 1234)</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small fw-medium">Flat Tyre</div>
-                    <div class="text-muted small">Prahlad Nagar</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">Completed</span>
-                  </td>
-                  <td class="pe-4 text-end fw-bold text-success">
-                    ₹450
-                  </td>
-                </tr>
-
-                <!-- Ignored/Missed SOS -->
-                <tr>
-                  <td class="ps-4 py-3">
-                    <div class="fw-bold text-dark">25 Apr 2026</div>
-                    <div class="text-muted small">08:15 PM</div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">Anjali Desai</div>
-                    <div class="text-muted small">Activa 6G (GJ27 4321)</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small fw-medium text-truncate" style="max-width: 150px;">Battery Dead / Engine not starting</div>
-                    <div class="text-muted small">Satellite Road</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-1">Missed</span>
-                  </td>
-                  <td class="pe-4 text-end fw-bold text-muted">
-                    --
-                  </td>
-                </tr>
-
-                <!-- Completed SOS -->
-                <tr>
-                  <td class="ps-4 py-3">
-                    <div class="fw-bold text-dark">22 Apr 2026</div>
-                    <div class="text-muted small">11:45 PM</div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">Rajesh Kumar</div>
-                    <div class="text-muted small">Hyundai Verna (GJ01 9999)</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small fw-medium">Engine Overheating</div>
-                    <div class="text-muted small">S.G. Highway</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">Completed</span>
-                  </td>
-                  <td class="pe-4 text-end fw-bold text-success">
-                    ₹1,200
-                  </td>
-                </tr>
-
-                <!-- Cancelled by Customer -->
-                <tr>
-                  <td class="ps-4 py-3">
-                    <div class="fw-bold text-dark">18 Apr 2026</div>
-                    <div class="text-muted small">09:00 AM</div>
-                  </td>
-                  <td>
-                    <div class="fw-bold text-dark">Mehul Joshi</div>
-                    <div class="text-muted small">Tata Nexon (GJ18 5555)</div>
-                  </td>
-                  <td>
-                    <div class="text-dark small fw-medium">Key locked inside</div>
-                    <div class="text-muted small">Thaltej</div>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1">Cancelled</span>
-                  </td>
-                  <td class="pe-4 text-end fw-bold text-muted">
-                    --
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <!-- Pagination -->
-          <div class="p-3 border-top d-flex justify-content-between align-items-center">
-            <span class="text-muted small">Showing 1 to 4 of 4 entries</span>
-            <nav>
-              <ul class="pagination pagination-sm mb-0">
-                <li class="page-item disabled"><a class="page-link rounded-start-pill" href="#">Previous</a></li>
-                <li class="page-item active"><a class="page-link bg-primary border-primary" href="#">1</a></li>
-                <li class="page-item disabled"><a class="page-link rounded-end-pill" href="#">Next</a></li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-
       </div>
-    </main>
 
-  </div>
+    </div>
+  </main>
+</div>
+  <script src="/js/config.js"></script><script src="/js/mechanic-auth.js"></script>
+<script src="/js/components.js"></script>
+<script src="/js/bootstrap.js"></script>
+<script>
+  initMechanicChrome('SOS History', null, 'sos-alerts.html');
 
-  <script src="../js/bootstrap.js"></script>
-  <script>
-    // Sidebar Toggle
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
+  const API = () => getApiBase();
+  const PER_PAGE = 10;
+  let allHistory = [];
+  let filtered   = [];
+  let currentPage = 1;
 
-    function toggleSidebar() {
-      sidebar.classList.toggle('show');
-      sidebarOverlay.classList.toggle('d-none');
+  async function loadHistory() {
+    try {
+      const res = await fetch(`${API()}/sos/history/all`, {
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error();
+      allHistory = await res.json();
+      updateStats();
+      applyFilter();
+    } catch {
+      document.getElementById('history-tbody').innerHTML = `
+        <tr><td colspan="5" class="text-center text-muted py-5">History load nahi hua. Server check karo.</td></tr>`;
+    }
+  }
+
+  function updateStats() {
+    const completed = allHistory.filter(h => h.status === 'completed');
+    const missed    = allHistory.filter(h => h.status === 'rejected');
+    const earnings  = completed.reduce((s, h) => s + (h.final_amount || 0), 0);
+
+    document.getElementById('stat-total').textContent     = allHistory.length;
+    document.getElementById('stat-completed').textContent = completed.length;
+    document.getElementById('stat-missed').textContent    = missed.length;
+    document.getElementById('stat-earnings').textContent  = `₹${earnings.toLocaleString('en-IN')}`;
+    document.getElementById('stats-row').style.display    = allHistory.length > 0 ? 'flex' : 'none';
+  }
+
+  function applyFilter() {
+    const status = document.getElementById('filter-status').value;
+    filtered = status ? allHistory.filter(h => h.status === status) : [...allHistory];
+    currentPage = 1;
+    renderTable();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('history-tbody');
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5">Koi record nahi mila.</td></tr>`;
+      document.getElementById('pagination-info').textContent = '';
+      document.getElementById('pagination').innerHTML = '';
+      return;
     }
 
-    sidebarToggle.addEventListener('click', toggleSidebar);
-    sidebarOverlay.addEventListener('click', toggleSidebar);
-  </script>
-</body>
+    const totalPages = Math.ceil(filtered.length / PER_PAGE);
+    const start      = (currentPage - 1) * PER_PAGE;
+    const pageData   = filtered.slice(start, start + PER_PAGE);
 
+    tbody.innerHTML = pageData.map(h => {
+      const sc = {
+        completed: `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">Completed</span>`,
+        rejected:  `<span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-1">Missed</span>`,
+        cancelled: `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1">Cancelled</span>`,
+      }[h.status] || `<span class="badge bg-secondary rounded-pill px-3 py-1">${h.status}</span>`;
+
+      const date = new Date(h.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      const time = new Date(h.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+      const vt   = h.vehicle_type === 'two_wheeler' ? '2 Wheeler' : h.vehicle_type === 'four_wheeler' ? '4 Wheeler' : h.vehicle_type || '—';
+
+      return `
+        <tr>
+          <td class="ps-4 py-3">
+            <div class="fw-bold text-dark">${date}</div>
+            <div class="text-muted small">${time}</div>
+          </td>
+          <td>
+            <div class="fw-bold text-dark">${h.vehicle_model || vt}</div>
+            <div class="text-muted small">${h.vehicle_number || '—'}</div>
+          </td>
+          <td>
+            <div class="text-dark small fw-medium text-truncate" style="max-width:150px;">${h.description || 'Emergency'}</div>
+            <div class="text-muted small">${h.customer_address || '—'}</div>
+          </td>
+          <td class="text-center">${sc}</td>
+          <td class="pe-4 text-end fw-bold ${h.final_amount ? 'text-success' : 'text-muted'}">
+            ${h.final_amount ? '₹' + parseFloat(h.final_amount).toLocaleString('en-IN') : '--'}
+          </td>
+        </tr>`;
+    }).join('');
+
+    // Pagination
+    const infoEl = document.getElementById('pagination-info');
+    const pagEl  = document.getElementById('pagination');
+    infoEl.textContent = `Showing ${start+1} to ${Math.min(start+PER_PAGE, filtered.length)} of ${filtered.length} entries`;
+
+    if (totalPages <= 1) { pagEl.innerHTML=''; return; }
+    let html = `<li class="page-item ${currentPage===1?'disabled':''}"><a class="page-link rounded-start-pill" href="#" onclick="gotoPage(event,${currentPage-1})">Previous</a></li>`;
+    for (let i=1; i<=totalPages; i++) {
+      html += `<li class="page-item ${i===currentPage?'active':''}"><a class="page-link ${i===currentPage?'bg-primary border-primary':''}" href="#" onclick="gotoPage(event,${i})">${i}</a></li>`;
+    }
+    html += `<li class="page-item ${currentPage===totalPages?'disabled':''}"><a class="page-link rounded-end-pill" href="#" onclick="gotoPage(event,${currentPage+1})">Next</a></li>`;
+    pagEl.innerHTML = html;
+  }
+
+  function gotoPage(e, page) {
+    e.preventDefault();
+    const total = Math.ceil(filtered.length / PER_PAGE);
+    if (page < 1 || page > total) return;
+    currentPage = page;
+    renderTable();
+  }
+
+  document.addEventListener('DOMContentLoaded', loadHistory);
+</script>
+</body>
 </html>
+

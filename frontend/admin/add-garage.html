@@ -5,287 +5,418 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Garage - Admin | GarageNearMe</title>
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <style>
-    .form-section {
-      background: white;
-      border: 1px solid #E2E8F0;
-      border-radius: 1rem;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    .add-page-shell {
+      max-width: 920px;
+      margin: 0 auto;
     }
-    .form-section-title {
+
+    .page-action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-card {
+      background: #fff;
+      border: 1px solid #E5E7EB;
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+      overflow: hidden;
+    }
+
+    .form-card-head {
+      background: #1B1F2E;
+      color: #fff;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .form-card-head h5 {
       font-family: var(--font-head);
+    }
+
+    .form-card-body {
+      padding: 1.5rem;
+    }
+
+    .section-kicker {
+      font-size: 0.72rem;
       font-weight: 700;
-      color: var(--admin-primary);
-      margin-bottom: 1.5rem;
-      border-bottom: 2px solid #E2E8F0;
-      padding-bottom: 0.5rem;
+      color: #6B7280;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .gnm-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .gnm-input {
+      border: 1.5px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: #fff;
+      color: #1B1F2E;
+    }
+
+    .gnm-input:focus {
+      border-color: #FF6B35;
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    }
+
+    .phone-prefix {
+      padding: 8px 10px;
+      background: #F3F4F6;
+      border: 1.5px solid #E5E7EB;
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      font-size: 0.85rem;
+      color: #374151;
+    }
+
+    .phone-input {
+      border-radius: 0 8px 8px 0;
+      border-left: none;
+    }
+
+    .form-divider {
+      height: 1px;
+      background: #F1F5F9;
+      margin: 1.5rem 0;
+    }
+
+    .sticky-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #E5E7EB;
+      background: #FAFAFA;
+    }
+
+    @media (max-width: 575.98px) {
+      .page-action-row,
+      .sticky-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .sticky-actions .btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
 
 <body>
-
   <div class="admin-layout">
-    
-    <!-- ═══ ADMIN SIDEBAR ═══ -->
-    <aside class="admin-sidebar" id="sidebar">
-      <div class="admin-sidebar-header">
-        <a href="dashboard.html" class="text-white text-decoration-none d-flex align-items-center gap-2">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
-          </svg>
-          <span class="fs-5 fw-bold" style="font-family: var(--font-head); letter-spacing: -0.5px;">GNM<span class="text-white-50">Admin</span></span>
-        </a>
-      </div>
+    <div id="sidebar-container"></div>
 
-      <div class="admin-sidebar-menu">
-        <div class="admin-nav-title">Overview</div>
-        <div class="admin-nav-item">
-          <a href="dashboard.html" class="admin-nav-link">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-            Dashboard
-          </a>
-        </div>
-
-        <div class="admin-nav-title">Management</div>
-        <div class="admin-nav-item">
-          <a href="garages.html" class="admin-nav-link active">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-            Garages & Partners
-          </a>
-        </div>
-        <div class="admin-nav-item">
-          <a href="customers.html" class="admin-nav-link">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-            Customers
-          </a>
-        </div>
-        <div class="admin-nav-item">
-          <a href="bookings.html" class="admin-nav-link">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
-            All Bookings
-          </a>
-        </div>
-
-        <div class="admin-nav-title">Operations</div>
-        <div class="admin-nav-item">
-          <a href="sos-monitor.html" class="admin-nav-link text-danger">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-            Live SOS Monitor
-          </a>
-        </div>
-        <div class="admin-nav-item">
-          <a href="payouts.html" class="admin-nav-link">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v-2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-            Financials & Payouts
-          </a>
-        </div>
-      </div>
-
-      <div class="p-3 mt-auto">
-        <a href="index.html" class="btn btn-outline-light w-100 rounded-pill d-flex align-items-center justify-content-center gap-2" style="border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-          Logout Admin
-        </a>
-      </div>
-    </aside>
-
-    <!-- ═══ MAIN CONTENT ═══ -->
     <main class="admin-content">
-      
-      <!-- Topbar -->
-      <header class="admin-topbar">
-        <div class="d-flex align-items-center gap-3">
-          <button class="btn d-lg-none p-0 border-0 shadow-none text-dark" id="sidebarToggle">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-          </button>
-          <a href="garages.html" class="btn btn-light rounded-circle p-2 text-dark">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      <div id="topbar-container"></div>
+
+      <div class="add-page-shell">
+        <div class="page-action-row">
+          <a href="garages" class="btn btn-light rounded-pill px-3 fw-medium border d-inline-flex align-items-center gap-2">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+            </svg>
+            Back to Garages
           </a>
-          <h4 class="mb-0 fw-bold" style="font-family: var(--font-head);">Add New Garage Partner</h4>
         </div>
-        <div class="d-flex align-items-center gap-3">
-          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-family: var(--font-head);">
-            SA
+
+        <form class="form-card mb-5" id="addGarageForm" novalidate>
+          <div class="form-card-head">
+            <h5 class="fw-bold mb-1">Add New Garage</h5>
+            <p class="small mb-0" style="color:rgba(255,255,255,0.62);">Admin direct onboard - creates a live garage account.</p>
           </div>
-        </div>
-      </header>
 
-      <!-- Main Form Area -->
-      <div class="row justify-content-center">
-        <div class="col-12 col-xl-10">
-          
-          <form id="fullAddGarageForm">
-            
-            <!-- Basic Details -->
-            <div class="form-section">
-              <h5 class="form-section-title">1. Basic Business Details</h5>
-              <div class="row g-4">
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Business/Garage Name *</label>
-                  <input type="text" class="form-control admin-input" placeholder="e.g. Metro Auto Care" required>
+          <div class="form-card-body">
+            <div class="section-kicker">Owner Details</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-owner">Owner Name *</label>
+                <input class="gnm-input" id="ag-owner" placeholder="Ramesh Sharma" autocomplete="name">
+              </div>
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-phone">Phone *</label>
+                <div class="d-flex">
+                  <span class="phone-prefix">+91</span>
+                  <input class="gnm-input phone-input" id="ag-phone" placeholder="9876543210" maxlength="10"
+                    inputmode="numeric" autocomplete="tel">
                 </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Owner's Full Name *</label>
-                  <input type="text" class="form-control admin-input" placeholder="e.g. Rajat Verma" required>
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Primary Mobile Number *</label>
-                  <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0 text-muted">+91</span>
-                    <input type="tel" class="form-control admin-input border-start-0 ps-0" placeholder="98765 43210" required>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Business Email Address</label>
-                  <input type="email" class="form-control admin-input" placeholder="garage@example.com">
-                </div>
-                <div class="col-12">
-                  <label class="form-label small fw-medium text-muted">Short Description</label>
-                  <textarea class="form-control admin-input" rows="3" placeholder="Tell customers what this garage specializes in..."></textarea>
-                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-email">Email</label>
+                <input class="gnm-input" id="ag-email" type="email" placeholder="owner@example.com" autocomplete="email">
               </div>
             </div>
 
-            <!-- Location Details -->
-            <div class="form-section">
-              <h5 class="form-section-title">2. Location & Address</h5>
-              <div class="row g-4">
-                <div class="col-12">
-                  <label class="form-label small fw-medium text-muted">Full Shop Address *</label>
-                  <textarea class="form-control admin-input" rows="2" placeholder="Building no, Street, Landmark..." required></textarea>
+            <div class="form-divider"></div>
+
+            <div class="section-kicker">Garage Details</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-type">Garage Type *</label>
+                <select class="gnm-input" id="ag-type">
+                  <option value="">-- Select --</option>
+                  <option value="four_wheeler">Car Specialist</option>
+                  <option value="two_wheeler">Bike Specialist</option>
+                  <option value="both">Car & Bike</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-name">Garage Name *</label>
+                <input class="gnm-input" id="ag-name" placeholder="Sharma Auto Works" autocomplete="organization">
+              </div>
+              <div class="col-12">
+                <label class="gnm-label" for="ag-addr">Street Address *</label>
+                <input class="gnm-input" id="ag-addr" placeholder="Shop 12, Sindhi Market" autocomplete="street-address">
+              </div>
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-city">City *</label>
+                <input class="gnm-input" id="ag-city" value="Ahmedabad" autocomplete="address-level2">
+              </div>
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-pin">Pincode *</label>
+                <input class="gnm-input" id="ag-pin" placeholder="380001" maxlength="6" inputmode="numeric"
+                  autocomplete="postal-code">
+              </div>
+              <div class="col-md-6 d-flex align-items-center mt-4">
+                <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" role="switch" id="ag-has-gst">
+                  <label class="form-check-label gnm-label mb-0 ms-1" style="font-size: 0.85rem;" for="ag-has-gst">GST Registered</label>
                 </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label small fw-medium text-muted">City *</label>
-                  <input type="text" class="form-control admin-input" placeholder="e.g. Mumbai" required>
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label small fw-medium text-muted">State *</label>
-                  <select class="form-select admin-input" required>
-                    <option value="">Select State</option>
-                    <option value="MH">Maharashtra</option>
-                    <option value="DL">Delhi</option>
-                    <option value="KA">Karnataka</option>
-                    <option value="GJ">Gujarat</option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label small fw-medium text-muted">Pincode *</label>
-                  <input type="text" class="form-control admin-input" placeholder="e.g. 400001" required>
-                </div>
-                <div class="col-12">
-                  <label class="form-label small fw-medium text-muted">GPS Map Coordinates (Important for SOS)</label>
-                  <div class="d-flex gap-3">
-                    <input type="text" class="form-control admin-input" placeholder="Latitude (e.g. 19.0760)">
-                    <input type="text" class="form-control admin-input" placeholder="Longitude (e.g. 72.8777)">
-                    <button type="button" class="btn btn-outline-secondary px-4 fw-medium text-nowrap">Pin on Map</button>
-                  </div>
-                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-gst-num">GST Number</label>
+                <input class="gnm-input" id="ag-gst-num" placeholder="Enter GST Number" disabled>
               </div>
             </div>
 
-            <!-- Services & Capacity -->
-            <div class="form-section">
-              <h5 class="form-section-title">3. Services & Specialities</h5>
-              <div class="row g-4">
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Primary Vehicle Type *</label>
-                  <select class="form-select admin-input" required>
-                    <option value="both">Both (Car & Two Wheeler)</option>
-                    <option value="car">Car Repair Only</option>
-                    <option value="bike">Two-Wheeler Only</option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Accept Emergency SOS?</label>
-                  <select class="form-select admin-input">
-                    <option value="yes">Yes, available for Breakdown SOS</option>
-                    <option value="no">No, normal bookings only</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <label class="form-label small fw-medium text-muted d-block mb-3">Specialities</label>
-                  <div class="d-flex flex-wrap gap-3">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="spec1" checked>
-                      <label class="form-check-label" for="spec1">General Service</label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="spec2" checked>
-                      <label class="form-check-label" for="spec2">Engine Work</label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="spec3">
-                      <label class="form-check-label" for="spec3">Denting/Painting</label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="spec4">
-                      <label class="form-check-label" for="spec4">AC Repair</label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="spec5">
-                      <label class="form-check-label" for="spec5">Tyre/Wheel Alignment</label>
-                    </div>
-                  </div>
-                </div>
+            <div class="form-divider"></div>
+
+            <div class="section-kicker">Verification Documents</div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-doc-aadhar">Upload Aadhar / PAN *</label>
+                <input type="file" class="gnm-input bg-light" id="ag-doc-aadhar" accept="image/*,.pdf">
+              </div>
+              <div class="col-md-6">
+                <label class="gnm-label" for="ag-doc-license">Upload Shop License (Optional)</label>
+                <input type="file" class="gnm-input bg-light" id="ag-doc-license" accept="image/*,.pdf">
               </div>
             </div>
 
-            <!-- Bank & Documents -->
-            <div class="form-section">
-              <h5 class="form-section-title">4. Bank & Verification Documents</h5>
-              <div class="row g-4">
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Bank Account Number</label>
-                  <input type="text" class="form-control admin-input" placeholder="Enter A/C Number">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">IFSC Code</label>
-                  <input type="text" class="form-control admin-input" placeholder="e.g. HDFC0001234">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Upload Owner Aadhar/PAN</label>
-                  <input class="form-control admin-input" type="file">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label small fw-medium text-muted">Upload Shop/Trade License (Optional)</label>
-                  <input class="form-control admin-input" type="file">
-                </div>
-              </div>
-            </div>
+            <div class="alert alert-danger small rounded-3 mt-3 py-2 px-3 d-none" id="ag-err"></div>
+            <div class="alert alert-success small rounded-3 mt-3 py-2 px-3 d-none" id="ag-success"></div>
+          </div>
 
-            <!-- Submit Action -->
-            <div class="d-flex align-items-center justify-content-between p-4 bg-white rounded-4 border shadow-sm mb-5">
-              <div class="form-check form-switch fs-5 mb-0">
-                <input class="form-check-input" type="checkbox" role="switch" id="autoApprove" checked>
-                <label class="form-check-label ms-2 fs-6 fw-bold text-dark" for="autoApprove">Auto-Approve Partner</label>
-                <div class="text-muted small" style="font-size: 0.8rem;">Partner will be active immediately.</div>
-              </div>
-              <div class="d-flex gap-3">
-                <a href="garages.html" class="btn btn-light rounded-pill px-4 fw-medium border">Cancel</a>
-                <a href="garages.html" class="btn btn-admin-primary rounded-pill px-5 fw-bold fs-5 shadow">Save & Onboard Garage</a>
-              </div>
-            </div>
-
-          </form>
-
-        </div>
+          <div class="sticky-actions">
+            <a href="garages" class="btn btn-light rounded-pill px-4 fw-medium border">Cancel</a>
+            <button type="submit" class="btn btn-admin-primary rounded-pill px-4 fw-bold" id="ag-submit">
+              <span class="spinner-border spinner-border-sm me-1 d-none" id="ag-sp"></span>
+              Onboard Garage
+            </button>
+          </div>
+        </form>
       </div>
-
     </main>
   </div>
 
-  <script src="../js/bootstrap.bundle.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/config.js"></script>
   <script>
-    // Sidebar Toggle Logic
-    document.getElementById('sidebarToggle').addEventListener('click', function() {
-      document.getElementById('sidebar').classList.toggle('show');
+    initAdminChrome('Add New Garage Partner', () => {
+      const garageLink = document.querySelector('.admin-nav-link[href="garages"]');
+      if (garageLink) garageLink.classList.add('active');
+    });
+
+    document.getElementById('ag-has-gst').addEventListener('change', function() {
+      const gstInput = document.getElementById('ag-gst-num');
+      gstInput.disabled = !this.checked;
+      if (!this.checked) gstInput.value = '';
+    });
+  </script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API = getApiBase();
+    const AKEY = localStorage.getItem('gnm_admin_key');
+
+    if (!AKEY) {
+      window.location.href = 'index';
+    }
+
+    async function adminApi(url, method = 'POST', body = null) {
+      const opts = {
+        method,
+        headers: { 'X-Admin-Key': AKEY }
+      };
+      if (body) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(body);
+      }
+      return fetch(API + url, opts);
+    }
+
+    async function ensureOk(response, fallbackMessage) {
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || fallbackMessage);
+      }
+      return response;
+    }
+
+    async function uploadGarageDocument(garageId, documentType, file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`${API}/garage-requests/admin/${garageId}/documents?document_type=${encodeURIComponent(documentType)}`, {
+        method: 'POST',
+        headers: { 'X-Admin-Key': AKEY },
+        body: fd
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Document upload failed.');
+      }
+    }
+
+    function setMessage(type, message) {
+      const errEl = document.getElementById('ag-err');
+      const successEl = document.getElementById('ag-success');
+      errEl.classList.add('d-none');
+      successEl.classList.add('d-none');
+
+      const target = type === 'success' ? successEl : errEl;
+      target.textContent = message;
+      target.classList.remove('d-none');
+    }
+
+    document.getElementById('addGarageForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      const owner = document.getElementById('ag-owner').value.trim();
+      const phone = document.getElementById('ag-phone').value.trim();
+      const email = document.getElementById('ag-email').value.trim();
+      const type = document.getElementById('ag-type').value;
+      const name = document.getElementById('ag-name').value.trim();
+      const addr = document.getElementById('ag-addr').value.trim();
+      const city = document.getElementById('ag-city').value.trim();
+      const pin = document.getElementById('ag-pin').value.trim();
+      const hasGst = document.getElementById('ag-has-gst').checked;
+      const gstNum = document.getElementById('ag-gst-num').value.trim();
+      const aadharFile = document.getElementById('ag-doc-aadhar').files[0];
+      const licenseFile = document.getElementById('ag-doc-license').files[0];
+
+      if (!owner || !phone || !type || !name || !addr || !city || !pin || !aadharFile) {
+        setMessage('error', 'Please fill all required fields and upload Aadhar.');
+        return;
+      }
+      if (!/^\d{10}$/.test(phone)) {
+        setMessage('error', 'Enter valid 10-digit phone.');
+        return;
+      }
+      if (!/^\d{6}$/.test(pin)) {
+        setMessage('error', 'Enter valid 6-digit pincode.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('ag-submit');
+      const spinner = document.getElementById('ag-sp');
+      submitBtn.disabled = true;
+      spinner.classList.remove('d-none');
+
+      try {
+        const createRes = await fetch(`${API}/garage-requests/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            owner_name: owner,
+            garage_name: name,
+            phone,
+            email: email || null,
+            garage_type: type,
+            address: addr,
+            city,
+            pincode: pin,
+            has_gst: hasGst,
+            gst_number: hasGst ? (gstNum || null) : null
+          })
+        });
+        if (!createRes.ok) {
+          const err = await createRes.json().catch(() => ({}));
+          throw new Error(err.detail || 'Could not create garage request.');
+        }
+
+        const request = await createRes.json();
+        const requestId = request.id;
+
+        await ensureOk(
+          await adminApi(`/garage-requests/admin/${requestId}/start-review`),
+          'Could not start admin review.'
+        );
+
+        const today = new Date().toISOString().split('T')[0];
+        await ensureOk(
+          await adminApi(`/garage-requests/admin/${requestId}/schedule-visit`, 'POST', {
+            visit_date: today,
+            visit_notes: 'Admin direct onboard - field visit waived'
+          }),
+          'Could not schedule verification.'
+        );
+
+        await ensureOk(
+          await adminApi(`/garage-requests/admin/${requestId}/complete-verification`, 'POST', {
+            is_site_verified: true,
+            is_documents_verified: true,
+            verification_notes: 'Admin verified directly'
+          }),
+          'Could not complete verification.'
+        );
+
+        const approveRes = await ensureOk(
+          await adminApi(`/garage-requests/admin/${requestId}/approve`),
+          'Could not approve garage.'
+        );
+
+        const garageLive = await approveRes.json();
+        const newGarageId = garageLive.id;
+
+        await uploadGarageDocument(newGarageId, 'aadhar', aadharFile);
+        if (licenseFile) {
+          await uploadGarageDocument(newGarageId, 'shop_license', licenseFile);
+        }
+
+        setMessage('success', `${name} is now live with documents uploaded. Redirecting to garages...`);
+        setTimeout(() => {
+          window.location.href = 'garages';
+        }, 900);
+      } catch (error) {
+        setMessage('error', error.message || 'Network error. Try again.');
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+      }
     });
   </script>
 </body>

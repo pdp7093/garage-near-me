@@ -5,8 +5,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Bookings — GarageNearMe</title>
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#DC2626">
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
@@ -44,7 +46,7 @@
     <!-- ═══ NAVBAR ═══ -->
     <nav class="gnm-nav sticky-top shadow-sm border-bottom">
         <div class="gnm-nav-inner justify-content-between">
-            <a href="index.html" class="gnm-logo text-decoration-none">
+            <a href="index" class="gnm-logo text-decoration-none">
                 <div class="gnm-logo-icon">
                     <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
                         <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
@@ -54,11 +56,9 @@
             </a>
             
             <div class="d-none d-md-flex align-items-center gap-3">
-                <a href="search-results.html" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
+                <a href="search-results" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
                 <div class="dropdown">
-                    <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown">
-                        JD
-                    </div>
+                    <div id="topAvatarCircle" class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer overflow-hidden" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown"></div>
                 </div>
             </div>
             
@@ -77,9 +77,7 @@
                 <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:100px;">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center gap-3 mb-4">
-                            <div class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0" style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);">
-                                JD
-                            </div>
+                            <div id="sidebarAvatarCircle" class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0 overflow-hidden" style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);"></div>
                             <div>
                                 <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">John Doe</h6>
                                 <p class="text-muted small mb-0">+91 98765 43210</p>
@@ -89,23 +87,27 @@
                         <hr class="mb-4">
 
                         <nav class="nav flex-column dashboard-nav">
-                            <a class="nav-link d-flex align-items-center gap-3" href="dashboard.html">
+                            <a class="nav-link d-flex align-items-center gap-3" href="dashboard">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
                                 Dashboard Overview
                             </a>
-                            <a class="nav-link active d-flex align-items-center gap-3" href="my-bookings.html">
+                            <a class="nav-link active d-flex align-items-center gap-3" href="my-bookings">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
                                 My Bookings
                             </a>
-                            <a class="nav-link d-flex align-items-center gap-3" href="my-vehicles.html">
+                            <a class="nav-link d-flex align-items-center gap-3" href="my-vehicles">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
                                 My Vehicles
                             </a>
-                            <a class="nav-link d-flex align-items-center gap-3" href="profile.html">
+                            <a class="nav-link d-flex align-items-center gap-3" href="past-history">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                                Past History
+                            </a>
+                            <a class="nav-link d-flex align-items-center gap-3" href="profile">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                 Profile Settings
                             </a>
-                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login.html">
+                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
                                 Logout
                             </a>
@@ -118,13 +120,21 @@
             <div class="col-lg-9">
                 <h3 class="fw-bold mb-4" style="font-family:var(--font-head); color:var(--color-text);">My Bookings</h3>
 
+                <!-- Search Box -->
+                <div class="mb-4">
+                    <input type="text" id="bookingSearchBox" class="form-control rounded-3 px-4 py-3" placeholder="Search by garage name, vehicle number, or booking ID..." style="border: 1px solid #E5E7EB;">
+                </div>
+
                 <!-- Booking Tabs -->
                 <ul class="nav nav-pills mb-4" id="bookingTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-medium border shadow-sm me-2" id="active-tab" data-bs-toggle="pill" data-bs-target="#active" type="button" role="tab">Active</button>
+                        <button class="nav-link active fw-medium border shadow-sm me-2" id="active-tab" data-bs-toggle="pill" data-bs-target="#active" type="button" role="tab">Active Bookings</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-medium border shadow-sm bg-white" id="past-tab" data-bs-toggle="pill" data-bs-target="#past" type="button" role="tab">Past History</button>
+                        <button class="nav-link fw-medium border shadow-sm me-2" id="sos-tab" data-bs-toggle="pill" data-bs-target="#sos" type="button" role="tab">🚨 SOS Bookings</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link fw-medium border shadow-sm me-2" href="past-history">Past History</a>
                     </li>
                 </ul>
 
@@ -132,84 +142,24 @@
                     
                     <!-- ACTIVE BOOKINGS -->
                     <div class="tab-pane fade show active" id="active" role="tabpanel">
-                        
-                        <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-4">
-                            <div class="card-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
-                                <div class="fw-medium">Booking ID: #GNM-8492</div>
-                                <span class="badge bg-white text-primary rounded-pill px-3 py-1">In Progress</span>
-                            </div>
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">AC Repair</h5>
-                                        <p class="text-muted small mb-0">Sharma Auto Garage • 15, Connaught Place</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold fs-5 text-dark">₹1,498</div>
-                                        <div class="text-muted small">Via UPI</div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
-                                    <span>Date & Time: <strong class="text-dark">Today, 11:00 AM</strong></span>
-                                    <span>Vehicle: <strong class="text-dark">Red Swift Dzire</strong></span>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-4">Track Status</button>
-                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-4">Cancel</button>
-                                </div>
+                        <div id="activeBookingsContainer">
+                            <div class="text-center py-5 text-muted">
+                                <p>Loading active bookings...</p>
                             </div>
                         </div>
-
+                        <div id="activePaginationContainer" class="mt-4"></div>
                     </div>
 
-                    <!-- PAST BOOKINGS -->
-                    <div class="tab-pane fade" id="past" role="tabpanel">
-                        
-                        <!-- Past Item 1 -->
-                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">Wheel Alignment</h5>
-                                        <p class="text-muted small mb-0">Speedy Wheels Care • Block A, Karol Bagh</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold fs-5 text-dark">₹799</div>
-                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill mt-1">Completed</span>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
-                                    <span>Date: <strong class="text-dark">15 Mar 2026</strong></span>
-                                    <span>Booking ID: <strong class="text-dark">#GNM-7210</strong></span>
-                                </div>
-                                <button class="btn btn-sm btn-outline-secondary rounded-pill px-4">Download Invoice</button>
+                    <!-- SOS BOOKINGS -->
+                    <div class="tab-pane fade" id="sos" role="tabpanel">
+                        <div id="sosBookingsContainer">
+                            <div class="text-center py-5 text-muted">
+                                <p>Loading SOS bookings...</p>
                             </div>
                         </div>
-
-                        <!-- Past Item 2 -->
-                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">Emergency SOS</h5>
-                                        <p class="text-muted small mb-0">AutoFix Pro • South Ex</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold fs-5 text-dark">₹500</div>
-                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill mt-1">Completed</span>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="d-flex align-items-center justify-content-between text-muted small">
-                                    <span>Date: <strong class="text-dark">02 Feb 2026</strong></span>
-                                    <span>Booking ID: <strong class="text-dark">#GNM-6502</strong></span>
-                                </div>
-                            </div>
-                        </div>
-
+                        <div id="sosPaginationContainer" class="mt-4"></div>
                     </div>
+
                 </div>
 
             </div>
@@ -221,8 +171,553 @@
         &copy; 2026 GarageNearMe. All rights reserved.
     </footer>
 
-    <script src="../js/bootstrap.bundle.min.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/script.js"></script>
+    <script>
+        const token = localStorage.getItem('gnm_token');
+        const ITEMS_PER_PAGE = 5;
+        
+        // State management
+        let allActiveBookings = [];
+        let allSOSBookings = [];
+        let currentActiveBookingPage = 1;
+        let currentSOSPage = 1;
+        let activeSearchQuery = '';
+        let sosSearchQuery = '';
+
+        function authHeaders() {
+            return { 'Authorization': `Bearer ${token}` };
+        }
+
+        async function loadUserInfo() {
+            if (!token) {
+                window.location.href = 'login';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${getApiBase()}/auth/me`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load user info');
+                }
+
+                const data = await response.json();
+                const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'JD';
+                const avatarHtml = data.profile_image
+                    ? `<img src="${window.location.origin}${data.profile_image}" alt="Profile" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
+                    : initials;
+
+                const topAvatar = document.getElementById('topAvatarCircle');
+                const sidebarAvatar = document.getElementById('sidebarAvatarCircle');
+                if (topAvatar) topAvatar.innerHTML = avatarHtml;
+                if (sidebarAvatar) sidebarAvatar.innerHTML = avatarHtml;
+
+                if (!data.profile_image) {
+                    document.querySelectorAll('.rounded-circle').forEach(el => {
+                        if (el.textContent.trim() === 'JD') {
+                            el.textContent = initials;
+                        }
+                    });
+                }
+
+                document.querySelectorAll('h6').forEach(el => {
+                    if (el.textContent.trim() === 'John Doe') {
+                        el.textContent = data.name || 'John Doe';
+                        if (el.nextElementSibling) {
+                            el.nextElementSibling.textContent = data.phone || '+91 98765 43210';
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('User info load error:', err);
+                localStorage.removeItem('gnm_token');
+                localStorage.removeItem('gnm_role');
+                window.location.href = 'login';
+            }
+        }
+
+        // Filter bookings based on search query
+        function filterBookings(bookings, searchQuery) {
+            if (!searchQuery.trim()) return bookings;
+            const query = searchQuery.toLowerCase();
+            return bookings.filter(b => 
+                (b.garage_name && b.garage_name.toLowerCase().includes(query)) ||
+                (b.vehicle_number && b.vehicle_number.toLowerCase().includes(query)) ||
+                b.id.toString().includes(query)
+            );
+        }
+
+        // Get paginated items
+        function getPaginatedItems(items, page) {
+            const start = (page - 1) * ITEMS_PER_PAGE;
+            return items.slice(start, start + ITEMS_PER_PAGE);
+        }
+
+        // Render pagination controls
+        function renderPagination(totalItems, currentPage, containerId, onPageChange) {
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            const container = document.getElementById(containerId);
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<nav><ul class="pagination justify-content-center">';
+            
+            // Previous button
+            if (currentPage > 1) {
+                html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${currentPage - 1})">← Previous</button></li>`;
+            } else {
+                html += `<li class="page-item disabled"><span class="page-link">← Previous</span></li>`;
+            }
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+                } else {
+                    html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${i})">${i}</button></li>`;
+                }
+            }
+
+            // Next button
+            if (currentPage < totalPages) {
+                html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${currentPage + 1})">Next →</button></li>`;
+            } else {
+                html += `<li class="page-item disabled"><span class="page-link">Next →</span></li>`;
+            }
+
+            html += '</ul></nav>';
+            container.innerHTML = html;
+        }
+
+        async function loadActiveBookings() {
+            try {
+                if (!token) {
+                    document.getElementById('activeBookingsContainer').innerHTML = '<div class="text-center py-5 text-danger"><p>Not authenticated. Please login.</p></div>';
+                    return;
+                }
+
+                const response = await fetch(`${getApiBase()}/bookings/my`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const bookings = await response.json();
+                allActiveBookings = bookings.filter(b => (b.status === 'pending' || b.status === 'accepted' || b.status === 'ongoing') && b.booking_type !== 'sos');
+                
+                displayActiveBookings(1);
+            } catch (err) {
+                console.error('Error loading active bookings:', err);
+                document.getElementById('activeBookingsContainer').innerHTML = `<div class="text-center py-5"><div class="text-danger"><p><strong>Error loading bookings.</strong></p><p style="font-size: 12px;">${err.message}</p></div><button class="btn btn-sm btn-outline-primary mt-3" onclick="loadActiveBookings()">Retry</button></div>`;
+            }
+        }
+
+        function displayActiveBookings(page) {
+            currentActiveBookingPage = page;
+            const filteredBookings = filterBookings(allActiveBookings, activeSearchQuery);
+            const paginatedBookings = getPaginatedItems(filteredBookings, page);
+            const container = document.getElementById('activeBookingsContainer');
+
+            if (filteredBookings.length === 0) {
+                container.innerHTML = '<div class="text-center py-5 text-muted"><p>No active bookings found.</p></div>';
+                document.getElementById('activePaginationContainer').innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            paginatedBookings.forEach(booking => {
+                const date = new Date(booking.created_at).toLocaleDateString('en-IN');
+                const amount = booking.final_amount ? `₹${parseFloat(booking.final_amount).toLocaleString()}` : 'Estimating...';
+                const serviceName = booking.service_type || 'General Service';
+
+                let statusBadge = '';
+                if (booking.status === 'pending') {
+                    statusBadge = '<span class="badge bg-info text-white rounded-pill px-3 py-1">Waiting for Garage</span>';
+                } else if (booking.status === 'accepted') {
+                    statusBadge = '<span class="badge bg-primary text-white rounded-pill px-3 py-1">Accepted</span>';
+                } else if (booking.status === 'ongoing') {
+                    statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3 py-1">In Progress</span>';
+                }
+
+                const paymentBadge = booking.payment_status === 'paid'
+                    ? '<span class="badge bg-success rounded-pill ms-2">Paid ✓</span>'
+                    : '<span class="badge bg-light border border-secondary rounded-pill ms-2" style="color: #666;">Pending</span>';
+
+                html += `
+                    <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="card-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+                            <div class="fw-medium">Booking ID: #GNM-${booking.id}</div>
+                            <div>${statusBadge}${paymentBadge}</div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">${serviceName}</h5>
+                                    <p class="text-muted small mb-0">${booking.garage_name || 'Searching for garage...'}</p>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold fs-5 text-dark">${amount}</div>
+                                    <div class="text-muted small">${booking.payment_status === 'paid' ? 'Paid' : 'Pending'}</div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                                <span>Date: <strong class="text-dark">${date}</strong></span>
+                                <span>Vehicle: <strong class="text-dark">${booking.vehicle_number || 'N/A'}</strong></span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-4" onclick="trackBooking('${booking.slug || booking.id}')">Track Status</button>
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="cancelBooking(${booking.id})">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            renderPagination(filteredBookings.length, page, 'activePaginationContainer', 'displayActiveBookings');
+        }
+
+        async function loadSOSBookings() {
+            try {
+                if (!token) {
+                    document.getElementById('sosBookingsContainer').innerHTML = '<div class="text-center py-5 text-danger"><p>Not authenticated. Please login.</p></div>';
+                    return;
+                }
+
+                const response = await fetch(`${getApiBase()}/sos/customer/history`, {
+                    headers: authHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const sosRequests = await response.json();
+                allSOSBookings = sosRequests || [];
+                
+                displaySOSBookings(1);
+            } catch (err) {
+                console.error('Error loading SOS bookings:', err);
+                document.getElementById('sosBookingsContainer').innerHTML = `<div class="text-center py-5"><div class="text-danger"><p><strong>Error loading SOS bookings.</strong></p><p style="font-size: 12px;">${err.message}</p></div><button class="btn btn-sm btn-outline-danger mt-3" onclick="loadSOSBookings()">Retry</button></div>`;
+            }
+        }
+
+        function displaySOSBookings(page) {
+            currentSOSPage = page;
+            const filteredBookings = filterBookings(allSOSBookings, sosSearchQuery);
+            const paginatedBookings = getPaginatedItems(filteredBookings, page);
+            const container = document.getElementById('sosBookingsContainer');
+
+            if (filteredBookings.length === 0) {
+                container.innerHTML = '<div class="text-center py-5 text-muted"><p>No SOS bookings found.</p></div>';
+                document.getElementById('sosPaginationContainer').innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            paginatedBookings.forEach(sos => {
+                const date = new Date(sos.created_at).toLocaleDateString('en-IN');
+                const time = new Date(sos.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                const amount = sos.final_charge ? `₹${parseFloat(sos.final_charge).toLocaleString()}` : (sos.estimated_charge ? `₹${parseFloat(sos.estimated_charge).toLocaleString()}` : 'Estimating...');
+
+                let statusBadge = '';
+                let headerClass = 'bg-danger';
+                
+                const status = sos.status;
+                if (status === 'broadcasting') {
+                    statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3 py-1">🆘 Broadcasting</span>';
+                } else if (status === 'accepted') {
+                    statusBadge = '<span class="badge bg-info text-white rounded-pill px-3 py-1">✓ Accepted</span>';
+                } else if (status === 'on_the_way') {
+                    statusBadge = '<span class="badge bg-success text-white rounded-pill px-3 py-1">🚗 On The Way</span>';
+                } else if (status === 'in_progress') {
+                    statusBadge = '<span class="badge bg-success text-white rounded-pill px-3 py-1">⚙️ In Progress</span>';
+                } else if (status === 'completed') {
+                    statusBadge = '<span class="badge bg-secondary text-white rounded-pill px-3 py-1">✓ Completed</span>';
+                    headerClass = 'bg-secondary';
+                } else if (status === 'cancelled') {
+                    statusBadge = '<span class="badge bg-light border border-danger rounded-pill px-3 py-1" style="color: #DC2626;">✕ Cancelled</span>';
+                    headerClass = 'bg-light border border-danger';
+                }
+
+                const isActive = ['broadcasting', 'accepted', 'on_the_way', 'in_progress'].includes(status);
+
+                html += `
+                    <div class="card border-2 border-danger shadow-sm rounded-4 overflow-hidden mb-4" style="background: #FFFBFA;">
+                        <div class="card-header ${headerClass} text-white p-3 d-flex justify-content-between align-items-center">
+                            <div class="fw-medium d-flex align-items-center gap-2">
+                                <span style="font-size: 18px;">🚨</span>
+                                ${sos.sos_number || 'SOS #' + sos.id}
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">Emergency Assistance</h5>
+                                    <p class="text-muted small mb-0">${sos.garage_name || 'Searching for mechanic...'}</p>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold fs-5" style="color: #EF4444;">${amount}</div>
+                                    <div class="text-muted small">Pending</div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="d-flex align-items-center justify-content-between text-muted small mb-3">
+                                <span>Date: <strong class="text-dark">${date} ${time}</strong></span>
+                                <span>Vehicle: <strong class="text-dark">${sos.vehicle_number || 'N/A'}</strong></span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-4" onclick="trackSOS('${sos.slug || sos.id}')">View Details</button>
+                                ${isActive ? `<button class="btn btn-sm btn-outline-secondary rounded-pill px-4" onclick="cancelSOS(${sos.id})">Cancel SOS</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            renderPagination(filteredBookings.length, page, 'sosPaginationContainer', 'displaySOSBookings');
+        }
+
+        function trackSOS(sosSlug) {
+            window.location.href = `/customer/sos-tracking?sos=${sosSlug}`;
+        }
+
+        function cancelSOS(sosId) {
+            showSOSCancelConfirm(sosId);
+        }
+
+        function showSOSCancelConfirm(sosId) {
+            document.getElementById('sossCancelConfirmBox')?.remove();
+
+            const box = document.createElement('div');
+            box.id = 'sossCancelConfirmBox';
+            box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;';
+            box.innerHTML = `
+                <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        </div>
+                        <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">SOS Cancel Karna Hai?</h6>
+                        <p style="color:#6B7280;font-size:13px;margin:0;">Ek baar cancel kiya toh mechanic notification cancel ho jayega.</p>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="document.getElementById('sossCancelConfirmBox').remove()"
+                            style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
+                            Nahi, Rakho
+                        </button>
+                        <button id="confirmSOSCancelBtn"
+                            onclick="doSOSCancel(${sosId})"
+                            style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
+                            Haan, Cancel Karo
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(box);
+        }
+
+        async function doSOSCancel(sosId) {
+            const btn = document.getElementById('confirmSOSCancelBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
+
+            try {
+                const res = await fetch(`${getApiBase()}/sos/${sosId}/cancel`, {
+                    method: 'POST',
+                    headers: authHeaders()
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Cancel nahi hua');
+                }
+                document.getElementById('sossCancelConfirmBox')?.remove();
+                showToast('SOS cancel ho gayi!', 'success');
+                setTimeout(() => loadSOSBookings(), 1000);
+            } catch (e) {
+                document.getElementById('sossCancelConfirmBox')?.remove();
+                showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
+            }
+        }
+
+        function trackBooking(bookingId) {
+            window.location.href = `booking-detail/${bookingId}`;
+        }
+
+        function cancelBooking(bookingId) {
+            showCancelConfirm(bookingId);
+        }
+
+        function showCancelConfirm(bookingId) {
+            document.getElementById('cancelConfirmBox')?.remove();
+
+            const box = document.createElement('div');
+            box.id = 'cancelConfirmBox';
+            box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;';
+            box.innerHTML = `
+                <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        </div>
+                        <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">Booking Cancel Karna Hai?</h6>
+                        <p style="color:#6B7280;font-size:13px;margin:0;">Ek baar cancel kiya toh wapas nahi hoga.</p>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="document.getElementById('cancelConfirmBox').remove()"
+                            style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
+                            Nahi, Rakho
+                        </button>
+                        <button id="confirmCancelBtn"
+                            onclick="doCancelBooking(${bookingId})"
+                            style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
+                            Haan, Cancel Karo
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(box);
+        }
+
+        async function doCancelBooking(bookingId) {
+            const btn = document.getElementById('confirmCancelBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
+
+            try {
+                const res = await fetch(`${getApiBase()}/bookings/${bookingId}/cancel`, {
+                    method: 'POST',
+                    headers: authHeaders()
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Cancel nahi hua');
+                }
+                document.getElementById('cancelConfirmBox')?.remove();
+                showToast('Booking cancel ho gayi!', 'success');
+                setTimeout(() => loadActiveBookings(), 1000);
+            } catch (e) {
+                document.getElementById('cancelConfirmBox')?.remove();
+                showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
+            }
+        }
+
+        function showToast(msg, type='success') {
+            const t = document.createElement('div');
+            t.className = `alert alert-${type} position-fixed shadow rounded-3`;
+            t.style.cssText = 'top:80px;right:20px;z-index:9999;font-size:14px;min-width:220px;';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function trackSOS(sosSlug) {
+            window.location.href = `/customer/sos-tracking?sos=${sosSlug}`;
+        }
+
+        function cancelSOS(sosId) {
+            showSOSCancelConfirm(sosId);
+        }
+
+        function showSOSCancelConfirm(sosId) {
+            document.getElementById('sossCancelConfirmBox')?.remove();
+
+            const box = document.createElement('div');
+            box.id = 'sossCancelConfirmBox';
+            box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;';
+            box.innerHTML = `
+                <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                    <div style="text-align:center;margin-bottom:20px;">
+                        <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        </div>
+                        <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">SOS Cancel Karna Hai?</h6>
+                        <p style="color:#6B7280;font-size:13px;margin:0;">Mechanic notification cancel ho jayega.</p>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="document.getElementById('sossCancelConfirmBox').remove()"
+                            style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
+                            Nahi, Rakho
+                        </button>
+                        <button id="confirmSOSCancelBtn"
+                            onclick="doSOSCancel(${sosId})"
+                            style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
+                            Haan, Cancel Karo
+                        </button>
+                    </div>
+                </div>`;
+            document.body.appendChild(box);
+        }
+
+        async function doSOSCancel(sosId) {
+            const btn = document.getElementById('confirmSOSCancelBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
+
+            try {
+                const res = await fetch(`${getApiBase()}/sos/${sosId}/cancel`, {
+                    method: 'POST',
+                    headers: authHeaders()
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Cancel nahi hua');
+                }
+                document.getElementById('sossCancelConfirmBox')?.remove();
+                showToast('SOS cancel ho gayi!', 'success');
+                setTimeout(() => loadSOSBookings(), 1000);
+            } catch (e) {
+                document.getElementById('sossCancelConfirmBox')?.remove();
+                showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            loadActiveBookings();
+
+            const searchBox = document.getElementById('bookingSearchBox');
+            
+            // Search functionality
+            searchBox?.addEventListener('input', (e) => {
+                activeSearchQuery = e.target.value;
+                sosSearchQuery = e.target.value;
+                
+                // Re-display based on active tab
+                const activeTab = document.querySelector('.tab-pane.show.active');
+                if (activeTab?.id === 'active') {
+                    displayActiveBookings(1);
+                } else if (activeTab?.id === 'sos') {
+                    displaySOSBookings(1);
+                }
+            });
+
+            // Load SOS when tab is clicked
+            document.getElementById('sos-tab')?.addEventListener('click', () => {
+                if (allSOSBookings.length === 0) {
+                    loadSOSBookings();
+                } else {
+                    displaySOSBookings(1);
+                }
+            });
+
+            // Load Active Bookings when tab is clicked
+            document.getElementById('active-tab')?.addEventListener('click', () => {
+                if (allActiveBookings.length === 0) {
+                    loadActiveBookings();
+                } else {
+                    displayActiveBookings(1);
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

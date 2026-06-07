@@ -1,170 +1,737 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SOS Tracking — GarageNearMe</title>
-    <link rel="stylesheet" href="../css/bootstrap.css" />
-    <link rel="stylesheet" href="../css/style.css" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
-        rel="stylesheet" />
-    
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#DC2626">
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
     <style>
-        .radar-container {
-            position: relative;
-            width: 240px;
-            height: 240px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .radar-core {
-            width: 80px;
-            height: 80px;
-            background: #DC2626; /* Danger Red */
-            border-radius: 50%;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
-        }
-        .radar-ring {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 3px solid #DC2626;
-            animation: pulse 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
-        }
-        .radar-ring.ring-2 { animation-delay: 0.6s; }
-        .radar-ring.ring-3 { animation-delay: 1.2s; }
-        
-        @keyframes pulse {
-            0% { transform: scale(0.4); opacity: 1; }
-            100% { transform: scale(1.2); opacity: 0; }
-        }
+        body { background:#f8f9fa; min-height:100vh; }
 
-        .map-bg {
-            background-image: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1200');
-            background-size: cover;
-            background-position: center;
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            opacity: 0.15;
-            z-index: 0;
-            pointer-events: none;
-        }
+        .map-bg { background-image:url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1200'); background-size:cover; background-position:center; position:fixed; top:0;left:0;right:0;bottom:0; opacity:.04; z-index:0; pointer-events:none; }
+
+        /* Radar */
+        .radar-container { position:relative; width:200px; height:200px; margin:0 auto; display:flex; align-items:center; justify-content:center; }
+        .radar-core { width:72px; height:72px; background:#DC2626; border-radius:50%; z-index:2; display:flex; align-items:center; justify-content:center; color:white; box-shadow:0 4px 15px rgba(220,38,38,0.4); }
+        .radar-ring { position:absolute; width:100%; height:100%; border-radius:50%; border:3px solid #DC2626; animation:radarPulse 2s infinite cubic-bezier(0.215,0.61,0.355,1); }
+        .radar-ring.ring-2 { animation-delay:.6s; }
+        .radar-ring.ring-3 { animation-delay:1.2s; }
+        @keyframes radarPulse { 0%{transform:scale(0.4);opacity:1} 100%{transform:scale(1.2);opacity:0} }
+
+        /* Timeline */
+        .tracking-timeline { padding:0; }
+        .timeline-item { display:flex; gap:14px; margin-bottom:18px; position:relative; }
+        .timeline-item:not(:last-child)::before { content:''; position:absolute; left:19px; top:50px; width:2px; height:calc(100% + 18px); background:#e5e7eb; }
+        .timeline-item.active::before { background:#10b981; }
+        .timeline-dot { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:#e5e7eb; color:#6b7280; font-size:16px; flex-shrink:0; }
+        .timeline-item.active .timeline-dot { background:#10b981; color:white; box-shadow:0 0 0 4px rgba(16,185,129,0.1); }
+        .timeline-content h6 { margin:0 0 2px; font-size:13px; font-weight:600; color:#111827; }
+        .timeline-content p { margin:0; font-size:12px; color:#6b7280; }
+
+        /* Status badge */
+        .status-pill { display:inline-block; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+        .status-broadcasting { background:#fef3c7; color:#92400e; }
+        .status-accepted { background:#dcfce7; color:#166534; }
+        .status-ongoing { background:#fce7f3; color:#831843; }
+
+        /* Sections */
+        #searching-section, #accepted-section, #estimate-section, #ongoing-section, #completed-section, #error-section { display:none; }
+
+        /* OTP */
+        .otp-box { background:#FFFBEB; border:2px dashed #F59E0B; border-radius:12px; padding:16px; text-align:center; }
+        .otp-number { font-size:32px; font-weight:700; letter-spacing:10px; font-family:monospace; color:#92400e; }
+
+        /* Confirm dialog replacement */
+        .confirm-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; }
+        .confirm-overlay.show { display:flex; }
     </style>
 </head>
 
-<body style="background:var(--color-bg); min-height:100vh; display: flex; flex-direction: column; position: relative;">
+<body>
+<div class="map-bg"></div>
 
-    <!-- Background Map -->
-    <div class="map-bg"></div>
-
-    <!-- ═══ NAVBAR (Minimal) ═══ -->
-    <nav class="gnm-nav sticky-top shadow-sm border-bottom" style="z-index:10;">
-        <div class="gnm-nav-inner justify-content-between">
-            <a href="index.html" class="gnm-logo text-decoration-none">
-                <div class="gnm-logo-icon" style="background:#DC2626;">
-                    <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                    </svg>
-                </div>
-                <span class="gnm-logo-text text-danger">SOS Mode</span>
-            </a>
-            <div class="d-flex align-items-center gap-2 fw-medium text-danger" style="font-size:14px;">
-                <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
-                Live Tracking
+<!-- NAVBAR -->
+<nav class="gnm-nav sticky-top shadow-sm border-bottom bg-white" style="z-index:100;">
+    <div class="gnm-nav-inner justify-content-between">
+        <div class="gnm-logo">
+            <div class="gnm-logo-icon" style="background:#DC2626;">
+                <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
             </div>
+            <span class="gnm-logo-text text-danger">SOS Mode</span>
         </div>
-    </nav>
+        <div class="d-flex align-items-center gap-2 text-danger fw-medium" style="font-size:14px;">
+            <span class="spinner-grow spinner-grow-sm" id="live-dot"></span>
+            <span id="nav-status">Live Tracking</span>
+        </div>
+    </div>
+</nav>
 
-    <!-- ═══ MAIN CONTENT ═══ -->
-    <div class="container py-5 flex-grow-1 d-flex flex-column justify-content-center align-items-center" style="z-index:1;">
-        
-        <div class="row w-100 justify-content-center">
-            <div class="col-12 col-md-8 col-lg-6">
-                
-                <!-- Radar UI Card -->
-                <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4 bg-white" id="radarCard">
-                    <div class="card-body p-5 text-center">
-                        
-                        <div class="radar-container mb-4">
-                            <div class="radar-ring ring-1"></div>
-                            <div class="radar-ring ring-2"></div>
-                            <div class="radar-ring ring-3"></div>
-                            <div class="radar-core">
-                                <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                            </div>
+<div class="container py-4" style="z-index:1; position:relative; max-width:560px;">
+
+    <!-- ═══ SEARCHING ═══ -->
+    <div id="searching-section">
+        <div class="card border-0 shadow rounded-4 bg-white p-5 text-center mb-3">
+            <div class="radar-container mb-4">
+                <div class="radar-ring ring-1"></div>
+                <div class="radar-ring ring-2"></div>
+                <div class="radar-ring ring-3"></div>
+                <div class="radar-core">
+                    <svg viewBox="0 0 24 24" fill="white" width="32" height="32"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                </div>
+            </div>
+            <h3 class="fw-bold text-danger mb-2" style="font-family:var(--font-head);">Broadcasting SOS</h3>
+            <p class="text-muted mb-3" id="nearby-count-text">Aas paas ke mechanics ko alert bheja ja raha hai...</p>
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-4">
+                <div class="spinner-border spinner-border-sm text-danger"></div>
+                <span class="text-muted small">Mechanic accept karne ka wait...</span>
+            </div>
+            <button onclick="showCancelConfirm()" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-medium">
+                Cancel SOS
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══ ACCEPTED ═══ -->
+    <div id="accepted-section">
+
+        <!-- Mechanic Card -->
+        <div class="card border-0 shadow rounded-4 bg-white mb-3" style="border-left:5px solid #10b981 !important;">
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-success" style="font-family:var(--font-head);">Mechanic En Route!</h5>
+                    <span class="status-pill status-accepted" id="status-badge-acc">Accepted</span>
+                </div>
+                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border mb-4">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                         style="width:64px;height:64px;font-size:24px;background:var(--color-primary);" id="garage-initial-acc">G</div>
+                    <div class="flex-grow-1">
+                        <h5 class="fw-bold mb-0" style="font-family:var(--font-head);" id="garage-name-acc">—</h5>
+                        <p class="text-muted mb-1" style="font-size:13px;" id="garage-status-text">Mechanic aapki taraf aa raha hai</p>
+                    </div>
+                </div>
+
+                <!-- Distance & ETA -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="bg-light rounded-3 p-3 text-center border">
+                            <div class="fw-bold text-success" style="font-size:24px;" id="distance-value">—</div>
+                            <div class="text-muted" style="font-size:11px;text-transform:uppercase;">km away</div>
                         </div>
-
-                        <h3 class="fw-bold text-danger mb-2" style="font-family:var(--font-head);">Broadcasting SOS</h3>
-                        <p class="text-muted mb-4">Alerting all verified mechanics within 5km radius of your location...</p>
-
-                        <div class="d-flex justify-content-center gap-2">
-                            <div class="spinner-border spinner-border-sm text-danger" role="status"></div>
-                            <span class="text-muted small fw-medium">Waiting for mechanic to accept...</span>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light rounded-3 p-3 text-center border">
+                            <div class="fw-bold text-success" style="font-size:24px;" id="eta-value">—</div>
+                            <div class="text-muted" style="font-size:11px;text-transform:uppercase;">min ETA</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Mechanic Found Card (Simulated as visible for demo purposes) -->
-                <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="border-top: 5px solid #10B981 !important;">
-                    <div class="card-body p-4 p-md-5">
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-bold mb-0 text-success" style="font-family:var(--font-head);">Mechanic En Route!</h5>
-                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-bold" style="font-size:14px;">ETA: 8 Mins</span>
+                <!-- Timeline -->
+                <div class="tracking-timeline mb-4">
+                    <div class="timeline-item active" id="tl-broadcast">
+                        <div class="timeline-dot">📡</div>
+                        <div class="timeline-content">
+                            <h6>SOS Broadcast</h6>
+                            <p id="tl-broadcast-time">—</p>
                         </div>
-
-                        <div class="d-flex align-items-center gap-4 mb-4 bg-light p-3 rounded-4 border">
-                            <div class="position-relative">
-                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width:64px; height:64px; font-size:24px;">SA</div>
-                                <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle" style="width:16px; height:16px;"></span>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h5 class="fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-text);">Sharma Auto Garage</h5>
-                                <div class="d-flex align-items-center gap-2 text-muted" style="font-size:13px;">
-                                    <span class="text-warning fw-bold" style="font-size:14px;">★ 4.8</span>
-                                    <span>•</span>
-                                    <span>1.2 km away</span>
-                                </div>
-                            </div>
+                    </div>
+                    <div class="timeline-item active" id="tl-accepted">
+                        <div class="timeline-dot">✓</div>
+                        <div class="timeline-content">
+                            <h6>Mechanic Accepted</h6>
+                            <p id="tl-accepted-time">—</p>
                         </div>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-6">
-                                <button class="btn btn-outline-dark w-100 rounded-pill py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
-                                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-                                    Call Mechanic
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <button class="btn text-white w-100 rounded-pill py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background:var(--color-primary);">
-                                    <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                                    Live Map
-                                </button>
-                            </div>
+                    </div>
+                    <div class="timeline-item" id="tl-arrival">
+                        <div class="timeline-dot">📍</div>
+                        <div class="timeline-content">
+                            <h6>Mechanic Arrives</h6>
+                            <p id="tl-arrival-text">Wait kar rahe hain...</p>
                         </div>
-
-                        <button class="btn btn-light text-danger w-100 rounded-pill py-2 fw-medium" style="font-size:14px;">
-                            Cancel SOS Request
-                        </button>
-
+                    </div>
+                    <div class="timeline-item" id="tl-repair">
+                        <div class="timeline-dot">🔧</div>
+                        <div class="timeline-content">
+                            <h6>Repair Starts</h6>
+                            <p>Estimate approve karne ke baad</p>
+                        </div>
                     </div>
                 </div>
 
+                <!-- SOS Details -->
+                <div class="border rounded-3 p-3 mb-4" style="font-size:13px;">
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Vehicle</span>
+                        <span class="fw-semibold" id="detail-vehicle">—</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Reg. No.</span>
+                        <span class="fw-semibold" id="detail-reg">—</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span class="text-muted">Issue</span>
+                        <span class="fw-semibold text-end" id="detail-issue" style="max-width:60%;">—</span>
+                    </div>
+                </div>
+
+                <!-- WebRTC Call (number hidden) -->
+                <button onclick="startCall()" class="btn btn-outline-dark w-100 rounded-pill py-2 fw-medium d-flex align-items-center justify-content-center gap-2 mb-3">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+                    Call Mechanic (In-App)
+                </button>
+
+                <button onclick="showCancelConfirm()" class="btn btn-light text-danger w-100 rounded-pill py-2 fw-medium" style="font-size:13px;">
+                    Cancel SOS
+                </button>
             </div>
         </div>
     </div>
 
-    <script src="../js/bootstrap.js"></script>
-</body>
+    <!-- ═══ ESTIMATE (OTP) ═══ -->
+    <div id="estimate-section">
+        <div class="card border-0 shadow rounded-4 bg-white mb-3" style="border-top:5px solid #F59E0B !important;">
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0" style="font-family:var(--font-head);color:#D97706;">Estimate Aaya!</h5>
+                    <span class="status-pill" style="background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;">OTP Required</span>
+                </div>
 
+                <div class="d-flex align-items-center gap-3 mb-4 bg-light p-3 rounded-3 border">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center fw-bold text-white"
+                         style="width:44px;height:44px;font-size:18px;background:var(--color-primary);" id="garage-initial-est">G</div>
+                    <div>
+                        <div class="fw-bold" style="font-size:14px;" id="garage-name-est">—</div>
+                        <div class="text-muted" style="font-size:12px;">Mechanic ne estimate bheja</div>
+                    </div>
+                </div>
+
+                <!-- Amount -->
+                <div class="bg-light rounded-3 p-4 text-center border mb-4">
+                    <div class="text-muted mb-1" style="font-size:12px;text-transform:uppercase;">Estimated Repair Cost</div>
+                    <div class="fw-bold" style="font-size:36px;color:var(--color-primary);">₹<span id="estimate-amount">0</span></div>
+                    <div class="text-muted mt-2" id="estimate-note" style="font-size:13px;"></div>
+                </div>
+
+                <!-- OTP to give mechanic -->
+                <div class="otp-box mb-4">
+                    <div class="text-muted mb-1" style="font-size:12px;font-weight:600;text-transform:uppercase;">Mechanic ko yeh OTP batao</div>
+                    <div class="otp-number" id="otp-display">——————</div>
+                    <div class="text-muted mt-1" style="font-size:11px;">OTP SMS pe aaya hai • Mechanic verify karega → kaam shuru</div>
+                </div>
+
+                <button onclick="rejectEstimate()" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-medium">
+                    Estimate Reject Karo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ ONGOING ═══ -->
+    <div id="ongoing-section">
+        <div class="card border-0 shadow rounded-4 bg-white mb-3" style="border-top:5px solid var(--color-primary) !important;">
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0" style="font-family:var(--font-head);color:var(--color-primary);">Kaam Jari Hai 🔧</h5>
+                    <span class="status-pill status-ongoing">In Progress</span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border mb-4">
+                    <div class="rounded-3 d-flex align-items-center justify-content-center fw-bold text-white"
+                         style="width:56px;height:56px;font-size:22px;background:var(--color-primary);" id="garage-initial-ong">G</div>
+                    <div>
+                        <h6 class="fw-bold mb-0" id="garage-name-ong">—</h6>
+                        <p class="text-muted mb-0" style="font-size:13px;" id="work-started-time">Kaam shuru ho gaya</p>
+                    </div>
+                </div>
+
+                <div class="bg-light rounded-3 p-3 text-center border mb-4">
+                    <div class="text-muted mb-1" style="font-size:12px;">Approved Amount</div>
+                    <div class="fw-bold" style="font-size:28px;color:#10B981;">₹<span id="ongoing-amount">0</span></div>
+                </div>
+
+                <!-- In-app call -->
+                <button onclick="startCall()" class="btn btn-outline-dark w-100 rounded-pill py-2 fw-medium d-flex align-items-center justify-content-center gap-2">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+                    Call Mechanic (In-App)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ COMPLETED ═══ -->
+    <div id="completed-section">
+        <div class="card border-0 shadow rounded-4 bg-white text-center mb-3" style="border-top:5px solid #10B981 !important;">
+            <div class="p-5">
+                <div class="rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center"
+                     style="width:80px;height:80px;background:#D1FAE5;color:#10B981;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="40" height="40"
+                         stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <h3 class="fw-bold mb-1 text-success" style="font-family:var(--font-head);">SOS Complete!</h3>
+                <p class="text-muted mb-1">Aapki gaadi repair ho gayi.</p>
+                <p class="text-muted mb-1" style="font-size:13px;">Garage: <span class="fw-semibold text-dark" id="completed-garage-name">—</span></p>
+                <p class="text-muted mb-4" style="font-size:13px;">Duration: <span id="total-duration">—</span></p>
+                <div class="fw-bold mb-4" style="font-size:32px;color:var(--color-primary);">₹<span id="final-amount-display">0</span></div>
+                <a href="/customer/my-bookings" class="btn w-100 text-white rounded-pill py-3 fw-bold mb-2" style="background:var(--color-primary);">
+                    My Bookings Dekho
+                </a>
+                <a href="/customer/dashboard" class="btn w-100 btn-outline-secondary rounded-pill py-2" style="font-size:14px;">
+                    Dashboard pe Jao
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ ERROR ═══ -->
+    <div id="error-section">
+        <div class="card border-0 shadow rounded-4 bg-white text-center p-5 mb-3">
+            <div style="font-size:52px;" class="mb-3">😔</div>
+            <h5 class="fw-bold mb-2">Koi mechanic nahi mila</h5>
+            <p class="text-muted mb-4" style="font-size:14px;" id="error-msg">2km radius mein koi SOS-available mechanic nahi hai.</p>
+            <a href="/customer/sos" class="btn text-white rounded-pill px-4 py-2 fw-bold mb-2" style="background:#DC2626;">
+                Dobara Try Karo
+            </a>
+            <a href="/customer/dashboard" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-medium" style="font-size:14px;">
+                Dashboard pe Jao
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<!-- Cancel Confirm (no confirm() dialog) -->
+<div class="confirm-overlay" id="cancel-confirm">
+    <div class="bg-white rounded-4 shadow-lg p-4 mx-3" style="max-width:360px;width:100%;">
+        <h5 class="fw-bold mb-2" style="font-family:var(--font-head);">SOS Cancel Karna Chahte Ho?</h5>
+        <p class="text-muted mb-4" style="font-size:14px;">Emergency mein mechanic dhundh raha tha — cancel karne se request band ho jaayegi.</p>
+        <div class="d-flex gap-3">
+            <button onclick="hideCancelConfirm()" class="btn btn-outline-secondary rounded-pill flex-grow-1 py-2 fw-medium">Nahi, Raho</button>
+            <button onclick="cancelSOS()" class="btn btn-danger rounded-pill flex-grow-1 py-2 fw-bold">Haan, Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- WebRTC Call Overlay -->
+<div id="gnm-call-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#0a0a0a;flex-direction:column;align-items:center;justify-content:space-between;padding:64px 24px 80px;">
+    <style>
+        @keyframes callPulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+        #gnm-call-overlay .cp{position:absolute;inset:0;border-radius:50%;border:2px solid #22C55E;animation:callPulse 1.6s ease-out infinite}
+        #gnm-call-overlay .cp:nth-child(2){animation-delay:.5s}
+        #gnm-call-overlay .cp:nth-child(3){animation-delay:1s}
+    </style>
+    <div style="text-align:center;">
+        <div style="color:#22C55E;font-size:13px;letter-spacing:2px;font-family:'DM Sans',sans-serif;text-transform:uppercase;margin-bottom:12px;">📞 In-App Call</div>
+        <div id="call-name" style="color:#fff;font-size:22px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:6px;">Mechanic</div>
+        <div id="call-status" style="color:#9CA3AF;font-size:14px;font-family:'DM Sans',sans-serif;">Connecting...</div>
+    </div>
+    <div style="position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center;">
+        <div class="cp"></div><div class="cp"></div><div class="cp"></div>
+        <div style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#22C55E,#16a34a);display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;z-index:1;">🔧</div>
+    </div>
+    <div style="display:flex;gap:48px;align-items:flex-start;">
+        <div style="text-align:center;">
+            <button id="call-mute-btn" onclick="toggleMute()" style="width:68px;height:68px;border-radius:50%;background:#374151;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <span style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;" id="mute-label">Mute</span>
+        </div>
+        <div style="text-align:center;">
+            <button onclick="endCall()" style="width:68px;height:68px;border-radius:50%;background:#E53E3E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(229,62,62,0.15);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+            </button>
+            <span style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">End Call</span>
+        </div>
+    </div>
+</div>
+
+<script src="/js/bootstrap.js"></script>
+<script src="/js/config.js"></script>
+<script>
+    const params   = new URLSearchParams(location.search);
+    // Read SOS slug/id from path (/sos-tracking/<slug>) or query params as fallback
+    const _sosPathMatch = window.location.pathname.match(/\/sos-tracking\/([^/?#]+)/);
+    let bookingId  = (_sosPathMatch && _sosPathMatch[1]) || params.get('booking_id') || params.get('sos_id');
+    if (bookingId === 'undefined' || bookingId === 'null') {
+        bookingId = null;
+    }
+    let pollTimer  = null;
+    let sosData    = null;
+    const _API_BASE = getApiBase();
+
+    // ── Boot ──
+    window.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+        if (!token) { window.location.href = '/customer/login'; return; }
+
+        // bookingId URL path se aata hai (/sos-tracking/<slug>)
+        // Agar nahi mila toh sessionStorage se check karo
+        if (!bookingId) {
+            const savedSlug = sessionStorage.getItem('gnm_active_sos_slug');
+            if (savedSlug) {
+                bookingId = savedSlug;
+                history.replaceState({}, '', `/customer/sos-tracking/${bookingId}`);
+            }
+        }
+
+        if (!bookingId) {
+            // Koi SOS slug nahi — SOS page pe wapas bhejo
+            window.location.href = '/customer/sos';
+            return;
+        }
+
+        // nearby count sessionStorage se update karo
+        const savedCount = sessionStorage.getItem('gnm_active_sos_count');
+        if (savedCount) {
+            const c = parseInt(savedCount) || 0;
+            const el = document.getElementById('nearby-count-text');
+            if (el) el.textContent = `${c} mechanic${c !== 1 ? 's' : ''} ko alert bheja! Accept karne ka wait...`;
+        }
+
+        showSection('searching');
+        startPolling();
+    });
+
+    // ── Poll ──
+    function startPolling() {
+        checkStatus();
+        pollTimer = setInterval(checkStatus, 5000);
+        // Har 10 seconds pe rebroadcast — taaki jo mechanic baad mein page khole use bhi mile
+        rebroadcastOnce();
+        setInterval(rebroadcastOnce, 10000);
+    }
+
+    async function rebroadcastOnce() {
+        if (!bookingId) return;
+        const token = localStorage.getItem("gnm_token") || localStorage.getItem("access_token");
+        try {
+            await fetch(`${getApiBase()}/sos/customer/${bookingId}/rebroadcast`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+        } catch(e) { /* silent fail — polling handle kar lega */ }
+    }
+
+    async function checkStatus() {
+        if (!bookingId) return;
+        const token = localStorage.getItem("gnm_token") || localStorage.getItem("access_token");
+        try {
+            const res = await fetch(`${getApiBase()}/sos/customer/${bookingId}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                if (res.status === 401) { window.location.href = "/customer/login"; }
+                return;
+            }
+            const json = await res.json();
+            sosData = json.data || json.sos || json;
+            updateUI();
+        } catch(e) {
+            console.error("Fetch failed:", e);
+        }
+    }
+
+    // ── Update UI based on status ──
+    function updateUI() {
+        const s          = sosData.status;
+        const garageName = sosData.garage_name || 'Mechanic';
+        const initial    = garageName.charAt(0).toUpperCase();
+
+        if (s === 'broadcasting') {
+            showSection('searching');
+
+        // ✅ FIX: estimate check PEHLE karo (accepted ke andar nested condition)
+        } else if (s === 'accepted' && sosData.estimate_status === 'pending') {
+            // Mechanic ne estimate bheja, OTP show karo
+            showSection('estimate');
+            document.getElementById('garage-name-est').textContent    = garageName;
+            document.getElementById('garage-initial-est').textContent = initial;
+            document.getElementById('estimate-amount').textContent    = sosData.estimated_charge || 0;
+            // OTP display
+            if (sosData.estimate_otp) {
+                document.getElementById('otp-display').textContent = sosData.estimate_otp;
+            }
+
+        } else if (s === 'accepted') {
+            showSection('accepted');
+            document.getElementById('garage-name-acc').textContent    = garageName;
+            document.getElementById('garage-initial-acc').textContent = initial;
+
+            // Distance & ETA
+            const dist = sosData.distance_km || 0;
+            const eta  = dist > 0 ? Math.ceil((dist / 25) * 60) : '—';
+            document.getElementById('distance-value').textContent = dist > 0 ? dist.toFixed(1) : '—';
+            document.getElementById('eta-value').textContent      = eta;
+
+            // Timeline
+            if (sosData.created_at) {
+                document.getElementById('tl-broadcast-time').textContent = getTimeAgo(sosData.created_at);
+            }
+            if (sosData.responded_at) {
+                document.getElementById('tl-accepted-time').textContent = getTimeAgo(sosData.responded_at);
+            }
+            if (dist > 0) {
+                document.getElementById('tl-arrival-text').textContent = `~${eta} min mein pahunchega`;
+            }
+
+            // Details
+            const vt = sosData.vehicle_type === 'two_wheeler' ? '2 Wheeler' : sosData.vehicle_type === 'four_wheeler' ? '4 Wheeler' : '—';
+            document.getElementById('detail-vehicle').textContent = sosData.vehicle_model || vt;
+            document.getElementById('detail-reg').textContent     = sosData.vehicle_number || '—';
+            document.getElementById('detail-issue').textContent   = sosData.description   || 'Emergency SOS';
+
+        } else if (s === 'on_the_way' || s === 'in_progress') {
+            showSection('ongoing');
+            document.getElementById('garage-name-ong').textContent    = garageName;
+            document.getElementById('garage-initial-ong').textContent = initial;
+            document.getElementById('ongoing-amount').textContent     = sosData.estimated_charge || 0;
+            if (sosData.started_at) {
+                document.getElementById('work-started-time').textContent = `Started ${getTimeAgo(sosData.started_at)}`;
+            }
+
+        } else if (s === 'ongoing') {
+            showSection('ongoing');
+            document.getElementById('garage-name-ong').textContent    = garageName;
+            document.getElementById('garage-initial-ong').textContent = initial;
+            document.getElementById('ongoing-amount').textContent     = sosData.estimated_charge || 0;
+            if (sosData.started_at) {
+                document.getElementById('work-started-time').textContent = `Started ${getTimeAgo(sosData.started_at)}`;
+            }
+
+        } else if (s === 'completed') {
+            clearInterval(pollTimer);
+            // SessionStorage cleanup
+            sessionStorage.removeItem('gnm_active_sos_slug');
+            sessionStorage.removeItem('gnm_active_sos_count');
+            showSection('completed');
+            document.getElementById('final-amount-display').textContent  = sosData.final_charge || sosData.estimated_charge || 0;
+            document.getElementById('completed-garage-name').textContent = garageName;
+            if (sosData.created_at && sosData.completed_at) {
+                document.getElementById('total-duration').textContent = getTimeDuration(sosData.created_at, sosData.completed_at);
+            }
+            document.getElementById('live-dot').style.display = 'none';
+            document.getElementById('nav-status').textContent = 'Completed ✓';
+
+        } else if (s === 'rejected' || s === 'cancelled') {
+            clearInterval(pollTimer);
+            showSection('error');
+            document.getElementById('error-msg').textContent = 'SOS reject/cancel ho gayi.';
+        }
+    }
+
+    // ── Reject estimate ──
+    async function rejectEstimate() {
+        const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+        try {
+            await fetch(`${getApiBase()}/bookings/${bookingId}/approve-estimate`, {
+                method: 'PATCH',
+                headers: { 'Authorization':`Bearer ${token}`, 'Content-Type':'application/json' },
+                body: JSON.stringify({ estimate_status: 'rejected' })
+            });
+            clearInterval(pollTimer);
+            showSection('error');
+            document.getElementById('error-msg').textContent = 'Estimate reject kar diya. SOS cancel ho gayi.';
+        } catch {}
+    }
+
+    // ── Cancel SOS ──
+    function showCancelConfirm() {
+        document.getElementById('cancel-confirm').classList.add('show');
+    }
+    function hideCancelConfirm() {
+        document.getElementById('cancel-confirm').classList.remove('show');
+    }
+
+    async function cancelSOS() {
+        hideCancelConfirm();
+        const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+        if (!bookingId) { window.location.href = '/customer/index'; return; }
+        try {
+            await fetch(`${getApiBase()}/sos/customer/${bookingId}/cancel`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch {}
+        clearInterval(pollTimer);
+        // SessionStorage cleanup
+        sessionStorage.removeItem('gnm_active_sos_slug');
+        sessionStorage.removeItem('gnm_active_sos_count');
+        window.location.href = '/customer/index';
+    }
+
+    // ── WebRTC Call ────────────────────────────────────────────────────────
+    let _pc        = null;
+    let _localStream = null;
+    let _customerWs  = null;
+    let _targetGarageId = null;
+    let _isMuted   = false;
+    let _callTimer = null;
+    let _callSeconds = 0;
+
+    function getCustomerIdFromToken() {
+        const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
+        if (!token) return null;
+        try { return JSON.parse(atob(token.split('.')[1])).user_id || null; } catch(e) { return null; }
+    }
+
+    function connectCustomerWS(customerId) {
+        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+        const host  = location.hostname;
+        const port  = (host === 'localhost' || host === '127.0.0.1') ? ':8000' : '';
+        const url   = `${proto}://${host}${port}/ws/customer/${customerId}`;
+        _customerWs = new WebSocket(url);
+
+        _customerWs.onopen  = () => console.log('Customer WS connected ✅');
+        _customerWs.onclose = () => setTimeout(() => connectCustomerWS(customerId), 5000);
+        _customerWs.onmessage = async (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.type === 'webrtc_answer' && _pc) {
+                    await _pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    document.getElementById('call-status').textContent = 'Connected ✅';
+                    startCallTimer();
+                } else if (data.type === 'webrtc_ice' && _pc) {
+                    await _pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                } else if (data.type === 'webrtc_end') {
+                    endCall();
+                }
+            } catch(err) { console.error(err); }
+        };
+    }
+
+    async function startCall() {
+        if (!sosData || !sosData.garage_id) {
+            return;
+        }
+        _targetGarageId = sosData.garage_id;
+        const customerId = getCustomerIdFromToken();
+        if (!customerId) return;
+
+        if (!_customerWs || _customerWs.readyState !== WebSocket.OPEN) {
+            connectCustomerWS(customerId);
+            await new Promise(r => setTimeout(r, 800));
+        }
+
+        try {
+            _localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        } catch(e) {
+            return;
+        }
+
+        _pc = new RTCPeerConnection({
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+            ]
+        });
+
+        _localStream.getTracks().forEach(t => _pc.addTrack(t, _localStream));
+
+        _pc.ontrack = (e) => {
+            let audio = document.getElementById('gnm-remote-audio');
+            if (!audio) {
+                audio = document.createElement('audio');
+                audio.id = 'gnm-remote-audio';
+                audio.autoplay = true;
+                document.body.appendChild(audio);
+            }
+            audio.srcObject = e.streams[0];
+        };
+
+        _pc.onicecandidate = (e) => {
+            if (e.candidate && _customerWs?.readyState === WebSocket.OPEN) {
+                _customerWs.send(JSON.stringify({
+                    type: 'webrtc_ice',
+                    target_garage_id: _targetGarageId,
+                    candidate: e.candidate
+                }));
+            }
+        };
+
+        _pc.onconnectionstatechange = () => {
+            if (_pc?.connectionState === 'disconnected' || _pc?.connectionState === 'failed') {
+                endCall();
+            }
+        };
+
+        const offer = await _pc.createOffer();
+        await _pc.setLocalDescription(offer);
+
+        _customerWs.send(JSON.stringify({
+            type: 'webrtc_offer',
+            target_garage_id: _targetGarageId,
+            customer_id: customerId,
+            offer: offer
+        }));
+
+        document.getElementById('call-name').textContent = sosData.garage_name || 'Mechanic';
+        document.getElementById('call-status').textContent = 'Ringing...';
+        document.getElementById('gnm-call-overlay').style.display = 'flex';
+    }
+
+    function endCall() {
+        if (_pc) { _pc.close(); _pc = null; }
+        if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
+        if (_callTimer) { clearInterval(_callTimer); _callTimer = null; }
+        if (_customerWs && _targetGarageId) {
+            _customerWs.send(JSON.stringify({ type: 'webrtc_end', target_garage_id: _targetGarageId }));
+        }
+        const audio = document.getElementById('gnm-remote-audio');
+        if (audio) audio.remove();
+        document.getElementById('gnm-call-overlay').style.display = 'none';
+        _isMuted = false;
+        document.getElementById('mute-label').textContent = 'Mute';
+    }
+
+    function toggleMute() {
+        if (!_localStream) return;
+        _isMuted = !_isMuted;
+        _localStream.getAudioTracks().forEach(t => t.enabled = !_isMuted);
+        document.getElementById('mute-label').textContent = _isMuted ? 'Unmute' : 'Mute';
+        document.getElementById('call-mute-btn').style.background = _isMuted ? '#EF4444' : '#374151';
+    }
+
+    function startCallTimer() {
+        _callSeconds = 0;
+        _callTimer = setInterval(() => {
+            _callSeconds++;
+            const m = String(Math.floor(_callSeconds/60)).padStart(2,'0');
+            const s = String(_callSeconds%60).padStart(2,'0');
+            document.getElementById('call-status').textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    // Customer WS boot karo
+    window.addEventListener('DOMContentLoaded', () => {
+        const customerId = getCustomerIdFromToken();
+        if (customerId) connectCustomerWS(customerId);
+    });
+
+    // ── Section toggle ──
+    function showSection(name) {
+        ['searching','accepted','estimate','ongoing','completed','error'].forEach(s => {
+            document.getElementById(`${s}-section`).style.display = s === name ? 'block' : 'none';
+        });
+    }
+
+    // ── Helpers ──
+    function getTimeAgo(iso) {
+        const diff = Math.floor((new Date() - new Date(iso)) / 1000);
+        if (diff < 60) return 'Abhi abhi';
+        if (diff < 3600) return `${Math.floor(diff/60)} min ago`;
+        return `${Math.floor(diff/3600)} hour ago`;
+    }
+
+    function getTimeDuration(startIso, endIso) {
+        const diff  = Math.floor((new Date(endIso) - new Date(startIso)) / 1000);
+        const hours = Math.floor(diff / 3600);
+        const mins  = Math.floor((diff % 3600) / 60);
+        if (hours === 0) return `${mins} minute${mins !== 1 ? 's' : ''}`;
+        return `${hours}h ${mins}m`;
+    }
+</script>
+</body>
 </html>

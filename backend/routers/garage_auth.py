@@ -8,6 +8,29 @@ import random
 
 import models, schemas
 from database import get_db
+import httpx
+
+FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY", "")
+
+async def send_sms_otp(phone: str, otp: str):
+    """Fast2SMS Dev API se OTP bhejo"""
+    if not FAST2SMS_API_KEY:
+        print(f"[SMS] FAST2SMS_API_KEY not set — OTP for {phone}: {otp}")
+        return
+    try:
+        url = "https://www.fast2sms.com/dev/bulkV2"
+        params = {
+            "authorization": FAST2SMS_API_KEY,
+            "route": "otp",
+            "variables_values": otp,
+            "flash": 0,
+            "numbers": phone,
+        }
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(url, params=params)
+            print(f"[SMS] Fast2SMS response: {resp.text}")
+    except Exception as e:
+        print(f"[SMS] Error sending OTP: {e}")
 
 router = APIRouter()
 
@@ -26,7 +49,7 @@ OTP_EXPIRY_MINUTES = 10  # OTP 10 minute mein expire ho jaayega
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -59,7 +82,7 @@ def get_current_garage(
 # ──────────────────────────────────────────
 
 @router.post("/send-otp", response_model=schemas.OTPSendResponse)
-def send_otp(
+async def send_otp(
     request: schemas.OTPSendRequest,
     db: Session = Depends(get_db)
 ):
@@ -101,17 +124,12 @@ def send_otp(
     db.add(garage_otp)
     db.commit()
 
-    # TODO: Yahan SMS bhejo — abhi sirf print kar rahe hain
-    print(f"\n{'='*40}")
-    print(f"OTP for {request.phone}: {otp}")
-    print(f"Expires in {OTP_EXPIRY_MINUTES} minutes")
-    print(f"{'='*40}\n")
+    # Fast2SMS se OTP bhejo
+    await send_sms_otp(request.phone, otp)
+    print(f"[OTP] {request.phone} → {otp}")
 
-    # Testing ke liye OTP response mein bhi de rahe hain
-    # Production mein: return {"message": "OTP sent successfully"}
     return {
-        "message": f"OTP sent to {request.phone}",
-        "otp": otp  # TESTING ONLY — production mein hataao
+        "message": f"OTP sent to {request.phone}"
     }
 
 
@@ -176,17 +194,54 @@ def verify_otp(
 
 @router.get("/me", response_model=schemas.GarageResponse)
 def get_my_profile(
-    current_garage: models.Garage = Depends(get_current_garage)
+    current_garage: models.Garage = Depends(get_current_garage),
+    db: Session = Depends(get_db)
 ):
     """
     Token se apna profile fetch karo.
     Dashboard load hote waqt yahi call hoga.
+    Checks if grace period has expired and auto-locks if unpaid.
     """
+    if not current_garage.has_completed_trial and current_garage.pending_platform_dues and current_garage.pending_platform_dues >= 500.0:
+        if not current_garage.is_credit_locked:
+            current_garage.is_credit_locked = True
+            db.commit()
+            db.refresh(current_garage)
+    elif current_garage.has_completed_trial and current_garage.grace_period_ends_at:
+        from datetime import datetime
+        grace_naive = current_garage.grace_period_ends_at.replace(tzinfo=None)
+        if grace_naive < datetime.utcnow() and current_garage.pending_platform_dues and current_garage.pending_platform_dues > 0:
+            if not current_garage.is_credit_locked:
+                current_garage.is_credit_locked = True
+                db.commit()
+                db.refresh(current_garage)
+
     return current_garage
 
 
 # ──────────────────────────────────────────
-# 4. UPDATE MY PROFILE
+# 4. SAVE FCM TOKEN
+# POST /api/garage-auth/fcm-token
+# ──────────────────────────────────────────
+
+@router.post("/fcm-token")
+def save_fcm_token(
+    token_data: schemas.FCMTokenUpdate,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    """
+    Garage ka FCM token save karo — push notifications ke liye.
+    Login ke baad ya app open hone pe call hoga.
+    POST /api/garage-auth/fcm-token
+    """
+    current_garage.fcm_token = token_data.fcm_token
+    db.commit()
+    return {"message": "FCM token saved"}
+
+
+# ──────────────────────────────────────────
+# 5. UPDATE MY PROFILE
 # PATCH /api/garage-auth/me
 # ──────────────────────────────────────────
 

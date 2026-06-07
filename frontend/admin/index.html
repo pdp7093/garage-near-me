@@ -5,9 +5,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Login - GarageNearMe</title>
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/admin.css" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -17,7 +19,7 @@
     <!-- Left Branding Side -->
     <div class="admin-auth-left">
       <div class="position-relative z-1">
-        <a href="../customer/index.html" class="text-white text-decoration-none d-flex align-items-center gap-2 mb-5">
+        <a href="../customer/index" class="text-white text-decoration-none d-flex align-items-center gap-2 mb-5">
           <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
             <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
           </svg>
@@ -48,14 +50,16 @@
           <p class="text-muted">Enter your credentials to access the control panel</p>
         </div>
 
-        <form onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+        <div id="alertBox" class="alert d-none rounded-3 mb-4" role="alert"></div>
+
+        <form id="loginForm">
           <div class="mb-4">
             <label class="form-label fw-medium text-dark small">Admin Email / ID</label>
             <div class="position-relative">
               <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
               </span>
-              <input type="text" class="form-control admin-input ps-5" placeholder="admin@garagenearme.com" value="admin@garagenearme.com" required>
+              <input id="emailInput" type="email" class="form-control admin-input ps-5" placeholder="admin@garagenearme.com" value="admin@garagenearme.com" required>
             </div>
           </div>
 
@@ -67,7 +71,7 @@
               <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
               </span>
-              <input type="password" class="form-control admin-input ps-5" placeholder="••••••••" value="password123" required>
+              <input id="passwordInput" type="password" class="form-control admin-input ps-5" placeholder="••••••••" value="password123" required>
             </div>
           </div>
 
@@ -92,7 +96,69 @@
     </div>
   </div>
 
-  <script src="../js/bootstrap.bundle.js"></script>
-</body>
+  <script src="/js/bootstrap.bundle.js"></script>
+  <script src="/js/config.js"></script>
+  <script>
 
+    function showAlert(msg, isError = true) {
+      const box = document.getElementById("alertBox");
+      box.textContent = msg;
+      box.className = `alert rounded-3 mb-4 ${isError ? 'alert-danger' : 'alert-success'}`;
+      box.classList.remove("d-none");
+    }
+
+    // Auto check if system is configured
+    async function checkSetup() {
+      try {
+        const response = await fetch(`${getApiBase()}/admin-auth/has-admin`);
+        const data = await response.json();
+        if (!data.has_admin) {
+          // If no admin accounts exist, redirect to setup page immediately!
+          window.location.href = "setup";
+        }
+      } catch (err) {
+        console.error("Auth server connection failed", err);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", checkSetup);
+
+    // Form submit
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById("emailInput").value.trim();
+      const password = document.getElementById("passwordInput").value;
+
+      try {
+        const response = await fetch(`${getApiBase()}/admin-auth/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          showAlert(errData.detail || "Invalid admin credentials.");
+          return;
+        }
+
+        const data = await response.json();
+        
+        // Save the dynamic JWT token
+        localStorage.setItem("gnm_admin_key", data.access_token);
+        
+        showAlert("Login successful! Loading dashboard...", false);
+        setTimeout(() => {
+          window.location.href = "dashboard";
+        }, 1000);
+
+      } catch (err) {
+        showAlert("Error connecting to the API server.");
+      }
+    });
+  </script>
+</body>
 </html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Platform Payouts - Mechanic Dashboard</title>
+  <link rel="manifest" href="/mechanic/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/mechanic.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <div class="mechanic-layout">
+    <div id="sidebar-container"></div>
+    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
+      style="z-index: 1030;"></div>
+
+    <main class="mechanic-main">
+      <div id="topbar-container"></div>
+
+      <div class="mechanic-content">
+        <!-- Alert Box if Credit Locked -->
+        <div id="lockAlertBanner" class="alert alert-danger d-none border-danger border-opacity-25 rounded-4 p-4 mb-4" style="background: rgba(239, 68, 68, 0.05);">
+          <div class="d-flex align-items-start gap-3">
+            <div class="text-danger">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+            </div>
+            <div>
+              <h5 class="fw-bold mb-1 text-danger" style="font-family: var(--font-head);">Account Temporarily Locked</h5>
+              <p class="mb-0 text-muted small">Aapka outstanding platform dues amount ₹500 cross ho gaya hai. Local radar pings aur new incoming bookings block kar di gayi hain. Please scan the QR code to clear your dues and reactivate your account instantly.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+          <div>
+            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);">Platform Payouts &amp; Ledger</h4>
+            <p class="text-muted small mb-0">Pay your outstanding commission balance directly via static UPI QR and check verification status.</p>
+          </div>
+          <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#payDuesModal">
+            Pay Outstanding Dues
+          </button>
+        </div>
+
+        <!-- Stats row -->
+        <div class="row g-4 mb-4">
+          <div class="col-md-4">
+            <div class="stat-card border" id="outstandingCard" style="background: rgba(239, 68, 68, 0.03); border-color: rgba(239, 68, 68, 0.25) !important;">
+              <div class="text-danger fw-bold mb-2 small text-uppercase tracking-wider">Outstanding Commission</div>
+              <h2 class="fw-bold text-danger mb-0" id="outstandingBalance">₹0.00</h2>
+              <p class="text-muted small mt-2 mb-0" id="lockStatusSub">Active Account</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card bg-white border shadow-sm">
+              <div class="text-success fw-bold mb-2 small text-uppercase tracking-wider">Total Commission Paid</div>
+              <h2 class="fw-bold text-success mb-0" id="totalPaidAmt">₹0.00</h2>
+              <p class="text-muted small mt-2 mb-0">Lifetime platform share settled</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card bg-white border shadow-sm">
+              <div class="text-warning fw-bold mb-2 small text-uppercase tracking-wider">Pending Approvals</div>
+              <h2 class="fw-bold text-warning mb-0" id="pendingApprovalsCount">0</h2>
+              <p class="text-muted small mt-2 mb-0">Payments currently under review</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payout Requests Table -->
+        <div class="bg-white rounded-4 border p-4 shadow-sm">
+          <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Payout Requests Ledger</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="text-muted small">
+                <tr>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Request ID</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">Submitted Date</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom">UTR Number</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Amount Paid</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody class="border-top-0" id="payoutRequestsBody">
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">Loading payout history...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Pay Outstanding Dues -->
+  <div class="modal fade" id="payDuesModal" tabindex="-1" aria-labelledby="payDuesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow-lg">
+        <div class="modal-header border-bottom-0 pb-0">
+          <h5 class="modal-title fw-bold" id="payDuesModalLabel" style="font-family: var(--font-head);">Clear Outstanding Dues</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body pt-3">
+          <div class="text-center mb-4">
+            <p class="text-muted small mb-3">Scan this static UPI QR via GPay, PhonePe, or Paytm to pay outstanding dues.</p>
+            
+            <div class="bg-white p-3 border rounded-4 d-inline-block shadow-sm mb-3">
+              <img id="modalQrCode" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=adminupi@okaxis%26pn=GarageNearMeAdmin%26cu=INR" alt="UPI QR Code" style="width: 180px; height: 180px; object-fit: contain;">
+            </div>
+            
+            <div class="small">
+              <span class="text-muted">UPI ID:</span> <strong class="text-dark" id="modalUpiId">adminupi@okaxis</strong>
+            </div>
+          </div>
+
+          <form id="payoutSubmissionForm">
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-muted text-uppercase">Payment Amount (₹)</label>
+              <input type="number" step="0.01" class="form-control rounded-3" id="paymentAmountInput" required placeholder="e.g. 500">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-muted text-uppercase">12-Digit UPI UTR / Transaction ID</label>
+              <input type="text" class="form-control rounded-3" id="paymentUtrInput" maxlength="12" required placeholder="e.g. 123456789012" style="font-weight: 600; letter-spacing: 0.5px;">
+              <div id="utrModalError" class="form-text text-danger d-none">Please enter a valid 12-digit numeric UTR code.</div>
+            </div>
+
+            <div class="alert alert-warning border-warning border-opacity-25 rounded-3 p-3 mb-4" style="background: rgba(245, 158, 11, 0.05);">
+              <div class="small text-muted"><strong>Important:</strong> Enter the exact 12-digit UTR shown in your UPI app receipt. Incorrect UTR entry will lead to automatic rejection by Admin.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-bold">Submit Payment Verification</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/mechanic-auth.js"></script>
+  <script src="/js/components.js?v=2"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script>
+    // Initialize Mechanic Navigation Menu
+    initMechanicChrome('Platform Payouts', null, 'payout-history.html');
+
+    const API = getApiBase();
+    let currentDues = 0;
+
+    // Load Payout page stats and ledger
+    async function loadPayoutPageData() {
+      const token = localStorage.getItem('garage_token');
+      if (!token) return;
+
+      try {
+        // 1. Fetch Garage profile details
+        const garageRes = await fetch(`${API}/garage-auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!garageRes.ok) throw new Error();
+        const garage = await garageRes.json();
+
+        currentDues = parseFloat(garage.pending_platform_dues) || 0;
+        document.getElementById('outstandingBalance').innerText = `₹${currentDues.toFixed(2)}`;
+        document.getElementById('paymentAmountInput').value = currentDues.toFixed(2);
+
+        // Adjust outstanding card styling and banners based on credit lock
+        const lockBanner = document.getElementById('lockAlertBanner');
+        const lockStatusSub = document.getElementById('lockStatusSub');
+        const outstandingCard = document.getElementById('outstandingCard');
+
+        if (garage.is_credit_locked) {
+          lockBanner.classList.remove('d-none');
+          lockStatusSub.innerText = 'Suspended (Pay immediately)';
+          lockStatusSub.className = 'text-danger fw-bold small mt-2 mb-0';
+          outstandingCard.style.cssText = 'background: rgba(239, 68, 68, 0.08); border-color: #EF4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);';
+        } else {
+          lockBanner.classList.add('d-none');
+          lockStatusSub.innerText = 'Active Account';
+          lockStatusSub.className = 'text-success fw-bold small mt-2 mb-0';
+          outstandingCard.style.cssText = 'background: rgba(239, 68, 68, 0.02); border-color: rgba(239, 68, 68, 0.15) !important;';
+        }
+
+        // Adjust modal QR Link
+        const upiId = 'adminupi@okaxis';
+        document.getElementById('modalUpiId').innerText = upiId;
+        document.getElementById('modalQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${upiId}%26pn=GarageNearMeAdmin%26am=${currentDues}%26cu=INR%26tn=PlatformDues`;
+
+        // 2. Fetch Payout ledger requests
+        const requestsRes = await fetch(`${API}/payouts/garage/my-requests`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!requestsRes.ok) throw new Error();
+        const requests = await requestsRes.json();
+
+        let totalPaid = 0;
+        let pendingCount = 0;
+
+        const tbody = document.getElementById('payoutRequestsBody');
+        if (requests.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No payout requests submitted yet.</td></tr>';
+        } else {
+          tbody.innerHTML = requests.map(req => {
+            if (req.status === 'approved') {
+              totalPaid += parseFloat(req.amount) || 0;
+            } else if (req.status === 'pending') {
+              pendingCount++;
+            }
+
+            let statusBadge = '';
+            if (req.status === 'approved') {
+              statusBadge = '<span class="badge bg-success rounded-pill px-3 py-1.5 fw-semibold border border-success border-opacity-10">Approved</span>';
+            } else if (req.status === 'rejected') {
+              statusBadge = '<span class="badge bg-danger rounded-pill px-3 py-1.5 fw-semibold border border-danger border-opacity-10">Rejected</span>';
+            } else {
+              statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 fw-semibold border border-warning border-opacity-10">Pending Approval</span>';
+            }
+
+            const dateStr = new Date(req.created_at).toLocaleString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+            return `
+              <tr>
+                <td class="fw-bold text-dark">#REQ-${req.id}</td>
+                <td class="text-muted">${dateStr}</td>
+                <td class="fw-bold text-dark" style="font-family: monospace; letter-spacing: 0.5px;">${req.utr_number}</td>
+                <td class="text-end fw-bold text-dark">₹${parseFloat(req.amount).toFixed(2)}</td>
+                <td class="text-center">${statusBadge}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        document.getElementById('totalPaidAmt').innerText = `₹${totalPaid.toFixed(2)}`;
+        document.getElementById('pendingApprovalsCount').innerText = pendingCount;
+
+      } catch (err) {
+        console.error('Error fetching payout details:', err);
+        document.getElementById('payoutRequestsBody').innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Failed to load payout data. Please refresh.</td></tr>';
+      }
+    }
+
+    // Handle manual payment submission form
+    document.getElementById('payoutSubmissionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const amount = document.getElementById('paymentAmountInput').value.trim();
+      const utr = document.getElementById('paymentUtrInput').value.trim();
+      const utrError = document.getElementById('utrModalError');
+
+      // Validating UTR
+      if (!/^\d{12}$/.test(utr)) {
+        utrError.classList.remove('d-none');
+        return;
+      }
+      utrError.classList.add('d-none');
+
+      const token = localStorage.getItem('garage_token');
+      const formData = new FormData();
+      formData.append('amount', amount);
+      formData.append('utr_number', utr);
+
+      try {
+        const response = await fetch(`${API}/payouts/request`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.detail || 'Failed to submit payout request');
+        }
+
+        // Close modal and refresh page
+        const payModal = bootstrap.Modal.getInstance(document.getElementById('payDuesModal'));
+        payModal.hide();
+        
+        // Reset Form
+        document.getElementById('payoutSubmissionForm').reset();
+        
+        alert('Thank you! Payment proof submitted successfully. Auto-verifying...');
+        loadPayoutPageData();
+
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Payment submission failed. Please check details and try again.');
+      }
+    });
+
+    // Execute on load
+    loadPayoutPageData();
+  </script>
+</body>
+</html>
+
+

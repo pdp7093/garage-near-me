@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Default Services - Admin | GarageNearMe</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#DC2626">
+    <link rel="stylesheet" href="/css/bootstrap.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ── Vehicle Type Tabs ── */
+        .vehicle-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .vtab {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid #E5E7EB;
+            background: #fff;
+            color: #6B7280;
+            transition: all 0.15s;
+        }
+
+        .vtab.active {
+            background: #1B1F2E;
+            color: #fff;
+            border-color: #1B1F2E;
+        }
+
+        .vtab:hover:not(.active) {
+            border-color: #1B1F2E;
+            color: #1B1F2E;
+        }
+
+        /* ── Category Group ── */
+        .cat-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .cat-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.75rem 1.25rem;
+            background: #F8FAFC;
+            border-bottom: 1px solid #E5E7EB;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .cat-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .ci-general {
+            background: #EFF6FF;
+        }
+
+        .ci-repair {
+            background: #FFF7ED;
+        }
+
+        .ci-major {
+            background: #FEF2F2;
+        }
+
+        .cat-title {
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #1B1F2E;
+        }
+
+        .cat-cnt {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: #9CA3AF;
+        }
+
+        /* ── Service Row ── */
+        .svc-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #F3F4F6;
+            transition: background 0.1s;
+        }
+
+        .svc-row:last-child {
+            border-bottom: none;
+        }
+
+        .svc-row:hover {
+            background: #FAFAFA;
+        }
+
+        .svc-name {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1B1F2E;
+        }
+
+        .svc-price {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #374151;
+            min-width: 80px;
+        }
+
+        .svc-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .svc-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1.5px solid #E5E7EB;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .svc-btn:hover {
+            background: #F3F4F6;
+        }
+
+        .svc-btn.del:hover {
+            background: #FEF2F2;
+            border-color: #FECACA;
+        }
+
+        /* ── Price Type Badge ── */
+        .pt-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            min-width: 64px;
+            text-align: center;
+        }
+
+        .pt-fixed {
+            background: #ECFDF5;
+            color: #065F46;
+        }
+
+        .pt-starting {
+            background: #EFF6FF;
+            color: #1D4ED8;
+        }
+
+        .pt-estimate {
+            background: #FFF7ED;
+            color: #C2410C;
+        }
+
+        .pt-quote {
+            background: #F5F3FF;
+            color: #6D28D9;
+        }
+
+        /* ── Status toggle ── */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-active {
+            background: #22C55E;
+        }
+
+        .dot-inactive {
+            background: #D1D5DB;
+        }
+
+        /* ── Quick add form ── */
+        .quick-add {
+            background: #F8FAFC;
+            border: 1.5px dashed #E5E7EB;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+        }
+
+        /* ── Seed banner ── */
+        .seed-banner {
+            background: linear-gradient(135deg, #1B1F2E 0%, #2d3348 100%);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .seed-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 107, 53, 0.2);
+            color: #FF6B35;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        /* ── gnm input ── */
+        .gnm-input {
+            border: 1.5px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.15s;
+            background: #fff;
+            color: #1B1F2E;
+        }
+
+        .gnm-input:focus {
+            border-color: #FF6B35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .gnm-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        /* Toast */
+        .gnm-toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: #1B1F2E;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.25s ease;
+            pointer-events: none;
+        }
+
+        .gnm-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gnm-toast.success {
+            background: #16A34A;
+        }
+
+        .gnm-toast.error {
+            background: #DC2626;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-layout">
+        <div id="sidebar-container"></div>
+
+        <main class="admin-content">
+            <div id="topbar-container"></div>
+
+            <!-- Seed Banner -->
+            <div class="seed-banner">
+                <div>
+                    <div class="seed-badge">⚡ One-time Setup</div>
+                    <h5 class="fw-bold mb-1" style="font-family:var(--font-head);">Default Services</h5>
+                    <p class="mb-0 small" style="color:rgba(255,255,255,0.6);">
+                        Ye services mechanic ko pehli baar suggest hongi — vehicle type ke hisaab se.
+                    </p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-sm rounded-pill fw-bold px-3"
+                        style="background:rgba(255,255,255,0.1);color:#fff;border:1.5px solid rgba(255,255,255,0.2);"
+                        onclick="seedDefaultServices()">
+                        <span class="spinner-border spinner-border-sm me-1 d-none" id="seedSp"></span>
+                        🌱 Seed All Default Services
+                    </button>
+                    <button class="btn btn-sm rounded-pill fw-bold px-3"
+                        style="background:#FF6B35;color:#fff;border:none;" data-bs-toggle="modal"
+                        data-bs-target="#addModal">
+                        + Add Service
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vehicle Type Tabs -->
+            <div class="vehicle-tabs">
+                <div class="vtab active" onclick="setVehicleTab('two_wheeler', this)">🏍️ Two Wheeler</div>
+                <div class="vtab" onclick="setVehicleTab('four_wheeler', this)">🚗 Four Wheeler</div>
+                <div class="vtab" onclick="setVehicleTab('both', this)">🔧 Both</div>
+            </div>
+
+            <!-- Services List -->
+            <div id="servicesList">
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm me-2"></div>Loading...
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ── ADD SERVICE MODAL ── -->
+    <div class="modal fade" id="addModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 px-4 pt-4 pb-2"
+                    style="background:#1B1F2E;border-radius:16px 16px 0 0;">
+                    <h5 class="modal-title fw-bold text-white" style="font-family:var(--font-head);">Add Default Service
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="gnm-label">Vehicle Type *</label>
+                            <select class="gnm-input" id="add-vehicle-type">
+                                <option value="two_wheeler">Two Wheeler</option>
+                                <option value="four_wheeler">Four Wheeler</option>
+                                <option value="both">Both</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="gnm-label">Category *</label>
+                            <select class="gnm-input" id="add-category">
+                                <option value="General Service">General Service</option>
+                                <option value="Repair Service">Repair Service</option>
+                                <option value="Major Repair">Major Repair</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="gnm-label">Service Name *</label>
+                            <input class="gnm-input" id="add-name" placeholder="e.g. Engine Oil Change">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="gnm-label">Suggested Price (₹)</label>
+                            <input class="gnm-input" id="add-price" type="number" placeholder="e.g. 299">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="gnm-label">Price Type *</label>
+                            <select class="gnm-input" id="add-price-type">
+                                <option value="fixed">Fixed</option>
+                                <option value="starting">Starting</option>
+                                <option value="estimate">Estimate</option>
+                                <option value="quote">Quote</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger small py-2 mt-3 d-none" id="addErr"></div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                    <button class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn rounded-pill px-4 fw-bold text-white" style="background:#FF6B35;" id="addBtn"
+                        onclick="addService()">
+                        <span class="spinner-border spinner-border-sm me-1 d-none" id="addSp"></span>
+                        Save Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── EDIT SERVICE MODAL ── -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 px-4 pt-4 pb-2">
+                    <h5 class="modal-title fw-bold" style="font-family:var(--font-head);">Edit Service</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <input type="hidden" id="edit-id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="gnm-label">Vehicle Type *</label>
+                            <select class="gnm-input" id="edit-vehicle-type">
+                                <option value="two_wheeler">Two Wheeler</option>
+                                <option value="four_wheeler">Four Wheeler</option>
+                                <option value="both">Both</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="gnm-label">Category *</label>
+                            <select class="gnm-input" id="edit-category">
+                                <option value="General Service">General Service</option>
+                                <option value="Repair Service">Repair Service</option>
+                                <option value="Major Repair">Major Repair</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="gnm-label">Service Name *</label>
+                            <input class="gnm-input" id="edit-name">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="gnm-label">Suggested Price (₹)</label>
+                            <input class="gnm-input" id="edit-price" type="number">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="gnm-label">Price Type *</label>
+                            <select class="gnm-input" id="edit-price-type">
+                                <option value="fixed">Fixed</option>
+                                <option value="starting">Starting</option>
+                                <option value="estimate">Estimate</option>
+                                <option value="quote">Quote</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                    <button class="btn btn-light rounded-pill px-4 border" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn rounded-pill px-4 fw-bold text-white" style="background:#1B1F2E;" id="editBtn"
+                        onclick="saveEdit()">
+                        <span class="spinner-border spinner-border-sm me-1 d-none" id="editSp"></span>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="gnm-toast" id="gnmToast"></div>
+
+    <script src="/js/components.js"></script>
+    <script src="/js/config.js"></script>
+    <script>
+        initAdminChrome('Default Services');
+    </script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API = getApiBase();
+        const AKEY = localStorage.getItem('gnm_admin_key');
+        if (!AKEY) {
+          window.location.href = 'index';
+        }
+        const H = { 'X-Admin-Key': AKEY };
+        const HJ = { 'X-Admin-Key': AKEY, 'Content-Type': 'application/json' };
+
+        let currentVehicleTab = 'two_wheeler';
+        let allServices = [];
+
+        /* ── Toast ── */
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('gnmToast');
+            t.textContent = msg;
+            t.className = `gnm-toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        /* ── Vehicle Tab ── */
+        function setVehicleTab(type, el) {
+            currentVehicleTab = type;
+            document.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            loadServices();
+        }
+
+        /* ── Price Type Badge ── */
+        function ptBadge(pt) {
+            const m = {
+                fixed: ['pt-fixed', 'Fixed'],
+                starting: ['pt-starting', 'Starting'],
+                estimate: ['pt-estimate', 'Estimate'],
+                quote: ['pt-quote', 'Quote'],
+            };
+            const [cls, lbl] = m[pt] || ['pt-fixed', pt];
+            return `<span class="pt-badge ${cls}">${lbl}</span>`;
+        }
+
+        function fmtPrice(price, pt) {
+            if (!price) return pt === 'estimate' ? 'Estimate' : pt === 'quote' ? 'Quote' : '—';
+            if (pt === 'starting') return `₹${price}+`;
+            return `₹${price}`;
+        }
+
+        /* ── Load Services ── */
+        async function loadServices() {
+            document.getElementById('servicesList').innerHTML = `
+    <div class="text-center py-5 text-muted">
+      <div class="spinner-border spinner-border-sm me-2"></div>Loading...
+    </div>`;
+
+            try {
+                const res = await fetch(
+                    `${API}/default-services/admin/all?vehicle_type=${currentVehicleTab}`,
+                    { headers: H }
+                );
+                if (!res.ok) throw new Error();
+                allServices = await res.json();
+                renderServices(allServices);
+            } catch {
+                document.getElementById('servicesList').innerHTML =
+                    `<div class="text-center py-5 text-danger small">Could not load. Is backend running?</div>`;
+            }
+        }
+
+        /* ── Render Grouped ── */
+        const CAT_ORDER = ['General Service', 'Repair Service', 'Major Repair'];
+        const CAT_CFG = {
+            'General Service': { icon: '🔧', cls: 'ci-general' },
+            'Repair Service': { icon: '⚙️', cls: 'ci-repair' },
+            'Major Repair': { icon: '🚗', cls: 'ci-major' },
+        };
+
+        function renderServices(services) {
+            const container = document.getElementById('servicesList');
+
+            if (!services.length) {
+                container.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <div class="fw-bold mb-2">No services yet</div>
+        <div class="small">Click "Seed All Default Services" to add pre-built list, or add manually.</div>
+      </div>`;
+                return;
+            }
+
+            // Group by category
+            const groups = {};
+            services.forEach(s => {
+                if (!groups[s.category]) groups[s.category] = [];
+                groups[s.category].push(s);
+            });
+
+            const cats = [...new Set([...CAT_ORDER, ...Object.keys(groups)])].filter(c => groups[c]);
+
+            container.innerHTML = cats.map(cat => {
+                const cfg = CAT_CFG[cat] || { icon: '🔩', cls: 'ci-general' };
+                const rows = groups[cat];
+                return `
+      <div class="cat-group bg-white rounded-4 border shadow-sm overflow-hidden mb-3">
+        <div class="cat-head">
+          <div class="cat-icon ${cfg.cls}">${cfg.icon}</div>
+          <span class="cat-title">${cat}</span>
+          <span class="cat-cnt">${rows.length} services</span>
+        </div>
+        ${rows.map(s => `
+          <div class="svc-row">
+            <div class="status-dot ${s.is_active ? 'dot-active' : 'dot-inactive'}" title="${s.is_active ? 'Active' : 'Inactive'}"></div>
+            <div class="svc-name">${s.service_name}</div>
+            <div class="svc-price">${fmtPrice(s.suggested_price, s.price_type)}</div>
+            ${ptBadge(s.price_type)}
+            <div class="svc-actions">
+              <button class="svc-btn" onclick="openEdit(${s.id})" title="Edit">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="#374151">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+              </button>
+              <button class="svc-btn del" onclick="deleteService(${s.id})" title="Delete">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="#DC2626">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+              </button>
+              <button class="svc-btn" onclick="toggleActive(${s.id}, ${!s.is_active})" title="${s.is_active ? 'Deactivate' : 'Activate'}">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="${s.is_active ? '#22C55E' : '#9CA3AF'}">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                </svg>
+              </button>
+            </div>
+          </div>`).join('')}
+      </div>`;
+            }).join('');
+        }
+
+        /* ── Add Service ── */
+        async function addService() {
+            const name = document.getElementById('add-name').value.trim();
+            const vtype = document.getElementById('add-vehicle-type').value;
+            const cat = document.getElementById('add-category').value;
+            const price = document.getElementById('add-price').value;
+            const ptype = document.getElementById('add-price-type').value;
+            const errEl = document.getElementById('addErr');
+            const sp = document.getElementById('addSp');
+            const btn = document.getElementById('addBtn');
+
+            if (!name) {
+                errEl.textContent = 'Service name required.';
+                errEl.classList.remove('d-none');
+                return;
+            }
+            errEl.classList.add('d-none');
+            sp.classList.remove('d-none');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}/default-services/`, {
+                    method: 'POST', headers: HJ,
+                    body: JSON.stringify({
+                        vehicle_type: vtype, category: cat,
+                        service_name: name,
+                        suggested_price: price ? Number(price) : null,
+                        price_type: ptype, is_active: true
+                    })
+                });
+                if (res.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('addModal')).hide();
+                    document.getElementById('add-name').value = '';
+                    document.getElementById('add-price').value = '';
+                    showToast('Service added!', 'success');
+                    loadServices();
+                } else {
+                    const e = await res.json();
+                    errEl.textContent = e.detail || 'Error';
+                    errEl.classList.remove('d-none');
+                }
+            } catch {
+                errEl.textContent = 'Network error.';
+                errEl.classList.remove('d-none');
+            }
+            sp.classList.add('d-none');
+            btn.disabled = false;
+        }
+
+        /* ── Open Edit ── */
+        function openEdit(id) {
+            const s = allServices.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('edit-id').value = s.id;
+            document.getElementById('edit-vehicle-type').value = s.vehicle_type;
+            document.getElementById('edit-category').value = s.category;
+            document.getElementById('edit-name').value = s.service_name;
+            document.getElementById('edit-price').value = s.suggested_price || '';
+            document.getElementById('edit-price-type').value = s.price_type;
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+
+        /* ── Save Edit ── */
+        async function saveEdit() {
+            const id = document.getElementById('edit-id').value;
+            const sp = document.getElementById('editSp');
+            const btn = document.getElementById('editBtn');
+            sp.classList.remove('d-none');
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}/default-services/${id}`, {
+                    method: 'PATCH', headers: HJ,
+                    body: JSON.stringify({
+                        vehicle_type: document.getElementById('edit-vehicle-type').value,
+                        category: document.getElementById('edit-category').value,
+                        service_name: document.getElementById('edit-name').value.trim(),
+                        suggested_price: document.getElementById('edit-price').value
+                            ? Number(document.getElementById('edit-price').value) : null,
+                        price_type: document.getElementById('edit-price-type').value,
+                    })
+                });
+                if (res.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                    showToast('Updated!', 'success');
+                    loadServices();
+                } else {
+                    showToast('Could not update.', 'error');
+                }
+            } catch { showToast('Network error.', 'error'); }
+            sp.classList.add('d-none');
+            btn.disabled = false;
+        }
+
+        /* ── Delete Service ── */
+        async function deleteService(id) {
+            if (!confirm('Delete this default service?')) return;
+            try {
+                const res = await fetch(`${API}/default-services/${id}`, {
+                    method: 'DELETE', headers: H
+                });
+                if (res.ok || res.status === 204) {
+                    showToast('Deleted!', 'success');
+                    loadServices();
+                } else { showToast('Could not delete.', 'error'); }
+            } catch { showToast('Network error.', 'error'); }
+        }
+
+        /* ── Toggle Active ── */
+        async function toggleActive(id, newStatus) {
+            try {
+                const res = await fetch(`${API}/default-services/${id}`, {
+                    method: 'PATCH', headers: HJ,
+                    body: JSON.stringify({ is_active: newStatus })
+                });
+                if (res.ok) {
+                    showToast(newStatus ? 'Activated!' : 'Deactivated!', 'success');
+                    loadServices();
+                }
+            } catch { showToast('Network error.', 'error'); }
+        }
+
+        /* ── Seed All Default Services ── */
+        async function seedDefaultServices() {
+            if (!confirm('Yeh saari pre-built default services add karega. Already exist karne wali duplicate nahi hongi. Continue?')) return;
+
+            const sp = document.getElementById('seedSp');
+            sp.classList.remove('d-none');
+
+            const DEFAULT_SERVICES = [
+                // ── TWO WHEELER — GENERAL SERVICE
+                { vehicle_type: 'two_wheeler', category: 'General Service', service_name: 'Engine Oil Change', suggested_price: 299, price_type: 'fixed' },
+                { vehicle_type: 'two_wheeler', category: 'General Service', service_name: 'Air Filter Cleaning', suggested_price: 99, price_type: 'fixed' },
+                { vehicle_type: 'two_wheeler', category: 'General Service', service_name: 'Spark Plug Check / Replace', suggested_price: 149, price_type: 'fixed' },
+                { vehicle_type: 'two_wheeler', category: 'General Service', service_name: 'Chain Lubrication', suggested_price: 99, price_type: 'fixed' },
+                { vehicle_type: 'two_wheeler', category: 'General Service', service_name: 'Brake Adjustment', suggested_price: 79, price_type: 'fixed' },
+                { vehicle_type: 'two_wheeler', category: 'General Service', service_name: 'Tyre Pressure Check', suggested_price: 30, price_type: 'fixed' },
+                { vehicle_type: 'two_wheeler', category: 'General Service', service_name: 'General Checkup', suggested_price: 199, price_type: 'fixed' },
+                // ── TWO WHEELER — REPAIR SERVICE
+                { vehicle_type: 'two_wheeler', category: 'Repair Service', service_name: 'Tyre Puncture Repair', suggested_price: 80, price_type: 'fixed' },
+                { vehicle_type: 'two_wheeler', category: 'Repair Service', service_name: 'Brake Pad Replace', suggested_price: 299, price_type: 'starting' },
+                { vehicle_type: 'two_wheeler', category: 'Repair Service', service_name: 'Clutch Wire / Plate Repair', suggested_price: 199, price_type: 'starting' },
+                { vehicle_type: 'two_wheeler', category: 'Repair Service', service_name: 'Electrical Issue', suggested_price: 199, price_type: 'starting' },
+                { vehicle_type: 'two_wheeler', category: 'Repair Service', service_name: 'Carburetor Cleaning', suggested_price: 299, price_type: 'starting' },
+                { vehicle_type: 'two_wheeler', category: 'Repair Service', service_name: 'Suspension Repair', suggested_price: 499, price_type: 'estimate' },
+                { vehicle_type: 'two_wheeler', category: 'Repair Service', service_name: 'Self Start Motor Repair', suggested_price: 399, price_type: 'estimate' },
+                { vehicle_type: 'two_wheeler', category: 'Repair Service', service_name: 'Gear Problem', suggested_price: 299, price_type: 'estimate' },
+                // ── TWO WHEELER — MAJOR REPAIR
+                { vehicle_type: 'two_wheeler', category: 'Major Repair', service_name: 'Engine Overhaul', suggested_price: 2500, price_type: 'quote' },
+                { vehicle_type: 'two_wheeler', category: 'Major Repair', service_name: 'Gearbox Repair', suggested_price: 1500, price_type: 'quote' },
+                { vehicle_type: 'two_wheeler', category: 'Major Repair', service_name: 'Accident Body Work', suggested_price: 1000, price_type: 'quote' },
+                { vehicle_type: 'two_wheeler', category: 'Major Repair', service_name: 'Full Rewiring', suggested_price: 1200, price_type: 'quote' },
+                // ── FOUR WHEELER — GENERAL SERVICE
+                { vehicle_type: 'four_wheeler', category: 'General Service', service_name: 'Engine Oil + Filter Change', suggested_price: 499, price_type: 'fixed' },
+                { vehicle_type: 'four_wheeler', category: 'General Service', service_name: 'Air Filter Replace', suggested_price: 199, price_type: 'fixed' },
+                { vehicle_type: 'four_wheeler', category: 'General Service', service_name: 'Coolant Top Up', suggested_price: 149, price_type: 'fixed' },
+                { vehicle_type: 'four_wheeler', category: 'General Service', service_name: 'Brake Fluid Check', suggested_price: 99, price_type: 'fixed' },
+                { vehicle_type: 'four_wheeler', category: 'General Service', service_name: 'Tyre Rotation & Pressure', suggested_price: 149, price_type: 'fixed' },
+                { vehicle_type: 'four_wheeler', category: 'General Service', service_name: 'Wiper Blade Check / Replace', suggested_price: 199, price_type: 'fixed' },
+                { vehicle_type: 'four_wheeler', category: 'General Service', service_name: 'Battery Terminals Clean', suggested_price: 99, price_type: 'fixed' },
+                { vehicle_type: 'four_wheeler', category: 'General Service', service_name: 'General Checkup', suggested_price: 399, price_type: 'fixed' },
+                // ── FOUR WHEELER — REPAIR SERVICE
+                { vehicle_type: 'four_wheeler', category: 'Repair Service', service_name: 'Brake Pad / Disc Replace', suggested_price: 999, price_type: 'starting' },
+                { vehicle_type: 'four_wheeler', category: 'Repair Service', service_name: 'Clutch Repair', suggested_price: 1499, price_type: 'estimate' },
+                { vehicle_type: 'four_wheeler', category: 'Repair Service', service_name: 'AC Repair / Gas Refill', suggested_price: 799, price_type: 'estimate' },
+                { vehicle_type: 'four_wheeler', category: 'Repair Service', service_name: 'Suspension / Shock Absorber', suggested_price: 1499, price_type: 'estimate' },
+                { vehicle_type: 'four_wheeler', category: 'Repair Service', service_name: 'Steering Issue', suggested_price: 999, price_type: 'estimate' },
+                { vehicle_type: 'four_wheeler', category: 'Repair Service', service_name: 'Electrical Issue', suggested_price: 699, price_type: 'estimate' },
+                { vehicle_type: 'four_wheeler', category: 'Repair Service', service_name: 'Radiator Repair', suggested_price: 999, price_type: 'estimate' },
+                { vehicle_type: 'four_wheeler', category: 'Repair Service', service_name: 'Exhaust Repair', suggested_price: 499, price_type: 'estimate' },
+                // ── FOUR WHEELER — MAJOR REPAIR
+                { vehicle_type: 'four_wheeler', category: 'Major Repair', service_name: 'Engine Overhaul', suggested_price: 8000, price_type: 'quote' },
+                { vehicle_type: 'four_wheeler', category: 'Major Repair', service_name: 'Gearbox / Transmission', suggested_price: 5000, price_type: 'quote' },
+                { vehicle_type: 'four_wheeler', category: 'Major Repair', service_name: 'Accident Body Work', suggested_price: 3000, price_type: 'quote' },
+                { vehicle_type: 'four_wheeler', category: 'Major Repair', service_name: 'Full Rewiring', suggested_price: 4000, price_type: 'quote' },
+                { vehicle_type: 'four_wheeler', category: 'Major Repair', service_name: 'Engine Seizing', suggested_price: 6000, price_type: 'quote' },
+            ];
+
+            try {
+                const res = await fetch(`${API}/default-services/bulk`, {
+                    method: 'POST', headers: HJ,
+                    body: JSON.stringify(DEFAULT_SERVICES)
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    showToast(`${data.length} services seeded successfully!`, 'success');
+                    loadServices();
+                } else {
+                    const e = await res.json();
+                    showToast(e.detail || 'Seed failed.', 'error');
+                }
+            } catch { showToast('Network error.', 'error'); }
+
+            sp.classList.add('d-none');
+        }
+
+        /* ── Init ── */
+        loadServices();
+    </script>
+</body>
+
+</html>

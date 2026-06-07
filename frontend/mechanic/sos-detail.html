@@ -1,286 +1,846 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Emergency SOS #SOS-991 - GarageNearMe</title>
-  <link rel="stylesheet" href="../css/bootstrap.css" />
-  <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/mechanic.css" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
-    rel="stylesheet" />
+  <title>SOS Detail - GarageNearMe</title>
+  <link rel="manifest" href="/mechanic/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/mechanic.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
   <style>
-    body {
-      background-color: #FEF2F2; /* Subtle red tint */
-    }
-    
-    /* Timeline Styles */
-    .timeline {
-      position: relative;
-      padding-left: 1.5rem;
-      margin-top: 1.5rem;
-    }
-    .timeline::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 2px;
-      height: 100%;
-      background: #e9ecef;
-      z-index: 1;
-    }
-    .timeline-item {
-      position: relative;
-      margin-bottom: 1.5rem;
-    }
-    .timeline-item:last-child {
-      margin-bottom: 0;
-    }
-    .timeline-item::before {
-      content: '';
-      position: absolute;
-      top: 4px;
-      left: -1.5rem;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #e9ecef;
-      border: 3px solid white;
-      transform: translateX(-6px);
-      z-index: 2;
-    }
-    .timeline-item.active::before {
-      background: #EF4444; /* Red for SOS active */
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-    }
-    .timeline-item.completed::before {
-      background: #10B981;
-    }
-    .timeline-item.completed::after {
-      content: '';
-      position: absolute;
-      top: 4px;
-      left: -1.5rem;
-      width: 2px;
-      height: calc(100% + 1.5rem);
-      background: #10B981;
-      transform: translateX(-0.5px);
-      z-index: 1;
-    }
-    .timeline-item:last-child::after {
-      display: none;
-    }
-    .sos-border {
-      border: 1px solid #EF4444 !important;
-    }
+    body { background-color: #FEF2F2; }
+    .sos-border { border: 1px solid #EF4444 !important; }
+    .timeline { position:relative; padding-left:1.5rem; margin-top:1.5rem; }
+    .timeline::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; background:#e9ecef; z-index:1; }
+    .timeline-item { position:relative; margin-bottom:1.5rem; }
+    .timeline-item:last-child { margin-bottom:0; }
+    .timeline-item::before { content:''; position:absolute; top:4px; left:-1.5rem; width:14px; height:14px; border-radius:50%; background:#e9ecef; border:3px solid white; transform:translateX(-6px); z-index:2; }
+    .timeline-item.active::before   { background:#EF4444; box-shadow:0 0 0 3px rgba(239,68,68,0.2); }
+    .timeline-item.completed::before { background:#10B981; }
+    .timeline-item.completed::after  { content:''; position:absolute; top:4px; left:-1.5rem; width:2px; height:calc(100% + 1.5rem); background:#10B981; transform:translateX(-0.5px); z-index:1; }
+    .timeline-item:last-child::after { display:none; }
+    .otp-input { letter-spacing:6px; font-size:22px; font-weight:700; text-align:center; font-family:monospace; }
+    .estimate-item-row { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
+    .skeleton { background: linear-gradient(90deg,#fde8e8 25%,#fbd5d5 50%,#fde8e8 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   </style>
 </head>
-
 <body>
+<div class="mechanic-layout">
+  <div id="sidebar-container"></div>
+  <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index:1030;"></div>
 
-  <div class="mechanic-layout">
-    
-    <!-- ═══ SIDEBAR (Hidden on Mobile automatically by mechanics.css) ═══ -->
-    <aside class="mechanic-sidebar d-none d-lg-flex" id="sidebar">
-      <div class="sidebar-header">
-        <a href="dashboard.html" class="d-flex align-items-center text-white text-decoration-none gap-2">
-          <div class="rounded bg-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; color: var(--color-primary);">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-              <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
-            </svg>
+  <main class="mechanic-main">
+    <div id="topbar-container"></div>
+    <div class="mechanic-content pb-5">
+
+      <!-- Skeleton -->
+      <div id="page-skeleton">
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="skeleton mb-4" style="height:250px;border-radius:16px;"></div>
+            <div class="skeleton" style="height:200px;border-radius:16px;"></div>
           </div>
-          <span class="fw-bold" style="font-family: var(--font-head); font-size: 1.1rem;">GarageNearMe</span>
-        </a>
+          <div class="col-lg-5">
+            <div class="skeleton" style="height:450px;border-radius:16px;"></div>
+          </div>
+        </div>
       </div>
 
-      <nav class="sidebar-nav">
-        <a href="dashboard.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-          Dashboard
-        </a>
-        <a href="sos-alerts.html" class="sidebar-link text-danger active" style="border-left-color: #EF4444;">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-          Emergency SOS <span class="badge bg-danger ms-auto rounded-pill pulse-dot">1</span>
-        </a>
-        <a href="requests.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-          Bookings <span class="badge bg-primary ms-auto rounded-pill">1</span>
-        </a>
-        <a href="services.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-          Services
-        </a>
-        <a href="profile.html" class="sidebar-link">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-          Profile
-        </a>
-      </nav>
-    </aside>
-
-    <!-- ═══ MAIN CONTENT ═══ -->
-    <main class="mechanic-main">
-      
-      <!-- Topbar for Mobile (Back Button logic) -->
-      <header class="mechanic-topbar bg-white border-bottom shadow-sm">
-        <div class="d-flex align-items-center gap-3">
-          <!-- Back button goes back to requests -->
-          <a href="sos-alerts.html" class="btn p-0 border-0 shadow-none text-dark d-flex align-items-center gap-2 text-decoration-none">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-            <span class="fw-bold d-none d-sm-inline">Back</span>
-          </a>
-          
-          <div class="ms-2">
-            <h5 class="mb-0 fw-bold text-danger" style="font-family: var(--font-head);">SOS #991</h5>
-            <span class="badge bg-danger px-2 py-1 mt-1">EMERGENCY</span>
-          </div>
-        </div>
-
-        <div class="d-flex align-items-center gap-3">
-          <a href="tel:+919876543210" class="btn btn-danger rounded-pill d-flex align-items-center gap-2 px-3 fw-bold shadow-sm">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-            <span class="d-none d-sm-inline">Call Customer</span>
-          </a>
-        </div>
-      </header>
-
-      <!-- Content Area -->
-      <div class="mechanic-content pb-5">
+      <!-- Main content -->
+      <div id="page-content" style="display:none;">
         <div class="row g-4 justify-content-center">
-          
-          <!-- Left Col: Customer & Map -->
+
+          <!-- LEFT: Map + Customer -->
           <div class="col-12 col-lg-7">
-            
+
             <!-- Map Card -->
             <div class="bg-white rounded-4 shadow-sm overflow-hidden mb-4 sos-border">
-              <!-- Google Map Placeholder -->
-              <div class="bg-light position-relative" style="height: 250px;">
-                <img src="https://via.placeholder.com/800x400?text=Live+Map+Tracking" class="w-100 h-100 object-fit-cover opacity-75" alt="Map">
-                <!-- Overlay badge for distance -->
-                <div class="position-absolute bottom-0 start-0 m-3">
-                  <div class="bg-danger text-white rounded-pill px-3 py-2 fw-medium shadow d-flex align-items-center gap-2" style="font-size: 14px;">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                    2.4 km away (Approx 8 mins)
-                  </div>
+              <div class="bg-light" style="height:220px;display:flex;align-items:center;justify-content:center;">
+                <div id="map-placeholder" class="text-center text-muted">
+                  <svg viewBox="0 0 24 24" fill="#EF4444" width="48" height="48" class="mb-2">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  <div style="font-size:13px;">Breakdown Location</div>
                 </div>
               </div>
-
-              <!-- Location Details -->
               <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start gap-3">
                   <div>
                     <h6 class="fw-bold mb-1">Breakdown Location</h6>
-                    <p class="text-muted mb-0">Opposite YMCA Club, S.G. Highway, Ahmedabad</p>
+                    <p class="text-muted mb-0" id="booking-address" style="font-size:14px;">—</p>
+                    <p class="text-danger fw-semibold mb-0 mt-1" id="booking-distance" style="font-size:13px;"></p>
                   </div>
-                  <!-- Navigate Button triggers native maps app -->
-                  <a href="https://maps.google.com/?q=23.0225,72.5714" target="_blank" class="btn text-white rounded-pill d-flex align-items-center gap-2 flex-shrink-0 shadow-sm" style="background: #EF4444;">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-                    Navigate Fast
+                  <a href="#" id="navigate-btn" target="_blank"
+                     class="btn text-white rounded-pill d-flex align-items-center gap-2 flex-shrink-0 shadow-sm"
+                     style="background:#EF4444;display:none!important;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+                    Navigate
                   </a>
                 </div>
               </div>
             </div>
 
-            <!-- Customer Details Card -->
+            <!-- Customer Details -->
             <div class="bg-white rounded-4 shadow-sm p-4 mb-4 sos-border">
-              <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size: 12px; letter-spacing: 1px;">Customer Details</h6>
-              
-              <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center fw-bold text-danger" style="width: 50px; height: 50px; font-size: 20px;">
-                  R
+              <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size:12px;letter-spacing:1px;">Vehicle Details</h6>
+              <div class="row g-3">
+                <div class="col-sm-4">
+                  <div class="bg-light rounded-3 p-3 text-center">
+                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Type</div>
+                    <div class="fw-bold text-dark" id="vehicle-type" style="font-size:13px;">—</div>
+                  </div>
                 </div>
-                <div>
-                  <h5 class="fw-bold mb-1">Rahul Verma</h5>
-                  <div class="text-muted d-flex align-items-center gap-2">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-                    Honda City (White) • GJ01 AB 1234
+                <div class="col-sm-4">
+                  <div class="bg-light rounded-3 p-3 text-center">
+                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Model</div>
+                    <div class="fw-bold text-dark" id="vehicle-model" style="font-size:13px;">—</div>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="bg-light rounded-3 p-3 text-center">
+                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Reg. No.</div>
+                    <div class="fw-bold text-dark" id="vehicle-number" style="font-size:13px;">—</div>
                   </div>
                 </div>
               </div>
-              
-              <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25">
-                <span class="text-danger fw-bold d-block mb-1">Emergency Issue:</span>
-                "Car engine stopped suddenly in middle of road. Need urgent help!"
+              <div class="mt-3" id="desc-section" style="display:none;">
+                <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25 mt-3">
+                  <span class="text-danger fw-bold d-block mb-1">Emergency Issue:</span>
+                  <span id="booking-desc" class="text-dark"></span>
+                </div>
               </div>
             </div>
 
           </div>
 
-          <!-- Right Col: Job Status & Updates -->
+          <!-- RIGHT: Flow -->
           <div class="col-12 col-lg-5">
-            
-            <div class="bg-white rounded-4 shadow-sm p-4 sticky-top sos-border" style="top: 80px;">
-              <h5 class="fw-bold mb-4 border-bottom pb-3" style="font-family: var(--font-head); color: #EF4444;">Live SOS Tracking</h5>
-
-              <!-- Timeline for SOS Booking Flow -->
-              <div class="timeline mb-4">
-                
-                <div class="timeline-item completed">
-                  <div class="fw-bold text-dark">SOS Accepted</div>
-                  <div class="text-muted small">10:45 AM</div>
-                </div>
-
-                <div class="timeline-item active">
-                  <div class="fw-bold text-danger">Inspect & Provide Estimate</div>
-                  <div class="text-muted small mt-1">Once reached, inspect vehicle and quote price</div>
-                  
-                  <!-- Estimate Input Box (Active State) -->
-                  <div class="mt-3 p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25">
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-danger border-opacity-25">
-                      <span class="small fw-bold text-dark">Emergency Visit Charge</span>
-                      <span class="fw-bold text-danger">₹100</span>
-                    </div>
-
-                    <label class="form-label small fw-bold text-dark mb-2">Estimated Repair Cost (₹)</label>
-                    <div class="input-group mb-2">
-                      <span class="input-group-text bg-white">₹</span>
-                      <input type="number" class="form-control" placeholder="e.g. 500">
-                    </div>
-                    <textarea class="form-control mb-3" rows="2" placeholder="Details (e.g. Jump start battery)"></textarea>
-                    
-                    <button class="btn w-100 text-white fw-bold rounded-pill shadow-sm bg-danger border-0">
-                      Send Estimate
-                    </button>
-                  </div>
-                </div>
-
-                <div class="timeline-item">
-                  <div class="text-muted fw-medium">Customer Approval</div>
-                  <div class="text-muted small" style="font-size: 11px;">Waiting for confirmation...</div>
-                </div>
-
-                <div class="timeline-item">
-                  <div class="text-muted fw-medium">Start Fix</div>
-                </div>
-
-                <div class="timeline-item">
-                  <div class="text-muted fw-medium">Repair Completed</div>
-                </div>
-
-              </div>
-
-              <!-- Action Buttons -->
-              <div class="d-flex flex-column gap-3 mt-4 pt-3 border-top">
-                <!-- Final Bill Button -->
-                <a href="invoice-sos.html" class="btn rounded-pill py-3 fw-bold text-center" style="border: 2px solid #EF4444; color: #EF4444; text-decoration: none;">
-                  Generate Final Bill
-                </a>
-              </div>
-
+            <div class="bg-white rounded-4 shadow-sm p-4 sticky-top sos-border" style="top:80px;">
+              <h5 class="fw-bold mb-1 text-danger" style="font-family:var(--font-head);">SOS #<span id="booking-id"></span></h5>
+              <div class="text-muted mb-4 pb-3 border-bottom" style="font-size:13px;" id="booking-time"></div>
+              <div id="flow-section"></div>
             </div>
-
           </div>
 
         </div>
       </div>
-    </main>
+    </div>
+  </main>
+</div>
 
+<!-- Garage Services Modal -->
+<div class="modal fade" id="garageServicesModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title fw-bold">Select Predefined Services</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4">
+        <div id="garage-services-list">
+          <div class="text-center py-4 text-muted small">Loading services...</div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;" onclick="confirmGarageServices()">Confirm</button>
+      </div>
+    </div>
   </div>
+</div>
 
-  <script src="../js/bootstrap.js"></script>
+<!-- OTP Modal -->
+<div class="modal fade" id="otpModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title fw-bold">Customer OTP Verify Karo</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4">
+        <p class="text-muted mb-3" style="font-size:13px;">Customer se OTP lo aur yahan enter karo — kaam shuru hoga:</p>
+        <input type="text" id="otp-input" class="form-control otp-input rounded-3 border-2" maxlength="6" placeholder="------">
+        <div id="otp-error" class="text-danger mt-2 d-none" style="font-size:13px;"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;" id="otp-confirm-btn" onclick="confirmOTP()">Verify</button>
+      </div>
+    </div>
+  </div>
+</div>
+  <script src="/js/config.js"></script><script src="/js/mechanic-auth.js"></script>
+<script src="/js/components.js"></script>
+<script src="/js/bootstrap.js"></script>
+<script>
+  const urlParams  = new URLSearchParams(window.location.search);
+  // Try query param first, then try slug from path: /mechanic/sos-detail/<id>
+  let queryId    = urlParams.get('id');
+  if (queryId) queryId = String(queryId).trim(); // Ensure it's a string and trimmed
+  const _slug      = window.location.pathname.split('/').filter(p => p && p !== 'mechanic' && p !== 'sos-detail' && p !== 'sos-detail.html' && !p.endsWith('.html')).pop();
+  const bookingId  = queryId || _slug;
+  console.log('[SOS-DETAIL] Full Debug:', { 
+    href: window.location.href,
+    search: window.location.search,
+    pathname: window.location.pathname,
+    queryId: queryId,
+    queryIdType: typeof queryId,
+    _slug: _slug,
+    bookingId: bookingId,
+    bookingIdType: typeof bookingId,
+    bookingIdTruthy: !!bookingId
+  });
+  initMechanicChrome(`SOS #${bookingId}`, null, 'sos-alerts.html');
+  const API = () => getApiBase();
+  let booking = null;
+  let detailRefreshInterval = null;
+  let _lastRenderedStatus   = null;
+  let _lastEstimateStatus   = null;
+  let _lastArrivedAt        = null;  // arrived_at track karo
+  let _loadLock             = false;  // race condition guard
+  let estimateItems = [];
+  let myGarageServices = [];
+  let selectedGarageServices = new Set();
+
+  async function loadDetail() {
+    console.log('[SOS-DETAIL] loadDetail() called, bookingId:', bookingId);
+    if (!bookingId) { 
+      console.error('[SOS-DETAIL] REDIRECT: bookingId is falsy!', bookingId);
+      window.location.replace('sos-alerts.html'); 
+      return; 
+    }
+    if (_loadLock) return;  // concurrent call aa gayi — skip karo
+    _loadLock = true;
+    try {
+      const res = await fetch(`${API()}/sos/${bookingId}`, {
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('[SOS-DETAIL] API error:', res.status, errText);
+        throw new Error(`API Error: ${res.status}`);
+      }
+      booking = await res.json();
+      console.log('[SOS-DETAIL] Booking loaded:', booking);
+
+      // Backend 'estimated_charge' field ko frontend ke saath align karo
+      if (booking.estimated_charge !== undefined) {
+        booking.estimated_amount = booking.estimated_charge;
+      }
+      if (booking.estimate_details) {
+        estimateItems = booking.estimate_details;
+      }
+
+      try {
+        const sRes = await fetch(`${API()}/garage/me/services`, {
+          headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+        });
+        if (sRes.ok) myGarageServices = await sRes.json();
+      } catch (e) { console.error('Failed to load garage services'); }
+
+      // Cancelled/completed — stop karo sab
+      if (booking.status === 'cancelled' || booking.status === 'completed') {
+        clearInterval(detailRefreshInterval);
+        detailRefreshInterval = null;
+        document.getElementById('page-skeleton').style.display = '';
+        document.getElementById('page-content').style.display  = 'none';
+        document.getElementById('page-skeleton').innerHTML = `
+          <div class="text-center py-5 text-muted">
+            <h5>⚠️ Yeh SOS ab valid nahi hai</h5>
+            <p class="mb-3">${booking.status === 'cancelled' ? 'Customer ne cancel kar diya' : 'Yeh kaam pura ho gaya'}</p>
+            <a href="sos-alerts.html" class="btn btn-sm rounded-pill px-4 text-white" style="background:#EF4444;">← Wapas Jao</a>
+          </div>`;
+        return;
+      }
+
+      // Sirf tab re-render karo jab status, estimate_status, ya arrived_at badla ho
+      const needsRender = _lastRenderedStatus !== booking.status
+                       || _lastEstimateStatus !== booking.estimate_status
+                       || _lastArrivedAt      !== booking.arrived_at;
+      if (needsRender) {
+        _lastRenderedStatus = booking.status;
+        _lastEstimateStatus = booking.estimate_status;
+        _lastArrivedAt      = booking.arrived_at;
+        renderPage();
+      } else {
+        // Form wipe nahi karo — sirf time/distance silently update karo
+        const timeEl = document.getElementById('booking-time');
+        const distEl = document.getElementById('booking-distance');
+        if (timeEl) timeEl.textContent = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
+        if (distEl && booking.distance_km) distEl.textContent = `📍 ${booking.distance_km} km away`;
+      }
+
+      // Interval ek baar set karo
+      if (!detailRefreshInterval) {
+        detailRefreshInterval = setInterval(loadDetail, 10000);
+      }
+    } catch (err) {
+      _loadLock = false;  // Reset the lock on error so retry can work
+      console.error('[SOS-DETAIL] Error loading detail:', err);
+      clearInterval(detailRefreshInterval);
+      detailRefreshInterval = null;
+      document.getElementById('page-skeleton').style.display = '';
+      document.getElementById('page-content').style.display  = 'none';
+      document.getElementById('page-skeleton').innerHTML = `
+        <div class="text-center py-5 text-muted">
+          <h5>SOS load nahi hua</h5>
+          <p class="text-muted small">Network check karo ya page reload karo</p>
+          <div class="d-flex gap-2 justify-content-center mt-2">
+            <button onclick="location.reload()" class="btn btn-sm rounded-pill px-4 text-white" style="background:#EF4444;">↻ Retry</button>
+            <a href="sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill px-4">← Wapas Jao</a>
+          </div>
+        </div>`;
+    } finally {
+      _loadLock = false;
+    }
+  }
+
+  function renderPage() {
+    document.getElementById('page-skeleton').style.display = 'none';
+    document.getElementById('page-content').style.display  = '';
+
+    document.getElementById('booking-id').textContent   = booking.id;
+    document.getElementById('booking-time').textContent  = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
+
+    // Location
+    const addr = booking.address || 'Location available on map';
+    document.getElementById('booking-address').textContent = addr;
+    if (booking.distance_km) {
+      document.getElementById('booking-distance').textContent = `📍 ${booking.distance_km} km away`;
+    }
+    if (booking.latitude && booking.longitude) {
+      const nb = document.getElementById('navigate-btn');
+      nb.href = `https://maps.google.com/?q=${booking.latitude},${booking.longitude}`;
+      nb.style.display = 'flex';
+    }
+
+    // Vehicle
+    const vt = booking.vehicle_type === 'two_wheeler' ? '2 Wheeler' : booking.vehicle_type === 'four_wheeler' ? '4 Wheeler' : booking.vehicle_type || '—';
+    document.getElementById('vehicle-type').textContent   = vt;
+    document.getElementById('vehicle-model').textContent  = booking.vehicle_model  || '—';
+    document.getElementById('vehicle-number').textContent = booking.vehicle_number || '—';
+
+    if (booking.description) {
+      document.getElementById('desc-section').style.display = '';
+      document.getElementById('booking-desc').textContent   = booking.description;
+    }
+
+    renderFlow();
+  }
+
+  function renderFlow() {
+    const el = document.getElementById('flow-section');
+    const s  = booking.status;
+
+    if (s === 'accepted') {
+      el.innerHTML = renderEstimateFlow();
+    } else if (s === 'in_progress' || s === 'ongoing') {
+      el.innerHTML = renderOngoingFlow();
+    } else if (s === 'completed') {
+      el.innerHTML = renderCompletedFlow();
+    } else {
+      el.innerHTML = `<div class="text-center text-muted py-4"><p>Status: ${s}</p><a href="sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill">← Back</a></div>`;
+    }
+  }
+
+  function renderEstimateFlow() {
+    const estSent   = booking.estimate_status === 'pending';
+    const arrived   = booking.arrived_at; // mechanic pahunch gaya
+
+    // Step 1: Agar arrived nahi — "Mark Arrived" dikhao
+    if (!arrived) {
+      return `
+        <div class="timeline">
+          <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+          <div class="timeline-item active">
+            <div class="fw-bold text-danger mb-2">Customer Location Pe Jao</div>
+            <p class="text-muted mb-3" style="font-size:13px;">Location pe pahunchne ke baad niche button dabao — customer ko notify hoga.</p>
+            <button onclick="markArrived()" id="arrived-btn" class="btn text-white rounded-pill w-100 fw-bold py-3 shadow" style="background:#EF4444;font-size:16px;">
+              📍 Main Pahunch Gaya — Mark Arrived
+            </button>
+            <a href="#" id="navigate-btn2" target="_blank" class="btn btn-outline-danger rounded-pill w-100 mt-2 fw-medium py-2" style="display:none;">
+              🗺️ Navigate to Location
+            </a>
+          </div>
+          <div class="timeline-item"><div class="text-muted">Estimate Bhejo</div></div>
+          <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
+        </div>`;
+    }
+
+    // Step 2: Arrived — estimate form
+    if (estSent) {
+      return `
+        <div class="timeline">
+          <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+          <div class="timeline-item completed"><div class="fw-bold text-success">Arrived ✓</div></div>
+          <div class="timeline-item active">
+            <div class="fw-bold text-danger mb-2">Estimate Bheja — OTP Ka Wait</div>
+            <div class="mt-3">
+              ${renderEstimateItems(estimateItems, false)}
+              <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top">
+                <span>Total</span><span style="color:#EF4444;">₹${booking.estimated_amount || 0}</span>
+              </div>
+            </div>
+            ${booking.garage_note ? `<div class="text-muted mt-2" style="font-size:12px;">${booking.garage_note}</div>` : ''}
+            <button onclick="openOTP()" class="btn text-white rounded-pill w-100 fw-bold py-2 mt-3" style="background:#EF4444;">
+              Customer OTP Enter Karo
+            </button>
+          </div>
+          <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
+        </div>`;
+    }
+
+    return `
+      <div class="timeline">
+        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+        <div class="timeline-item completed"><div class="fw-bold text-success">Arrived ✓</div></div>
+        <div class="timeline-item active">
+          <div class="fw-bold text-danger mb-3">Estimate Bhejo</div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:13px;">
+              <span class="fw-semibold">Emergency Visiting Charge</span>
+              <span class="fw-bold text-danger">₹100</span>
+            </div>
+          </div>
+          
+          <label class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;">Issues &amp; Cost</label>
+          <div id="est-items-list" class="mb-2 d-flex flex-column gap-2">${renderEstimateItems(estimateItems, true)}</div>
+
+          <!-- Add item -->
+          <div class="row g-2 mb-2">
+            <div class="col-7"><input type="text" id="est-item-name" class="form-control form-control-sm rounded-3" placeholder="Service / Item name"></div>
+            <div class="col-3"><input type="number" id="est-item-price" class="form-control form-control-sm rounded-3" placeholder="₹"></div>
+            <div class="col-2"><button onclick="addEstItem()" class="btn btn-sm w-100 rounded-3 text-white" style="background:#EF4444;">+</button></div>
+          </div>
+          <button onclick="openGarageServices()" class="btn btn-sm btn-outline-secondary rounded-3 w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H6v-2h4v2zm0-4H6v-2h4v2zm0-4H6V7h4v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg>
+            Select from Garage Services
+          </button>
+
+          <!-- Total -->
+          <div class="d-flex justify-content-between fw-bold py-2 border-top border-bottom mb-3">
+            <span>Total</span>
+            <span style="color:#EF4444;" id="est-total">₹${estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100}</span>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Description</label>
+            <textarea id="est-desc" class="form-control border-2 shadow-none" rows="2" placeholder="e.g. Jump start battery, tyre change..."></textarea>
+          </div>
+          <div id="est-error" class="alert alert-danger py-2 d-none rounded-3 mb-3" style="font-size:13px;"></div>
+          <button onclick="sendEstimate()" id="send-est-btn" class="btn text-white rounded-pill w-100 fw-bold py-2" style="background:#EF4444;">
+            Estimate Bhejo &amp; OTP Maango
+          </button>
+        </div>
+        <div class="timeline-item"><div class="text-muted">Customer Approval</div></div>
+        <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
+      </div>`;
+  }
+
+  function renderOngoingFlow() {
+    return `
+      <div class="timeline">
+        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+        <div class="timeline-item completed">
+          <div class="fw-bold text-success">Estimate Approved ✓</div>
+          <div class="text-muted small">₹${booking.estimated_amount || 0}</div>
+        </div>
+        <div class="timeline-item active">
+          <div class="fw-bold text-danger mb-3">Kaam Jari Hai</div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:13px;">Final Amount (₹)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white">₹</span>
+              <input type="number" id="final-amount" class="form-control border-2 shadow-none" value="${booking.estimated_amount || ''}">
+            </div>
+          </div>
+          <div id="complete-error" class="alert alert-danger py-2 d-none rounded-3 mb-3" style="font-size:13px;"></div>
+          <button onclick="completeJob()" id="complete-btn" class="btn text-white rounded-pill w-100 fw-bold py-2" style="background:#10B981;">
+            Job Complete Karo ✓
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function renderCompletedFlow() {
+    return `
+      <div class="timeline">
+        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+        <div class="timeline-item completed"><div class="fw-bold text-success">Estimate Approved ✓</div></div>
+        <div class="timeline-item completed">
+          <div class="fw-bold text-success">Job Completed ✓</div>
+          ${booking.completed_at ? `<div class="text-muted small">${new Date(booking.completed_at).toLocaleString('en-IN')}</div>` : ''}
+        </div>
+      </div>
+      <div class="mt-4 p-3 rounded-3" style="background:#F0FDF4;border:1px solid #BBF7D0;">
+        <div class="text-muted small mb-1">Final Amount</div>
+        <div class="fw-bold" style="font-size:22px;color:#15803D;">₹${booking.estimated_amount || 0}</div>
+      </div>
+      <a href="/mechanic/invoice-sos/${booking.slug || booking.id}" class="btn btn-outline-secondary rounded-pill w-100 mt-3 fw-medium">
+        📄 Invoice Dekho
+      </a>`;
+  }
+
+  async function markArrived() {
+    const btn = document.getElementById('arrived-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Marking...'; }
+    try {
+      const res = await fetch(`${API()}/sos/${bookingId}/mark-arrived`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+      showToast('Customer ko notify kar diya — ab estimate bhejo! 📍', 'success');
+      _lastRenderedStatus = null; // Force re-render
+      await loadDetail();
+    } catch(e) {
+      showToast(e.message || 'Mark nahi hua. Try again.', 'danger');
+      if (btn) { btn.disabled = false; btn.textContent = '📍 Main Pahunch Gaya — Mark Arrived'; }
+    }
+  }
+
+  function renderEstimateItems(items, editable) {
+    if (!items || items.length === 0) {
+      return `<div class="text-muted small text-center py-2">Koi item nahi</div>`;
+    }
+    return items.map((item, i) => `
+    <div class="estimate-item-row">
+      <span style="font-size:13px;font-weight:500;">${item.item_name}</span>
+      <div class="d-flex align-items-center gap-2">
+        <span style="font-size:13px;font-weight:700;">₹${item.price}</span>
+        ${editable ? `<button type="button" onclick="removeItem(${i})" class="btn btn-sm text-danger p-0 px-1" style="font-size:16px;line-height:1;">×</button>` : ''}
+      </div>
+    </div>`).join('');
+  }
+
+  function updateEstTotal() {
+    const el = document.getElementById('est-total');
+    let t = estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100; // visiting charge
+    if (el) el.textContent = `₹${t}`;
+  }
+
+  function addEstItem() {
+    const name = document.getElementById('est-item-name').value.trim();
+    const price = parseFloat(document.getElementById('est-item-price').value);
+    const errEl = document.getElementById('est-error');
+    errEl.classList.add('d-none');
+    if (!name || isNaN(price) || price < 0) { errEl.textContent='Enter valid name and price.'; errEl.classList.remove('d-none'); return; }
+    estimateItems.push({ item_name: name, price });
+    document.getElementById('est-item-name').value = '';
+    document.getElementById('est-item-price').value = '';
+    document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
+    updateEstTotal();
+  }
+
+  function removeItem(idx) {
+    estimateItems.splice(idx, 1);
+    document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
+    updateEstTotal();
+  }
+
+  function openGarageServices() {
+    selectedGarageServices.clear();
+    const container = document.getElementById('garage-services-list');
+    
+    if (myGarageServices.length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted small">Aapne koi predefined service add nahi ki . Pehle Dashboard > Services me jake service add karein.</div>';
+    } else {
+        const grouped = {};
+        myGarageServices.forEach(s => {
+            if (!s.is_available) return;
+            const cat = s.category || 'Other';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(s);
+        });
+        
+        let html = '';
+        for (const cat in grouped) {
+            html += `<div class="fw-bold mt-3 mb-2" style="font-size:13px;color:#EF4444;text-transform:uppercase;">${cat}</div>`;
+            grouped[cat].forEach(s => {
+                const priceStr = s.price ? `₹${s.price}` : 'Price not set';
+                html += `
+                <div class="form-check d-flex align-items-center mb-2 p-2 rounded-3 border" style="background:#f8f9fa;">
+                    <input class="form-check-input ms-0 me-2 mt-0" type="checkbox" id="gs-${s.id}" value="${s.id}" onchange="toggleServiceSelection(${s.id}, this.checked)">
+                    <label class="form-check-label w-100 d-flex justify-content-between align-items-center" for="gs-${s.id}" style="font-size:14px;cursor:pointer;">
+                        <span>${s.service_name}</span>
+                        <span class="fw-bold text-dark">${priceStr}</span>
+                    </label>
+                </div>`;
+            });
+        }
+        if (html === '') html = '<div class="text-center py-4 text-muted small">No active predefined services found.</div>';
+        container.innerHTML = html;
+    }
+    
+    new bootstrap.Modal(document.getElementById('garageServicesModal')).show();
+  }
+
+  function toggleServiceSelection(id, isChecked) {
+      if (isChecked) selectedGarageServices.add(id);
+      else selectedGarageServices.delete(id);
+  }
+
+  function confirmGarageServices() {
+      if (selectedGarageServices.size > 0) {
+          myGarageServices.forEach(s => {
+              if (selectedGarageServices.has(s.id)) {
+                  estimateItems.push({ item_name: s.service_name, price: s.price || 0 });
+              }
+          });
+          document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
+          updateEstTotal();
+      }
+      bootstrap.Modal.getInstance(document.getElementById('garageServicesModal')).hide();
+  }
+
+  async function sendEstimate() {
+    const desc   = document.getElementById('est-desc').value.trim();
+    const btn    = document.getElementById('send-est-btn');
+    const errEl  = document.getElementById('est-error');
+    errEl.classList.add('d-none');
+
+    if (estimateItems.length === 0) { errEl.textContent='Kam se kam ek item add karo.'; errEl.classList.remove('d-none'); return; }
+    const amount = estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100; // Total including visiting charge
+
+    btn.disabled=true; btn.textContent='Bhej raha hai...';
+    try {
+      const res = await fetch(`${API()}/sos/${bookingId}/estimate`, {
+        method: 'PATCH',
+        headers: { 'Authorization':`Bearer ${MECHANIC_AUTH.getToken()}`, 'Content-Type':'application/json' },
+        body: JSON.stringify({ estimated_amount: amount, description: desc, visiting_charge: 100, estimate_details: estimateItems })
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+      const data = await res.json();
+      showToast(`Estimate bheja! OTP: ${data.otp}`, 'success');
+      setTimeout(() => location.reload(), 1500);
+    } catch(e) { errEl.textContent = e.message; errEl.classList.remove('d-none'); }
+    finally { btn.disabled=false; btn.textContent='Estimate Bhejo & OTP Maango'; }
+  }
+
+  function openOTP() {
+    document.getElementById('otp-input').value = '';
+    document.getElementById('otp-error').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('otpModal')).show();
+  }
+
+  async function confirmOTP() {
+    const otp = document.getElementById('otp-input').value.trim();
+    if (otp.length !== 6) { document.getElementById('otp-error').textContent='6 digit OTP dalo.'; document.getElementById('otp-error').classList.remove('d-none'); return; }
+    const btn = document.getElementById('otp-confirm-btn');
+    btn.disabled=true; btn.textContent='Verify ho raha hai...';
+    try {
+      const res = await fetch(`${API()}/sos/${bookingId}/verify-otp?otp=${otp}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || 'Invalid OTP');
+      bootstrap.Modal.getInstance(document.getElementById('otpModal')).hide();
+      showToast('OTP verified! Kaam shuru karo 🔧', 'success');
+      setTimeout(() => location.reload(), 1000);
+    } catch(e) { document.getElementById('otp-error').textContent = e.message; document.getElementById('otp-error').classList.remove('d-none'); }
+    finally { btn.disabled=false; btn.textContent='Verify'; }
+  }
+
+  async function completeJob() {
+    const finalAmount = parseFloat(document.getElementById('final-amount').value || 0);
+    const btn = document.getElementById('complete-btn');
+    btn.disabled=true; btn.textContent='Complete ho raha hai...';
+    try {
+      const res = await fetch(`${API()}/sos/${bookingId}/complete?final_amount=${finalAmount}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+      });
+      if (!res.ok) throw new Error();
+      showToast('SOS complete! 🎉', 'success');
+      setTimeout(() => {
+        window.location.href = `/mechanic/invoice-sos/${bookingId}`;
+      }, 1000);
+    } catch { document.getElementById('complete-error').textContent='Complete nahi hua.'; document.getElementById('complete-error').classList.remove('d-none'); }
+    finally { btn.disabled=false; btn.textContent='Job Complete Karo ✓'; }
+  }
+
+  function showToast(msg, type='success') {
+    const t = document.createElement('div');
+    t.className=`alert alert-${type} position-fixed shadow rounded-3`;
+    t.style.cssText='top:80px;right:20px;z-index:9999;font-size:14px;min-width:220px;';
+    t.textContent=msg;
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(), 3000);
+  }
+
+  document.addEventListener('DOMContentLoaded', loadDetail);
+</script>
+
+<!-- WebRTC Incoming Call Overlay (mechanic) -->
+<div id="gnm-mechanic-call" style="display:none;position:fixed;inset:0;z-index:99999;background:#0a0a0a;flex-direction:column;align-items:center;justify-content:space-between;padding:64px 24px 80px;">
+    <style>
+        @keyframes mCallPulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+        #gnm-mechanic-call .mp{position:absolute;inset:0;border-radius:50%;border:2px solid #FF6B35;animation:mCallPulse 1.6s ease-out infinite}
+        #gnm-mechanic-call .mp:nth-child(2){animation-delay:.5s}
+        #gnm-mechanic-call .mp:nth-child(3){animation-delay:1s}
+    </style>
+    <div style="text-align:center;">
+        <div style="color:#FF6B35;font-size:13px;letter-spacing:2px;font-family:'DM Sans',sans-serif;text-transform:uppercase;margin-bottom:12px;">📞 Incoming Call</div>
+        <div style="color:#fff;font-size:22px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:6px;">Customer</div>
+        <div id="mechanic-call-status" style="color:#9CA3AF;font-size:14px;font-family:'DM Sans',sans-serif;">In-App Call</div>
+    </div>
+    <div style="position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center;">
+        <div class="mp"></div><div class="mp"></div><div class="mp"></div>
+        <div style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#e85d2a);display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;z-index:1;">👤</div>
+    </div>
+    <div style="display:flex;gap:48px;align-items:flex-start;">
+        <div style="text-align:center;">
+            <button onclick="rejectIncomingCall()" style="width:68px;height:68px;border-radius:50%;background:#E53E3E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(229,62,62,0.15);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+            </button>
+            <span style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">Decline</span>
+        </div>
+        <div style="text-align:center;">
+            <button onclick="acceptIncomingCall()" style="width:68px;height:68px;border-radius:50%;background:#22C55E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(34,197,94,0.15);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+            </button>
+            <span style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">Accept</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── WebRTC — Mechanic (Callee) side ───────────────────────────────────────
+let _mPc           = null;
+let _mLocalStream  = null;
+let _mOffer        = null;
+let _mCustomerId   = null;
+let _mCallTimer    = null;
+let _mCallSeconds  = 0;
+
+// Mechanic WS se WebRTC signal aane pe (config.js dispatch karta hai)
+window.addEventListener('gnm_webrtc', async (e) => {
+    const data = e.detail;
+    if (data.type === 'webrtc_offer') {
+        _mOffer      = data.offer;
+        _mCustomerId = data.customer_id;
+        // Incoming call UI dikhao + ring sound
+        startRingtone();
+        document.getElementById('gnm-mechanic-call').style.display = 'flex';
+    } else if (data.type === 'webrtc_ice' && _mPc) {
+        try { await _mPc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {}
+    } else if (data.type === 'webrtc_end') {
+        endMechanicCall();
+    }
+});
+
+async function acceptIncomingCall() {
+    stopRingtone();
+    document.getElementById('gnm-mechanic-call').style.display = 'none';
+
+    try {
+        _mLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    } catch(e) { return; }
+
+    _mPc = new RTCPeerConnection({
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+        ]
+    });
+
+    _mLocalStream.getTracks().forEach(t => _mPc.addTrack(t, _mLocalStream));
+
+    _mPc.ontrack = (e) => {
+        let audio = document.getElementById('gnm-m-remote-audio');
+        if (!audio) {
+            audio = document.createElement('audio');
+            audio.id = 'gnm-m-remote-audio';
+            audio.autoplay = true;
+            document.body.appendChild(audio);
+        }
+        audio.srcObject = e.streams[0];
+    };
+
+    _mPc.onicecandidate = (e) => {
+        if (e.candidate && typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN) {
+            _ws.send(JSON.stringify({
+                type: 'webrtc_ice',
+                target_customer_id: _mCustomerId,
+                candidate: e.candidate
+            }));
+        }
+    };
+
+    _mPc.onconnectionstatechange = () => {
+        if (_mPc?.connectionState === 'disconnected' || _mPc?.connectionState === 'failed') {
+            endMechanicCall();
+        }
+    };
+
+    await _mPc.setRemoteDescription(new RTCSessionDescription(_mOffer));
+    const answer = await _mPc.createAnswer();
+    await _mPc.setLocalDescription(answer);
+
+    if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN) {
+        _ws.send(JSON.stringify({
+            type: 'webrtc_answer',
+            target_customer_id: _mCustomerId,
+            answer: answer
+        }));
+    }
+
+    // In-call UI dikhao
+    showMechanicInCall();
+}
+
+function rejectIncomingCall() {
+    stopRingtone();
+    document.getElementById('gnm-mechanic-call').style.display = 'none';
+    if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN && _mCustomerId) {
+        _ws.send(JSON.stringify({ type: 'webrtc_end', target_customer_id: _mCustomerId }));
+    }
+}
+
+function endMechanicCall() {
+    if (_mPc) { _mPc.close(); _mPc = null; }
+    if (_mLocalStream) { _mLocalStream.getTracks().forEach(t => t.stop()); _mLocalStream = null; }
+    if (_mCallTimer) { clearInterval(_mCallTimer); _mCallTimer = null; }
+    const audio = document.getElementById('gnm-m-remote-audio');
+    if (audio) audio.remove();
+    const inCall = document.getElementById('gnm-mechanic-incall');
+    if (inCall) inCall.remove();
+    if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN && _mCustomerId) {
+        _ws.send(JSON.stringify({ type: 'webrtc_end', target_customer_id: _mCustomerId }));
+    }
+}
+
+function showMechanicInCall() {
+    const existing = document.getElementById('gnm-mechanic-incall');
+    if (existing) existing.remove();
+
+    const bar = document.createElement('div');
+    bar.id = 'gnm-mechanic-incall';
+    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1B1F2E;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.3);border-radius:16px 16px 0 0;';
+    bar.innerHTML = `
+        <div>
+            <div style="font-weight:700;font-size:14px;font-family:Syne,sans-serif;">📞 Call Active</div>
+            <div id="mechanic-call-timer" style="color:#22C55E;font-size:13px;font-family:'DM Sans',sans-serif;">00:00</div>
+        </div>
+        <button onclick="endMechanicCall()" style="background:#E53E3E;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-weight:600;font-size:13px;cursor:pointer;">End Call</button>
+    `;
+    document.body.appendChild(bar);
+
+    _mCallSeconds = 0;
+    _mCallTimer = setInterval(() => {
+        _mCallSeconds++;
+        const m = String(Math.floor(_mCallSeconds/60)).padStart(2,'0');
+        const s = String(_mCallSeconds%60).padStart(2,'0');
+        const el = document.getElementById('mechanic-call-timer');
+        if (el) el.textContent = `${m}:${s}`;
+    }, 1000);
+}
+</script>
+
+
 </body>
-
 </html>

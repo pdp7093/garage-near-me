@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revenue Analytics - GarageNearMe Admin</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <link rel="stylesheet" href="/css/bootstrap.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="admin-layout">
+    <div id="sidebar-container"></div>
+    <main class="admin-content">
+      <div id="topbar-container"></div>
+
+      <!-- Filters Row -->
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+          <label class="form-label text-muted small fw-bold">Start Date</label>
+          <input type="date" id="filterStart" class="form-control" />
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label text-muted small fw-bold">End Date</label>
+          <input type="date" id="filterEnd" class="form-control" />
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label text-muted small fw-bold">Garage</label>
+          <select id="filterGarage" class="form-select">
+            <option value="">All Garages</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-2 d-flex align-items-end">
+          <button class="btn btn-primary w-100 fw-bold" onclick="fetchAnalytics()">Apply Filters</button>
+        </div>
+      </div>
+      
+      <!-- Quick Filter Chips -->
+      <div class="d-flex flex-wrap gap-2 mb-5">
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="setQuickDate(0)">Today</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="setQuickDate(7)">Last 7 Days</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="setQuickDate(30)">Last 30 Days</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="setQuickDate('month')">This Month</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="setQuickDate('all')">All Time</button>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="row g-4 mb-5">
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card border-success border-opacity-50">
+            <div class="admin-stat-icon" style="background: #DCFCE7; color: #166534;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+            </div>
+            <div>
+              <div class="text-muted small fw-medium text-uppercase tracking-wider">Filtered Revenue</div>
+              <h3 class="fw-bold mb-0 text-success" id="valRevenue">₹0.00</h3>
+              <div class="text-muted small fw-medium mt-1">Platform Commission Only</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card border-warning border-opacity-50">
+            <div class="admin-stat-icon" style="background: #FEF3C7; color: #B45309;">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/></svg>
+            </div>
+            <div>
+              <div class="text-muted small fw-medium text-uppercase tracking-wider">Collected Dues (UTRs)</div>
+              <h3 class="fw-bold mb-0 text-warning text-darken" id="valUtrCollected" style="color: #d97706 !important;">₹0.00</h3>
+              <div class="text-muted small fw-medium mt-1">Verified offline payments</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="admin-stat-card border-primary border-opacity-25">
+            <div class="admin-stat-icon" style="background: #E0E7FF; color: var(--admin-primary);">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+            </div>
+            <div>
+              <div class="text-muted small fw-medium text-uppercase tracking-wider">Completed Bookings</div>
+              <h3 class="fw-bold mb-0" id="valBookings">0</h3>
+              <div class="text-muted small fw-medium mt-1">Matching criteria</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="bg-white rounded-4 border shadow-sm overflow-hidden mb-5">
+        <div class="p-4 border-bottom bg-light">
+          <h5 class="fw-bold mb-0" style="font-family: var(--font-head);">Revenue Breakdown</h5>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>Garage Name</th>
+                <th>Completed At</th>
+                <th>Total Value</th>
+                <th class="text-success text-end">Platform Cut</th>
+              </tr>
+            </thead>
+            <tbody id="analyticsTableBody">
+              <tr><td colspan="5" class="text-center text-muted py-4">Loading data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/components.js"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/config.js"></script>
+  <script>
+    initAdminChrome('Revenue Analytics');
+
+    const API = getApiBase();
+    const adminKey = localStorage.getItem('gnm_admin_key');
+    if (!adminKey) window.location.href = 'index';
+
+    function setQuickDate(filter) {
+      const startObj = document.getElementById('filterStart');
+      const endObj = document.getElementById('filterEnd');
+      const today = new Date();
+      
+      endObj.value = today.toISOString().split('T')[0];
+
+      if (filter === 'all') {
+        startObj.value = '';
+        endObj.value = '';
+      } else if (filter === 'month') {
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        startObj.value = firstDay.toISOString().split('T')[0];
+      } else {
+        const past = new Date(today);
+        past.setDate(past.getDate() - filter);
+        startObj.value = past.toISOString().split('T')[0];
+      }
+      fetchAnalytics();
+    }
+
+    function formatAmt(val) {
+      return '₹' + parseFloat(val).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits:2});
+    }
+
+    function formatDate(isoStr) {
+      if (!isoStr) return 'N/A';
+      const d = new Date(isoStr);
+      return d.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+    }
+
+    async function fetchAnalytics() {
+      const tbody = document.getElementById('analyticsTableBody');
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</td></tr>';
+      
+      const start = document.getElementById('filterStart').value;
+      const end = document.getElementById('filterEnd').value;
+      const garageId = document.getElementById('filterGarage').value;
+
+      let qs = new URLSearchParams();
+      if (start) qs.append('start_date', start);
+      if (end) qs.append('end_date', end);
+      if (garageId) qs.append('garage_id', garageId);
+
+      try {
+        const res = await fetch(`${API}/analytics/revenue?${qs.toString()}`, {
+          headers: { 'X-Admin-Key': adminKey }
+        });
+        if (!res.ok) throw new Error("Failed to fetch analytics");
+        const data = await res.json();
+
+        document.getElementById('valRevenue').textContent = formatAmt(data.summary.total_revenue);
+        document.getElementById('valUtrCollected').textContent = formatAmt(data.summary.total_utr_collected);
+        document.getElementById('valBookings').textContent = data.summary.total_bookings;
+
+        // Populate Garages Dropdown once
+        const garageSelect = document.getElementById('filterGarage');
+        if (garageSelect.options.length <= 1 && data.garages.length > 0) {
+          data.garages.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g.id;
+            opt.textContent = g.name;
+            if (garageId && g.id.toString() === garageId) opt.selected = true;
+            garageSelect.appendChild(opt);
+          });
+        }
+
+        if (data.bookings.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5">No completed bookings found for this period.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.bookings.map(b => `
+          <tr>
+            <td><div class="fw-bold text-dark">#${b.slug}</div></td>
+            <td><div class="fw-medium">${b.garage_name}</div></td>
+            <td class="text-muted small">${formatDate(b.completed_at)}</td>
+            <td>${formatAmt(b.total_amount)}</td>
+            <td class="text-success text-end fw-bold">${formatAmt(b.platform_commission)}</td>
+          </tr>
+        `).join('');
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Error loading analytics</td></tr>';
+      }
+    }
+
+    // Initialize with "This Month"
+    setQuickDate('month');
+
+  </script>
+</body>
+</html>
