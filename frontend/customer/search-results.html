@@ -426,7 +426,7 @@
 
             const start = (page - 1) * ITEMS_PER_PAGE;
             const pageData = filtered.slice(start, start + ITEMS_PER_PAGE);
-            container.innerHTML = pageData.map(g => createGarageCard(g)).join('');
+            container.innerHTML = '<div class="row g-4">' + pageData.map(g => createGarageCard(g)).join('') + '</div>';
             updatePagination();
         }
 
@@ -435,44 +435,46 @@
             const city = g.location?.city || 'Ahmedabad';
             const address = street ? `${street}, ${city}` : city;
             const services = (g.services || []).slice(0, 3)
-                .map(s => `<span class="badge bg-light text-dark border">${s.service_name}</span>`).join('');
-            const img = g.logo_url || 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=400';
+                .map(s => `<span class="badge bg-light text-dark border" style="font-size:12px;">${s.service_name}</span>`).join('');
+            const hasLogo = !!g.logo_url;
+            const defaultImg = 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=600';
+            const imgStyle = hasLogo
+                ? `background-image:url('${g.logo_url}'); background-size:contain; background-repeat:no-repeat; background-position:center; background-color:#f8f9fa;`
+                : `background-image:url('${defaultImg}'); background-size:cover; background-position:center;`;
 
             return `
-            <div class="garage-item card border mb-4 rounded-4 shadow-sm overflow-hidden"
-                 id="card-${g.id}"
-                 onclick="window.location.href='garage-details/${g.slug || g.id}'"
-                 onmouseenter="hoverMarker(${g.id})"
-                 onmouseleave="unhoverMarker()">
-                <div class="row g-0">
-                    <div class="col-4" style="max-height:180px;overflow:hidden;">
-                        <div class="w-100 h-100" style="min-height:170px;max-height:220px;background-image:url('${img}');background-size:cover;background-position:center center;${g.is_open_now ? '' : 'filter:grayscale(50%);'}"></div>
+            <div class="col-12 col-md-6">
+              <div class="garage-item card border h-100 rounded-4 shadow-sm overflow-hidden"
+                   id="card-${g.id}"
+                   onclick="window.location.href='garage-details/${g.slug || g.id}'"
+                   onmouseenter="hoverMarker(${g.id})"
+                   onmouseleave="unhoverMarker()">
+                <div class="row g-0 h-100">
+                  <div class="col-5 flex-shrink-0" style="${imgStyle} min-height:160px; ${g.is_open_now ? '' : 'filter:grayscale(55%);'}"></div>
+                  <div class="col-7 d-flex flex-column">
+                    <div class="card-body p-3 d-flex flex-column h-100">
+                      <div class="d-flex justify-content-between align-items-start mb-1">
+                        <h6 class="fw-bold mb-0 text-truncate me-1" style="font-family:var(--font-head); font-size:14px;">${g.name}</h6>
+                        ${g.is_verified ? `<span class="badge bg-success rounded-pill px-2 flex-shrink-0" style="font-size:10px;">✓</span>` : ''}
+                      </div>
+                      <p class="text-muted mb-2" style="font-size:12px;">
+                        <span class="fw-semibold text-dark">${g.distance_km} km</span> • ${address}
+                      </p>
+                      <div class="d-flex flex-wrap gap-1 mb-2">
+                        ${services || '<span class="badge bg-light text-dark border" style="font-size:11px;">General Service</span>'}
+                        ${g.offers_pick_and_drop ? '<span class="badge bg-light text-dark border" style="font-size:11px;">🚗 Drop</span>' : ''}
+                      </div>
+                      <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <span class="${g.is_open_now ? 'text-success' : 'text-danger'} fw-bold" style="font-size:12px;">${g.is_open_now ? 'Open' : 'Closed'}</span>
+                        <button class="btn btn-sm rounded-pill text-white px-2 py-1" style="background:var(--color-primary); font-size:12px;"
+                            onclick="event.stopPropagation();window.location.href='garage-details/${g.slug || g.id}'">
+                            Book Now
+                        </button>
+                      </div>
                     </div>
-                    <div class="col-8 d-flex flex-column">
-                        <div class="card-body p-4 d-flex flex-column h-100">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="fw-bold mb-0 text-truncate me-2" style="font-family:var(--font-head);">${g.name}</h5>
-                                ${g.is_verified ? `<span class="badge bg-success rounded-pill px-2 py-1 flex-shrink-0" style="font-size:11px;">✓</span>` : ''}
-                            </div>
-                            <p class="text-muted mb-3" style="font-size:14px;">
-                                <span class="fw-semibold text-dark">${g.distance_km} km</span> • ${address}
-                            </p>
-                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                ${services || '<span class="badge bg-light text-dark border">General Service</span>'}
-                                ${g.offers_pick_and_drop ? '<span class="badge bg-light text-dark border">🚗 Pick &amp; Drop</span>' : ''}
-                            </div>
-                            <div class="mt-auto d-flex justify-content-between align-items-center">
-                                <div style="font-size:13px;">
-                                    <span class="${g.is_open_now ? 'text-success' : 'text-danger'} fw-bold">${g.is_open_now ? 'Open' : 'Closed'}</span>
-                                </div>
-                                <button class="btn btn-sm rounded-pill text-white px-3" style="background:var(--color-primary);"
-                                    onclick="event.stopPropagation();window.location.href='garage-details/${g.slug || g.id}'">
-                                    Book Now
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                  </div>
                 </div>
+              </div>
             </div>`;
         }
 
@@ -522,21 +524,26 @@
         // ── Skeleton ──
         function showSkeletons() {
             document.getElementById('result-count').textContent = 'Finding garages near you...';
-            document.getElementById('garage-container').innerHTML = [1, 2, 3].map(() => `
-                <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
+            document.getElementById('garage-container').innerHTML = '<div class="row g-4">' + [1,2,3,4].map(() => `
+                <div class="col-12 col-md-6">
+                  <div class="card border rounded-4 shadow-sm overflow-hidden h-100">
                     <div class="row g-0">
-                        <div class="col-4" style="max-height:180px;overflow:hidden;"><div class="skeleton w-100" style="min-height:170px;border-radius:0;"></div></div>
-                        <div class="col-8 p-4">
-                            <div class="skeleton mb-2" style="height:20px;width:60%;"></div>
-                            <div class="skeleton mb-3" style="height:14px;width:45%;"></div>
-                            <div class="d-flex gap-2 mb-3">
-                                <div class="skeleton" style="height:22px;width:70px;border-radius:20px;"></div>
-                                <div class="skeleton" style="height:22px;width:70px;border-radius:20px;"></div>
-                            </div>
-                            <div class="skeleton ms-auto" style="height:32px;width:90px;border-radius:20px;"></div>
+                      <div class="col-5 skeleton" style="min-height:160px; border-radius:0;"></div>
+                      <div class="col-7 p-3">
+                        <div class="skeleton mb-2" style="height:16px;width:70%;"></div>
+                        <div class="skeleton mb-3" style="height:12px;width:50%;"></div>
+                        <div class="d-flex gap-1 mb-3">
+                          <div class="skeleton" style="height:20px;width:65px;border-radius:20px;"></div>
+                          <div class="skeleton" style="height:20px;width:65px;border-radius:20px;"></div>
                         </div>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                          <div class="skeleton" style="height:12px;width:35px;"></div>
+                          <div class="skeleton" style="height:28px;width:75px;border-radius:20px;"></div>
+                        </div>
+                      </div>
                     </div>
-                </div>`).join('');
+                  </div>
+                </div>`).join('') + '</div>';
             document.getElementById('pagination-info').innerHTML = '';
             document.getElementById('pagination').innerHTML = '';
         }

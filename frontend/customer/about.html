@@ -43,21 +43,17 @@
     <div class="bg-white py-5 border-bottom">
         <div class="container py-4">
             <div class="row g-4 text-center">
-                <div class="col-6 col-md-3">
-                    <h2 class="display-5 fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-primary);">10k+</h2>
-                    <p class="text-muted fw-medium mb-0">Happy Customers</p>
-                </div>
-                <div class="col-6 col-md-3">
-                    <h2 class="display-5 fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-primary);">500+</h2>
+                <div class="col-6 col-md-4">
+                    <h2 class="display-5 fw-bold mb-1" id="aboutStatGarages" style="font-family:var(--font-head); color:var(--color-primary);">—</h2>
                     <p class="text-muted fw-medium mb-0">Verified Garages</p>
                 </div>
-                <div class="col-6 col-md-3">
-                    <h2 class="display-5 fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-primary);">15+</h2>
-                    <p class="text-muted fw-medium mb-0">Cities Present</p>
+                <div class="col-6 col-md-4">
+                    <h2 class="display-5 fw-bold mb-1" id="aboutStatSos" style="font-family:var(--font-head); color:var(--color-primary);">—</h2>
+                    <p class="text-muted fw-medium mb-0">SOS-Ready Garages</p>
                 </div>
-                <div class="col-6 col-md-3">
-                    <h2 class="display-5 fw-bold mb-1" style="font-family:var(--font-head); color:var(--color-primary);">&lt;15m</h2>
-                    <p class="text-muted fw-medium mb-0">SOS Response Time</p>
+                <div class="col-6 col-md-4">
+                    <h2 class="display-5 fw-bold mb-1" id="aboutStatCities" style="font-family:var(--font-head); color:var(--color-primary);">—</h2>
+                    <p class="text-muted fw-medium mb-0">Cities Present</p>
                 </div>
             </div>
         </div>
@@ -116,6 +112,19 @@
       ]);
     </script>
 
+    <script src="/js/config.js"></script>
+    <script>
+      (async () => {
+        try {
+          const res = await fetch(getApiBase() + '/garage/stats');
+          if (!res.ok) return;
+          const d = await res.json();
+          if (d.total_garages != null) document.getElementById('aboutStatGarages').textContent = d.total_garages;
+          if (d.sos_garages  != null) document.getElementById('aboutStatSos').textContent    = d.sos_garages;
+          if (d.cities       != null) document.getElementById('aboutStatCities').textContent  = d.cities;
+        } catch (_) {}
+      })();
+    </script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/script.js"></script>
 </body>

@@ -77,7 +77,7 @@
 
         <p class="gnm-hero-sub">
           Instant booking, live mechanic tracking &amp; emergency SOS.<br>
-          Verified garages within 5 km, always.
+          Verified garages within 2 km, always.
         </p>
 
         <div class="gnm-search-wrap">

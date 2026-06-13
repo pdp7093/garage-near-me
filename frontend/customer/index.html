@@ -40,7 +40,7 @@
 
           <p class="text-muted mb-4" style="font-size:16px; line-height:1.6; max-width:450px;">
             Instant booking, live mechanic tracking &amp; emergency SOS.<br>
-            Verified garages within 5 km, always.
+            Verified garages within 2 km, always.
           </p>
 
           <div class="bg-white p-2 rounded-pill shadow border d-flex align-items-center mb-5" style="max-width:480px;">
@@ -61,29 +61,21 @@
             </div>
             <div style="width:1px; height:30px; background:var(--color-border);"></div>
             <div>
-              <h4 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">4.8 <span style="color:#F59E0B;">★</span></h4>
-              <span class="text-muted small">Average Rating</span>
+              <h4 class="fw-bold mb-0" id="statSosGarages" style="font-family:var(--font-head); color:var(--color-text);">—</h4>
+              <span class="text-muted small">SOS-Ready Garages</span>
             </div>
             <div style="width:1px; height:30px; background:var(--color-border);"></div>
             <div>
-              <h4 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">&lt;15m</h4>
-              <span class="text-muted small">Avg. Response</span>
+              <h4 class="fw-bold mb-0" id="statCities" style="font-family:var(--font-head); color:var(--color-text);">—</h4>
+              <span class="text-muted small">Cities</span>
             </div>
           </div>
         </div>
 
-        <!-- Right: Simple Visual Image -->
+        <!-- Right: Visual Image -->
         <div class="col-lg-6 z-1">
             <div class="position-relative w-100 rounded-5 shadow-lg overflow-hidden border" style="height:480px;">
                 <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=800" class="w-100 h-100 object-fit-cover" alt="Mechanic working on car">
-                <!-- Overlay Card -->
-                <div class="position-absolute bottom-0 start-0 m-4 bg-white rounded-4 p-3 shadow-lg d-flex align-items-center gap-3 border" style="max-width:280px;">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold" style="width:48px; height:48px; color:var(--color-primary); font-size:18px;">SA</div>
-                    <div>
-                        <div class="fw-bold text-dark" style="font-size:14px; font-family:var(--font-head);">Sharma Auto Garage</div>
-                        <div class="text-muted" style="font-size:12px;">0.8 km away • <span class="text-success fw-semibold">Open now</span></div>
-                    </div>
-                </div>
             </div>
         </div>
       </div>
@@ -189,7 +181,7 @@
   <script>
     let _heroLat = null, _heroLng = null;
 
-    // ── Load real garage count ──
+    // ── Load live stats ──
     (async () => {
       try {
         const res = await fetch(getApiBase() + '/garage/stats');
@@ -199,9 +191,12 @@
           const label = n >= 100 ? n + '+' : n;
           document.getElementById('heroGarageCount').textContent = label;
           document.getElementById('statVerifiedGarages').textContent = label;
+          document.getElementById('statSosGarages').textContent = d.sos_garages != null ? d.sos_garages : '—';
+          document.getElementById('statCities').textContent = d.cities != null ? d.cities : '—';
         }
       } catch (_) {}
     })();
+
 
     // ── GPS button ──
     document.getElementById('gpsBtn').addEventListener('click', function () {

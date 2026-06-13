@@ -728,8 +728,13 @@ class NearbeGarageResponse(schemas.GaragePublicResponse):
 @router.get("/stats")
 def get_public_stats(db: Session = Depends(get_db)):
     """Public stats for homepage — no auth needed."""
-    total_garages = db.query(models.Garage).filter(models.Garage.is_active == True).count()
-    return {"total_garages": total_garages}
+    active_q = models.Garage.is_active == True
+    total_garages = db.query(models.Garage).filter(active_q).count()
+    sos_garages   = db.query(models.Garage).filter(active_q, models.Garage.is_sos_available == True).count()
+    cities        = db.query(models.GarageLocation.city).join(models.Garage).filter(
+        active_q, models.GarageLocation.city != None
+    ).distinct().count()
+    return {"total_garages": total_garages, "sos_garages": sos_garages, "cities": max(cities, 1)}
 
 
 @router.get("/nearby")
