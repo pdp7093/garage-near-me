@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="google-site-verification" content="oo-PKXYE2tMvJTEH0tq6-_hivJePvxok7u9f9tqAp28" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Search Results — GarageNearMe</title>
@@ -153,10 +154,6 @@
                         id="chip-nearest" onclick="setSort('nearest',this)">Nearest</button>
                     <button class="btn btn-outline-secondary filter-chip rounded-pill px-3 py-1" id="chip-open"
                         onclick="toggleChip('open')">Open Now</button>
-                    <button class="btn btn-outline-secondary filter-chip rounded-pill px-3 py-1" id="chip-pick"
-                        onclick="toggleChip('pick')">🚗 Pick &amp; Drop</button>
-                    <button class="btn btn-outline-secondary filter-chip rounded-pill px-3 py-1" id="chip-sos"
-                        onclick="toggleChip('sos')">🆘 SOS Available</button>
                     <select id="radius-select" class="form-select form-select-sm rounded-pill border px-3"
                         style="font-size:13px;width:auto;cursor:pointer;" onchange="changeRadius(this.value)">
                         <option value="2">Within 2 km</option>
@@ -224,7 +221,7 @@
         let userLng = null;
 
         // filter state
-        let fOpen = false, fPick = false, fSOS = false;
+        let fOpen = false;
         let serviceQuery = '';
         let searchRadius = 2.0;
 
@@ -382,19 +379,13 @@
 
         function toggleChip(type) {
             if (type === 'open') fOpen = !fOpen;
-            if (type === 'pick') fPick = !fPick;
-            if (type === 'sos') fSOS = !fSOS;
             document.getElementById('chip-open').classList.toggle('active', fOpen);
-            document.getElementById('chip-pick').classList.toggle('active', fPick);
-            document.getElementById('chip-sos').classList.toggle('active', fSOS);
             applyFilters();
         }
 
         function applyFilters() {
             let data = [...allGarages];
             if (fOpen) data = data.filter(g => g.is_open_now);
-            if (fPick) data = data.filter(g => g.offers_pick_and_drop);
-            if (fSOS) data = data.filter(g => g.is_sos_available);
             data.sort((a, b) => a.distance_km - b.distance_km);
             filtered = data;
             currentPage = 1;
