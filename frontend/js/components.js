@@ -629,6 +629,13 @@ function getStoredCustomer() {
   }
 }
 
+function _customerForceLogout() {
+  localStorage.removeItem('gnm_token');
+  localStorage.removeItem('gnm_user');
+  localStorage.removeItem('gnm_role');
+  window.location.href = '/customer/login';
+}
+
 async function fetchCustomerFromApi() {
   const token = localStorage.getItem('gnm_token');
   if (!token) return null;
@@ -637,6 +644,11 @@ async function fetchCustomerFromApi() {
     const response = await fetch(`${API_BASE}/api/auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
+
+    if (response.status === 401) {
+      _customerForceLogout();
+      return null;
+    }
 
     if (!response.ok) {
       return null;
@@ -665,14 +677,14 @@ async function updateCustomerNav() {
   const mobileProfileLink = document.getElementById('mobileProfileLink');
   const avatarInitials = document.getElementById('navAvatarInitials');
   
-  let gnmUser = getStoredCustomer();
   const token = localStorage.getItem('gnm_token');
 
-  if ((!gnmUser || !gnmUser.name) && token) {
+  // Token nahi hai toh stored user bhi ignore karo
+  let gnmUser = null;
+  if (token) {
+    // Har baar API se fresh verify karo — stale localStorage se blindly show mat karo
     gnmUser = await fetchCustomerFromApi();
-  } else if (token && gnmUser && !gnmUser.profile_image) {
-    const freshUser = await fetchCustomerFromApi();
-    if (freshUser) gnmUser = freshUser;
+    // 401 pe fetchCustomerFromApi redirect kar dega, yahan null milega
   }
 
   if (gnmUser && gnmUser.name) {

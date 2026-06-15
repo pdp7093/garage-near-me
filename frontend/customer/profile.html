@@ -243,12 +243,24 @@
             window.location.href = 'login';
         }
 
+        function forceLogout() {
+            localStorage.removeItem('gnm_token');
+            localStorage.removeItem('gnm_user');
+            localStorage.removeItem('gnm_role');
+            window.location.href = 'login';
+        }
+
         async function loadProfile() {
             try {
                 const response = await fetch(`${getApiBase()}/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
+                if (response.status === 401) {
+                    forceLogout();
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error('Failed to load profile');
                 }
@@ -376,9 +388,7 @@
         }
 
         function logout() {
-            localStorage.removeItem('gnm_token');
-            localStorage.removeItem('gnm_role');
-            window.location.href = 'login';
+            forceLogout();
         }
 
         // Add logout listener
@@ -398,6 +408,7 @@
                 const response = await fetch(`${getApiBase()}/addresses/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (response.status === 401) { forceLogout(); return; }
                 if(!response.ok) throw new Error();
                 const addresses = await response.json();
 
