@@ -172,6 +172,21 @@ class GarageOTP(Base):
 
 
 # ──────────────────────────────────────────
+# CUSTOMER OTP
+# ──────────────────────────────────────────
+
+class CustomerOTP(Base):
+    __tablename__ = "customer_otps"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    phone      = Column(String(15), nullable=False, index=True)
+    otp        = Column(String(6), nullable=False)
+    is_used    = Column(Boolean, default=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ──────────────────────────────────────────
 # GARAGE (Main Table)
 # Sirf admin approve karne ke baad yahan entry aati hai
 # ──────────────────────────────────────────

@@ -9,6 +9,31 @@ from fastapi.security import OAuth2PasswordBearer
 import models, schemas
 from database import get_db
 from utils.file_upload import save_customer_profile_image
+import random
+import httpx
+
+FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY", "")
+OTP_EXPIRY_MINUTES = 10
+
+async def send_sms_otp(phone: str, otp: str):
+    """Fast2SMS Dev API se OTP bhejo"""
+    if not FAST2SMS_API_KEY:
+        print(f"[SMS] FAST2SMS_API_KEY not set — OTP for {phone}: {otp}")
+        return
+    try:
+        url = "https://www.fast2sms.com/dev/bulkV2"
+        params = {
+            "authorization": FAST2SMS_API_KEY,
+            "route": "otp",
+            "variables_values": otp,
+            "flash": 0,
+            "numbers": phone,
+        }
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(url, params=params)
+            print(f"[SMS] Fast2SMS response: {resp.text}")
+    except Exception as e:
+        print(f"[SMS] Error sending OTP: {e}")
 
 router = APIRouter()
 
@@ -91,6 +116,104 @@ def admin_get_customers(
         "limit":     limit,
         "customers": rows,
     }
+
+
+# ──────────────────────────────────────────
+# SEND OTP — /api/auth/send-otp
+# ──────────────────────────────────────────
+
+@router.post("/send-otp")
+async def send_otp(
+    request: schemas.OTPSendRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Customer apna phone number dalta hai → OTP milta hai.
+    Agar phone registered nahi hai toh 404 error.
+    """
+    # Check karo ki phone registered hai
+    customer = db.query(models.Customer).filter(
+        models.Customer.phone == request.phone
+    ).first()
+
+    if not customer:
+        raise HTTPException(
+            status_code=404,
+            detail="No account found with this phone number. Please register first."
+        )
+
+    # Purane unused OTPs delete karo
+    db.query(models.CustomerOTP).filter(
+        models.CustomerOTP.phone == request.phone,
+        models.CustomerOTP.is_used == False
+    ).delete()
+
+    # Naya OTP generate karo
+    otp = str(random.randint(100000, 999999))
+
+    # DB mein save karo
+    from datetime import datetime, timedelta
+    customer_otp = models.CustomerOTP(
+        phone=request.phone,
+        otp=otp,
+        is_used=False,
+        expires_at=datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    )
+    db.add(customer_otp)
+    db.commit()
+
+    # SMS bhejo
+    await send_sms_otp(request.phone, otp)
+    print(f"[OTP] Customer {request.phone} → {otp}")
+
+    return {"message": f"OTP sent to {request.phone}"}
+
+
+# ──────────────────────────────────────────
+# VERIFY OTP — /api/auth/verify-otp
+# ──────────────────────────────────────────
+
+@router.post("/verify-otp", response_model=schemas.Token)
+def verify_otp(
+    request: schemas.OTPVerifyRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Customer OTP dalta hai → JWT token milta hai.
+    """
+    from datetime import datetime
+    otp_record = db.query(models.CustomerOTP).filter(
+        models.CustomerOTP.phone == request.phone,
+        models.CustomerOTP.otp == request.otp,
+        models.CustomerOTP.is_used == False,
+        models.CustomerOTP.expires_at > datetime.utcnow()
+    ).first()
+
+    if not otp_record:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired OTP. Please request a new one."
+        )
+
+    customer = db.query(models.Customer).filter(
+        models.Customer.phone == request.phone
+    ).first()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    # OTP mark as used
+    otp_record.is_used = True
+    db.commit()
+
+    # JWT token banao
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": customer.phone, "user_id": customer.id, "role": "customer"},
+        expires_delta=access_token_expires
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/register", response_model=schemas.CustomerResponse, status_code=status.HTTP_201_CREATED)
