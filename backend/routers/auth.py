@@ -216,6 +216,118 @@ def verify_otp(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+# ──────────────────────────────────────────
+# SEND OTP FOR REGISTER — /api/auth/send-otp-register
+# ──────────────────────────────────────────
+
+@router.post("/send-otp-register")
+async def send_otp_register(
+    request: schemas.OTPSendRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Register flow: phone pe OTP bhejo.
+    Agar phone already registered hai toh error.
+    """
+    existing = db.query(models.Customer).filter(
+        models.Customer.phone == request.phone
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Phone number already registered. Please login instead."
+        )
+
+    # Purane unused OTPs delete karo
+    db.query(models.CustomerOTP).filter(
+        models.CustomerOTP.phone == request.phone,
+        models.CustomerOTP.is_used == False
+    ).delete()
+
+    otp = str(random.randint(100000, 999999))
+    from datetime import datetime, timedelta
+    customer_otp = models.CustomerOTP(
+        phone=request.phone,
+        otp=otp,
+        is_used=False,
+        expires_at=datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    )
+    db.add(customer_otp)
+    db.commit()
+
+    await send_sms_otp(request.phone, otp)
+    print(f"[OTP] Register {request.phone} → {otp}")
+
+    return {"message": f"OTP sent to {request.phone}"}
+
+
+# ──────────────────────────────────────────
+# REGISTER + VERIFY OTP — /api/auth/register-verify
+# ──────────────────────────────────────────
+
+@router.post("/register-verify", response_model=schemas.Token)
+def register_verify(
+    request: schemas.CustomerRegisterVerify,
+    db: Session = Depends(get_db)
+):
+    """
+    OTP verify karo + account create karo + token return karo.
+    """
+    from datetime import datetime
+    otp_record = db.query(models.CustomerOTP).filter(
+        models.CustomerOTP.phone == request.phone,
+        models.CustomerOTP.otp == request.otp,
+        models.CustomerOTP.is_used == False,
+        models.CustomerOTP.expires_at > datetime.utcnow()
+    ).first()
+
+    if not otp_record:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired OTP. Please request a new one."
+        )
+
+    # Double check phone not already taken
+    existing = db.query(models.Customer).filter(
+        models.Customer.phone == request.phone
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Phone number already registered.")
+
+    # Email check
+    existing_email = db.query(models.Customer).filter(
+        models.Customer.email == request.email
+    ).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already registered.")
+
+    # OTP mark as used
+    otp_record.is_used = True
+
+    # Random password generate karo (user kabhi use nahi karega — OTP se login hoga)
+    import secrets
+    random_password = secrets.token_hex(16)
+    hashed_password = get_password_hash(random_password)
+
+    new_customer = models.Customer(
+        name=request.name,
+        phone=request.phone,
+        email=request.email,
+        hashed_password=hashed_password
+    )
+    db.add(new_customer)
+    db.commit()
+    db.refresh(new_customer)
+
+    # Auto login — token banao
+    access_token = create_access_token(
+        data={"sub": new_customer.phone, "user_id": new_customer.id, "role": "customer"},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
 @router.post("/register", response_model=schemas.CustomerResponse, status_code=status.HTTP_201_CREATED)
 def register_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_db)):
     # Check if phone exists

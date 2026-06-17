@@ -156,17 +156,16 @@
                         Create an account</h1>
                     <p id="regSubtitle" style="font-size:13px; color:var(--color-text-muted); margin-bottom:24px;">Sign up as a customer to book vehicle services</p>
 
-                    <!-- Register Form -->
-                    <form id="regForm" novalidate onsubmit="return submitReg(event)">
-                        
+                    <!-- Step 1: Details Form -->
+                    <div id="stepDetails">
                         <!-- Full Name -->
                         <div class="mb-3">
                             <label style="display:block; font-size:13px; font-weight:500; color:var(--color-text); font-family:var(--font-head); margin-bottom:8px;">Full Name</label>
-                            <div class="gnm-search-box" style="padding:10px 14px; border:1.5px solid var(--color-border); border-radius:var(--radius-md);">
+                            <div id="nameWrap" class="gnm-search-box" style="padding:10px 14px; border:1.5px solid var(--color-border); border-radius:var(--radius-md);">
                                 <svg viewBox="0 0 24 24" fill="#9CA3AF" width="16" height="16" style="flex-shrink:0;">
                                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                                 </svg>
-                                <input type="text" id="regName" placeholder="John Doe" required
+                                <input type="text" id="regName" placeholder="John Doe"
                                     style="flex:1; border:none; outline:none; font-size:14px; color:var(--color-text); font-family:var(--font-body); background:transparent;" />
                             </div>
                         </div>
@@ -174,61 +173,74 @@
                         <!-- Phone Number -->
                         <div class="mb-3">
                             <label style="display:block; font-size:13px; font-weight:500; color:var(--color-text); font-family:var(--font-head); margin-bottom:8px;">Phone Number</label>
-                            <div class="gnm-search-box" style="padding:0; border:1.5px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; gap:0;">
+                            <div id="phoneWrap" class="gnm-search-box" style="padding:0; border:1.5px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; gap:0;">
                                 <div style="padding:10px 14px; background:var(--color-bg); border-right:1.5px solid var(--color-border); font-size:14px; font-weight:500; color:var(--color-text);">
                                     🇮🇳 +91
                                 </div>
-                                <input type="tel" id="regPhone" maxlength="10" inputmode="numeric" placeholder="98765 43210" required
+                                <input type="tel" id="regPhone" maxlength="10" inputmode="numeric" placeholder="98765 43210"
                                     oninput="this.value=this.value.replace(/\D/g,'')"
                                     style="flex:1; border:none; outline:none; padding:10px 14px; font-size:14px; color:var(--color-text); font-family:var(--font-body); background:transparent; letter-spacing:1px;" />
                             </div>
                         </div>
 
                         <!-- Email Address -->
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label style="display:block; font-size:13px; font-weight:500; color:var(--color-text); font-family:var(--font-head); margin-bottom:8px;">Email Address</label>
-                            <div class="gnm-search-box" style="padding:10px 14px; border:1.5px solid var(--color-border); border-radius:var(--radius-md);">
+                            <div id="emailWrap" class="gnm-search-box" style="padding:10px 14px; border:1.5px solid var(--color-border); border-radius:var(--radius-md);">
                                 <svg viewBox="0 0 24 24" fill="#9CA3AF" width="16" height="16" style="flex-shrink:0;">
                                     <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                                 </svg>
-                                <input type="email" id="regEmail" placeholder="you@example.com" required
+                                <input type="email" id="regEmail" placeholder="you@example.com"
                                     style="flex:1; border:none; outline:none; font-size:14px; color:var(--color-text); font-family:var(--font-body); background:transparent;" />
-                            </div>
-                        </div>
-
-                        <!-- Password -->
-                        <div class="mb-4">
-                            <label style="display:block; font-size:13px; font-weight:500; color:var(--color-text); font-family:var(--font-head); margin-bottom:8px;">Password</label>
-                            <div class="gnm-search-box" style="padding:10px 14px; border:1.5px solid var(--color-border); border-radius:var(--radius-md);">
-                                <svg viewBox="0 0 24 24" fill="#9CA3AF" width="16" height="16" style="flex-shrink:0;">
-                                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
-                                </svg>
-                                <input type="password" id="regPassword" placeholder="Create a strong password" required
-                                    style="flex:1; border:none; outline:none; font-size:14px; color:var(--color-text); font-family:var(--font-body); background:transparent;" />
-                                <button type="button" class="gnm-gps-btn" onclick="toggleRegPwd()" title="Show/hide password">
-                                    <svg id="regEyeIcon" viewBox="0 0 24 24" fill="#9CA3AF" width="16" height="16">
-                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
-                                    </svg>
-                                </button>
                             </div>
                         </div>
 
                         <div class="d-flex align-items-start gap-2 mb-4">
-                            <input type="checkbox" id="regTerms" required style="accent-color:var(--color-accent); width:15px; height:15px; cursor:pointer; margin-top:3px;" />
+                            <input type="checkbox" id="regTerms" style="accent-color:var(--color-accent); width:15px; height:15px; cursor:pointer; margin-top:3px;" />
                             <label for="regTerms" style="font-size:12px; color:var(--color-text-muted); cursor:pointer; margin:0; line-height:1.5;">
                                 I agree to GarageNearMe's <a href="#" style="color:var(--color-accent); text-decoration:none;">Terms of Service</a> and <a href="#" style="color:var(--color-accent); text-decoration:none;">Privacy Policy</a>.
                             </label>
                         </div>
 
-                        <button type="submit" id="regSubmitBtn" class="gnm-search-btn"
+                        <button id="regSendOtpBtn" onclick="regSendOtp()" class="gnm-search-btn"
                             style="width:100%; padding:14px; font-size:15px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; gap:8px;">
-                            Create Account
+                            Send OTP
                             <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
-                                <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
+                                <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
                             </svg>
                         </button>
+                    </div>
 
-                    </form>
+                    <!-- Step 2: OTP Verification -->
+                    <div id="stepOtp" style="display:none;">
+                        <p style="font-size:13px; color:var(--color-text-muted); margin-bottom:16px;">
+                            OTP sent to <strong id="otpPhoneDisplay"></strong>
+                            <a href="#" onclick="goBackToDetails()" style="color:var(--color-accent); font-size:12px; margin-left:8px;">Change</a>
+                        </p>
+
+                        <div class="mb-3">
+                            <label style="display:block; font-size:13px; font-weight:500; color:var(--color-text); font-family:var(--font-head); margin-bottom:8px;">Enter OTP</label>
+                            <div id="otpWrap" class="gnm-search-box" style="padding:10px 14px; border:1.5px solid var(--color-border); border-radius:var(--radius-md); justify-content:center;">
+                                <input type="tel" id="otpInput" maxlength="6" inputmode="numeric"
+                                    oninput="this.value=this.value.replace(/\D/g,'')"
+                                    placeholder="6-digit OTP"
+                                    style="flex:1; border:none; outline:none; font-size:18px; color:var(--color-text); font-family:var(--font-body); background:transparent; letter-spacing:6px; text-align:center;" />
+                            </div>
+                        </div>
+
+                        <div style="text-align:right; margin-bottom:16px;">
+                            <span id="resendTimer" style="font-size:12px; color:var(--color-text-muted);"></span>
+                            <a href="#" id="resendLink" onclick="regResendOtp()" style="font-size:12px; color:var(--color-accent); text-decoration:none; font-weight:500; display:none;">Resend OTP</a>
+                        </div>
+
+                        <button id="regVerifyBtn" onclick="regVerifyOtp()" class="gnm-search-btn"
+                            style="width:100%; padding:14px; font-size:15px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; gap:8px;">
+                            Verify & Create Account
+                            <svg viewBox="0 0 24 24" fill="white" width="16" height="16">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                            </svg>
+                        </button>
+                    </div>
 
                     <p style="font-size:13px; color:var(--color-text-muted); text-align:center; margin-top:24px;">
                         Already have an account? <a href="login" style="color:var(--color-accent); text-decoration:none; font-weight:500;">Sign in here</a>
@@ -258,68 +270,164 @@
     <script src="/js/script.js"></script>
 
     <script>
-        // ── Register page JS ──
+        // ── Register OTP flow ──
+        let resendTimerInterval = null;
 
-        function toggleRegPwd() {
-            const pwdInput = document.getElementById('regPassword');
-            const eyeIcon = document.getElementById('regEyeIcon');
-            const show = pwdInput.type === 'password';
-            pwdInput.type = show ? 'text' : 'password';
-            eyeIcon.innerHTML = show
-                ? '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>'
-                : '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>';
+        function showRegError(wrapId, message) {
+            const wrap = document.getElementById(wrapId);
+            if (wrap) wrap.style.borderColor = 'var(--color-danger)';
+            setTimeout(() => { if (wrap) wrap.style.borderColor = 'var(--color-border)'; }, 3000);
+            const existing = document.getElementById('regError');
+            if (existing) existing.remove();
+            const err = document.createElement('div');
+            err.id = 'regError';
+            err.style.cssText = 'color:var(--color-danger); font-size:13px; margin-top:10px; text-align:center; font-weight:500;';
+            err.textContent = message;
+            const activeBtn = document.getElementById('regSendOtpBtn') || document.getElementById('regVerifyBtn');
+            if (activeBtn) activeBtn.insertAdjacentElement('beforebegin', err);
+            setTimeout(() => { if (err.parentNode) err.remove(); }, 4000);
         }
 
-        async function submitReg(e) {
-            e.preventDefault();
+        function startResendTimer() {
+            let seconds = 30;
+            document.getElementById('resendTimer').textContent = `Resend in ${seconds}s`;
+            document.getElementById('resendLink').style.display = 'none';
+            if (resendTimerInterval) clearInterval(resendTimerInterval);
+            resendTimerInterval = setInterval(() => {
+                seconds--;
+                if (seconds <= 0) {
+                    clearInterval(resendTimerInterval);
+                    document.getElementById('resendTimer').textContent = '';
+                    document.getElementById('resendLink').style.display = 'inline';
+                } else {
+                    document.getElementById('resendTimer').textContent = `Resend in ${seconds}s`;
+                }
+            }, 1000);
+        }
+
+        function goBackToDetails() {
+            document.getElementById('stepDetails').style.display = 'block';
+            document.getElementById('stepOtp').style.display = 'none';
+            document.getElementById('regTitle').textContent = 'Create an account';
+            document.getElementById('regSubtitle').textContent = 'Sign up as a customer to book vehicle services';
+            if (resendTimerInterval) clearInterval(resendTimerInterval);
+        }
+
+        async function regSendOtp() {
             const name = document.getElementById('regName').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
             const email = document.getElementById('regEmail').value.trim();
-            const pass = document.getElementById('regPassword').value;
+            const terms = document.getElementById('regTerms').checked;
 
-            if (phone.length !== 10) {
-                alert('Please enter a valid 10-digit phone number.');
-                return false;
-            }
-            if (pass.length < 4) {
-                alert('Password must be at least 4 characters.');
-                return false;
-            }
+            if (!name) { showRegError('nameWrap', 'Please enter your full name.'); return; }
+            if (phone.length !== 10) { showRegError('phoneWrap', 'Please enter a valid 10-digit phone number.'); return; }
+            if (!email || !email.includes('@')) { showRegError('emailWrap', 'Please enter a valid email address.'); return; }
+            if (!terms) { showRegError('nameWrap', 'Please agree to the Terms of Service.'); return; }
 
-            const btn = document.getElementById('regSubmitBtn');
+            const btn = document.getElementById('regSendOtpBtn');
+            btn.innerHTML = 'Sending OTP... <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>';
+            btn.style.opacity = '0.75';
+            btn.disabled = true;
+
+            try {
+                // Pehle check karo phone already registered toh nahi
+                const response = await fetch(`${getApiBase()}/auth/send-otp-register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: '+91' + phone })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
+
+                // OTP step dikhao
+                document.getElementById('stepDetails').style.display = 'none';
+                document.getElementById('stepOtp').style.display = 'block';
+                document.getElementById('otpPhoneDisplay').textContent = '+91 ' + phone;
+                document.getElementById('regTitle').textContent = 'Verify Phone';
+                document.getElementById('regSubtitle').textContent = 'We sent a 6-digit OTP to your phone';
+                document.getElementById('otpInput').focus();
+                startResendTimer();
+
+            } catch (err) {
+                btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+                showRegError('phoneWrap', err.message);
+            }
+        }
+
+        async function regResendOtp() {
+            document.getElementById('resendLink').style.display = 'none';
+            const phone = document.getElementById('regPhone').value.trim();
+            try {
+                const response = await fetch(`${getApiBase()}/auth/send-otp-register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: '+91' + phone })
+                });
+                if (response.ok) startResendTimer();
+            } catch (err) {
+                console.warn('Resend failed:', err);
+            }
+        }
+
+        async function regVerifyOtp() {
+            const name = document.getElementById('regName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const otp = document.getElementById('otpInput').value.trim();
+
+            if (otp.length !== 6) { showRegError('otpWrap', 'Please enter the 6-digit OTP.'); return; }
+
+            const btn = document.getElementById('regVerifyBtn');
             btn.innerHTML = 'Creating Account... <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>';
             btn.style.opacity = '0.75';
             btn.disabled = true;
 
             try {
-                const response = await fetch(`${getApiBase()}/auth/register`, {
+                const response = await fetch(`${getApiBase()}/auth/register-verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         name: name,
                         phone: '+91' + phone,
                         email: email,
-                        password: pass
+                        otp: otp
                     })
                 });
 
                 const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Verification failed. Please try again.');
 
-                if (!response.ok) {
-                    throw new Error(data.detail || 'Registration failed. Please try again.');
-                }
+                // Token save karo — auto login
+                localStorage.setItem('gnm_token', data.access_token);
+                localStorage.setItem('gnm_role', 'customer');
 
-                alert('Registration Successful! ✅\nRedirecting to login...');
-                window.location.href = 'login';
+                // User info save karo
+                try {
+                    const meRes = await fetch(`${getApiBase()}/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${data.access_token}` }
+                    });
+                    if (meRes.ok) {
+                        const meData = await meRes.json();
+                        localStorage.setItem('gnm_user', JSON.stringify({
+                            name: meData.name,
+                            email: meData.email,
+                            phone: meData.phone,
+                            profile_image: null
+                        }));
+                    }
+                } catch (e) {}
+
+                window.location.href = 'index';
 
             } catch (err) {
-                btn.innerHTML = 'Create Account <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>';
+                btn.innerHTML = 'Verify & Create Account <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
                 btn.style.opacity = '1';
                 btn.disabled = false;
-                alert(err.message);
+                showRegError('otpWrap', err.message);
             }
-
-            return false;
         }
     </script>
 

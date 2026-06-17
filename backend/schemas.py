@@ -163,6 +163,13 @@ class FCMTokenUpdate(BaseModel):
     fcm_token: str
 
 
+class CustomerRegisterVerify(BaseModel):
+    """Register + OTP verify ek saath"""
+    name:  str
+    phone: str
+    email: str
+    otp:   str
+
 class OTPSendRequest(BaseModel):
     """Garage owner phone number dalta hai → OTP bhejo"""
     phone: str
