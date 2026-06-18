@@ -4,3 +4,4 @@ backend/venv/
 backend/venv/pyvenv.cfg
 backend/venv/pyvenv.cfg
 firebase-service-account.json
+backend/.env
