@@ -12,28 +12,33 @@ from utils.file_upload import save_customer_profile_image
 import random
 import httpx
 
-FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY", "")
-OTP_EXPIRY_MINUTES = 10
+TWILIO_ACCOUNT_SID   = os.getenv("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "")
+TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
+OTP_EXPIRY_MINUTES   = 10
 
-async def send_sms_otp(phone: str, otp: str):
-    """Fast2SMS Dev API se OTP bhejo"""
-    if not FAST2SMS_API_KEY:
-        print(f"[SMS] FAST2SMS_API_KEY not set — OTP for {phone}: {otp}")
+async def send_whatsapp_otp(phone: str, otp: str):
+    """Twilio WhatsApp Sandbox se OTP bhejo"""
+    if not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN:
+        print(f"[OTP] Twilio not configured — OTP for {phone}: {otp}")
         return
     try:
-        url = "https://www.fast2sms.com/dev/bulkV2"
-        params = {
-            "authorization": FAST2SMS_API_KEY,
-            "route": "otp",
-            "variables_values": otp,
-            "flash": 0,
-            "numbers": phone,
+        url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
+        to_number = phone if phone.startswith("+") else f"+{phone}"
+        data = {
+            "From": TWILIO_WHATSAPP_FROM,
+            "To": f"whatsapp:{to_number}",
+            "Body": f"Your GarageNearMe OTP is *{otp}*. Valid for 10 minutes. Do not share with anyone."
         }
         async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(url, params=params)
-            print(f"[SMS] Fast2SMS response: {resp.text}")
+            resp = await client.post(
+                url,
+                data=data,
+                auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+            )
+            print(f"[OTP] Twilio response: {resp.status_code} {resp.text}")
     except Exception as e:
-        print(f"[SMS] Error sending OTP: {e}")
+        print(f"[OTP] Twilio error: {e}")
 
 router = APIRouter()
 
@@ -163,7 +168,7 @@ async def send_otp(
     db.commit()
 
     # SMS bhejo
-    await send_sms_otp(request.phone, otp)
+    await send_whatsapp_otp(request.phone, otp)
     print(f"[OTP] Customer {request.phone} → {otp}")
 
     return {"message": f"OTP sent to {request.phone}"}
@@ -255,7 +260,7 @@ async def send_otp_register(
     db.add(customer_otp)
     db.commit()
 
-    await send_sms_otp(request.phone, otp)
+    await send_whatsapp_otp(request.phone, otp)
     print(f"[OTP] Register {request.phone} → {otp}")
 
     return {"message": f"OTP sent to {request.phone}"}
