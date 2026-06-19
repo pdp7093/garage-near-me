@@ -303,6 +303,41 @@
     }
 
     // ✅ Application pending screen dikhao
+    // ✅ Phone se application status check karo
+    async function checkApplicationStatus(phone) {
+      try {
+        const res = await fetch(`${getApiBase()}/garage-requests/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: phone,
+            owner_name: 'check',
+            garage_name: 'check',
+            garage_type: 'both',
+            address: 'check',
+            city: 'check',
+            pincode: '000000'
+          })
+        });
+        const data = await res.json();
+        // Agar already pending/registered error aaya → pending screen
+        if (!res.ok && (data.detail?.includes('already pending') || data.detail?.includes('already registered'))) {
+          showApplicationPending();
+        } else {
+          // Normal error — registered nahi hai
+          const alertBox = document.getElementById('loginAlert');
+          alertBox.textContent = 'Phone number not registered. Please apply as a partner first.';
+          alertBox.className = 'alert alert-danger small mb-3';
+          alertBox.classList.remove('d-none');
+        }
+      } catch {
+        const alertBox = document.getElementById('loginAlert');
+        alertBox.textContent = 'Network error. Please try again.';
+        alertBox.className = 'alert alert-danger small mb-3';
+        alertBox.classList.remove('d-none');
+      }
+    }
+
     function showApplicationPending() {
       document.querySelectorAll('.auth-form-container').forEach(f => f.classList.add('d-none'));
       document.getElementById('authTabs').style.display = 'none';
@@ -377,11 +412,19 @@
           startResendTimer();
           document.getElementById('otpInput').focus();
         } else {
-          alertBox.textContent = data.detail || 'Phone number not registered. Contact admin.';
-          alertBox.className   = 'alert alert-danger small mb-3';
-          alertBox.classList.remove('d-none');
           sp.classList.add('d-none');
           btn.disabled = false;
+
+          // ✅ Pending application check — login tab se bhi
+          const msg = data.detail || '';
+          if (msg.includes('pending') || msg.includes('not registered')) {
+            // Backend se check karo application status
+            checkApplicationStatus(phone);
+          } else {
+            alertBox.textContent = msg || 'Phone number not registered. Contact admin.';
+            alertBox.className   = 'alert alert-danger small mb-3';
+            alertBox.classList.remove('d-none');
+          }
         }
       } catch {
         alertBox.textContent = 'Network error. Please try again.';
@@ -488,9 +531,15 @@
           form.classList.add('d-none');
           document.getElementById('uploadDocsForm').classList.remove('d-none');
         } else {
-          alertBox.innerText = data.detail || 'Failed to submit. Please try again.';
-          alertBox.classList.add('alert-danger');
-          alertBox.classList.remove('d-none');
+          // ✅ Already pending/registered → Application Under Review screen dikhao
+          const msg = data.detail || '';
+          if (msg.includes('already pending') || msg.includes('already registered')) {
+            showApplicationPending();
+          } else {
+            alertBox.innerText = msg || 'Failed to submit. Please try again.';
+            alertBox.classList.add('alert-danger');
+            alertBox.classList.remove('d-none');
+          }
         }
       } catch {
         alertBox.innerText = 'Network error. Is the backend running?';
