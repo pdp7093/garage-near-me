@@ -413,7 +413,7 @@
 
           // ✅ Pending application check — login tab se bhi
           const msg = data.detail || '';
-          if (msg.includes('pending') || msg.includes('not registered')) {
+          if (msg.includes('pending') || msg.includes('not registered') || msg.includes('No active garage')) {
             // Backend se check karo application status
             checkApplicationStatus(phone);
           } else {
