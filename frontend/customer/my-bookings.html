@@ -10,9 +10,8 @@
     <meta name="theme-color" content="#DC2626">
     <link rel="stylesheet" href="/css/bootstrap.css" />
     <link rel="stylesheet" href="/css/style.css" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         .dashboard-nav .nav-link {
             color: var(--color-text-muted);
@@ -108,7 +107,7 @@
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                 Profile Settings
                             </a>
-                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login">
+                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="#" onclick="logout(); return false;">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
                                 Logout
                             </a>
@@ -175,11 +174,11 @@
     <script src="/js/bootstrap.js"></script>
     <script src="/js/config.js"></script>
     <script src="/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const token = localStorage.getItem('gnm_token');
         const ITEMS_PER_PAGE = 5;
         
-        // State management
         let allActiveBookings = [];
         let allSOSBookings = [];
         let currentActiveBookingPage = 1;
@@ -189,6 +188,28 @@
 
         function authHeaders() {
             return { 'Authorization': `Bearer ${token}` };
+        }
+
+        // ✅ SweetAlert2 logout confirmation
+        function logout() {
+            Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure you want to logout?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53E3E',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Logout',
+                cancelButtonText: 'Cancel',
+                customClass: { popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('gnm_token');
+                    localStorage.removeItem('gnm_user');
+                    localStorage.removeItem('gnm_role');
+                    window.location.href = 'login';
+                }
+            });
         }
 
         async function loadUserInfo() {
@@ -202,9 +223,7 @@
                     headers: authHeaders()
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to load user info');
-                }
+                if (!response.ok) throw new Error('Failed to load user info');
 
                 const data = await response.json();
                 const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'JD';
@@ -216,14 +235,6 @@
                 const sidebarAvatar = document.getElementById('sidebarAvatarCircle');
                 if (topAvatar) topAvatar.innerHTML = avatarHtml;
                 if (sidebarAvatar) sidebarAvatar.innerHTML = avatarHtml;
-
-                if (!data.profile_image) {
-                    document.querySelectorAll('.rounded-circle').forEach(el => {
-                        if (el.textContent.trim() === 'JD') {
-                            el.textContent = initials;
-                        }
-                    });
-                }
 
                 document.querySelectorAll('h6').forEach(el => {
                     if (el.textContent.trim() === 'John Doe') {
@@ -241,7 +252,6 @@
             }
         }
 
-        // Filter bookings based on search query
         function filterBookings(bookings, searchQuery) {
             if (!searchQuery.trim()) return bookings;
             const query = searchQuery.toLowerCase();
@@ -252,32 +262,23 @@
             );
         }
 
-        // Get paginated items
         function getPaginatedItems(items, page) {
             const start = (page - 1) * ITEMS_PER_PAGE;
             return items.slice(start, start + ITEMS_PER_PAGE);
         }
 
-        // Render pagination controls
         function renderPagination(totalItems, currentPage, containerId, onPageChange) {
             const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
             const container = document.getElementById(containerId);
             
-            if (totalPages <= 1) {
-                container.innerHTML = '';
-                return;
-            }
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
 
             let html = '<nav><ul class="pagination justify-content-center">';
-            
-            // Previous button
             if (currentPage > 1) {
                 html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${currentPage - 1})">← Previous</button></li>`;
             } else {
                 html += `<li class="page-item disabled"><span class="page-link">← Previous</span></li>`;
             }
-
-            // Page numbers
             for (let i = 1; i <= totalPages; i++) {
                 if (i === currentPage) {
                     html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
@@ -285,14 +286,11 @@
                     html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${i})">${i}</button></li>`;
                 }
             }
-
-            // Next button
             if (currentPage < totalPages) {
                 html += `<li class="page-item"><button class="page-link" onclick="${onPageChange}(${currentPage + 1})">Next →</button></li>`;
             } else {
                 html += `<li class="page-item disabled"><span class="page-link">Next →</span></li>`;
             }
-
             html += '</ul></nav>';
             container.innerHTML = html;
         }
@@ -304,17 +302,11 @@
                     return;
                 }
 
-                const response = await fetch(`${getApiBase()}/bookings/my`, {
-                    headers: authHeaders()
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
-                }
+                const response = await fetch(`${getApiBase()}/bookings/my`, { headers: authHeaders() });
+                if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
 
                 const bookings = await response.json();
                 allActiveBookings = bookings.filter(b => (b.status === 'pending' || b.status === 'accepted' || b.status === 'ongoing') && b.booking_type !== 'sos');
-                
                 displayActiveBookings(1);
             } catch (err) {
                 console.error('Error loading active bookings:', err);
@@ -395,17 +387,11 @@
                     return;
                 }
 
-                const response = await fetch(`${getApiBase()}/sos/customer/history`, {
-                    headers: authHeaders()
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
-                }
+                const response = await fetch(`${getApiBase()}/sos/customer/history`, { headers: authHeaders() });
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
                 const sosRequests = await response.json();
                 allSOSBookings = sosRequests || [];
-                
                 displaySOSBookings(1);
             } catch (err) {
                 console.error('Error loading SOS bookings:', err);
@@ -496,43 +482,22 @@
         }
 
         function cancelSOS(sosId) {
-            showSOSCancelConfirm(sosId);
-        }
-
-        function showSOSCancelConfirm(sosId) {
-            document.getElementById('sossCancelConfirmBox')?.remove();
-
-            const box = document.createElement('div');
-            box.id = 'sossCancelConfirmBox';
-            box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;';
-            box.innerHTML = `
-                <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-                    <div style="text-align:center;margin-bottom:20px;">
-                        <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                        </div>
-                        <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">SOS Cancel Karna Hai?</h6>
-                        <p style="color:#6B7280;font-size:13px;margin:0;">Ek baar cancel kiya toh mechanic notification cancel ho jayega.</p>
-                    </div>
-                    <div style="display:flex;gap:10px;">
-                        <button onclick="document.getElementById('sossCancelConfirmBox').remove()"
-                            style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
-                            Nahi, Rakho
-                        </button>
-                        <button id="confirmSOSCancelBtn"
-                            onclick="doSOSCancel(${sosId})"
-                            style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
-                            Haan, Cancel Karo
-                        </button>
-                    </div>
-                </div>`;
-            document.body.appendChild(box);
+            Swal.fire({
+                title: 'SOS Cancel Karna Hai?',
+                text: 'Mechanic notification cancel ho jayega.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Haan, Cancel Karo',
+                cancelButtonText: 'Nahi, Rakho',
+                customClass: { popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) doSOSCancel(sosId);
+            });
         }
 
         async function doSOSCancel(sosId) {
-            const btn = document.getElementById('confirmSOSCancelBtn');
-            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
-
             try {
                 const res = await fetch(`${getApiBase()}/sos/${sosId}/cancel`, {
                     method: 'POST',
@@ -542,11 +507,9 @@
                     const err = await res.json();
                     throw new Error(err.detail || 'Cancel nahi hua');
                 }
-                document.getElementById('sossCancelConfirmBox')?.remove();
                 showToast('SOS cancel ho gayi!', 'success');
                 setTimeout(() => loadSOSBookings(), 1000);
             } catch (e) {
-                document.getElementById('sossCancelConfirmBox')?.remove();
                 showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
             }
         }
@@ -556,43 +519,22 @@
         }
 
         function cancelBooking(bookingId) {
-            showCancelConfirm(bookingId);
-        }
-
-        function showCancelConfirm(bookingId) {
-            document.getElementById('cancelConfirmBox')?.remove();
-
-            const box = document.createElement('div');
-            box.id = 'cancelConfirmBox';
-            box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;';
-            box.innerHTML = `
-                <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-                    <div style="text-align:center;margin-bottom:20px;">
-                        <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                        </div>
-                        <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">Booking Cancel Karna Hai?</h6>
-                        <p style="color:#6B7280;font-size:13px;margin:0;">Ek baar cancel kiya toh wapas nahi hoga.</p>
-                    </div>
-                    <div style="display:flex;gap:10px;">
-                        <button onclick="document.getElementById('cancelConfirmBox').remove()"
-                            style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
-                            Nahi, Rakho
-                        </button>
-                        <button id="confirmCancelBtn"
-                            onclick="doCancelBooking(${bookingId})"
-                            style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
-                            Haan, Cancel Karo
-                        </button>
-                    </div>
-                </div>`;
-            document.body.appendChild(box);
+            Swal.fire({
+                title: 'Booking Cancel Karna Hai?',
+                text: 'Ek baar cancel kiya toh wapas nahi hoga.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Haan, Cancel Karo',
+                cancelButtonText: 'Nahi, Rakho',
+                customClass: { popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) doCancelBooking(bookingId);
+            });
         }
 
         async function doCancelBooking(bookingId) {
-            const btn = document.getElementById('confirmCancelBtn');
-            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
-
             try {
                 const res = await fetch(`${getApiBase()}/bookings/${bookingId}/cancel`, {
                     method: 'POST',
@@ -602,11 +544,9 @@
                     const err = await res.json();
                     throw new Error(err.detail || 'Cancel nahi hua');
                 }
-                document.getElementById('cancelConfirmBox')?.remove();
                 showToast('Booking cancel ho gayi!', 'success');
                 setTimeout(() => loadActiveBookings(), 1000);
             } catch (e) {
-                document.getElementById('cancelConfirmBox')?.remove();
                 showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
             }
         }
@@ -620,78 +560,14 @@
             setTimeout(() => t.remove(), 3000);
         }
 
-        function trackSOS(sosSlug) {
-            window.location.href = `/customer/sos-tracking?sos=${sosSlug}`;
-        }
-
-        function cancelSOS(sosId) {
-            showSOSCancelConfirm(sosId);
-        }
-
-        function showSOSCancelConfirm(sosId) {
-            document.getElementById('sossCancelConfirmBox')?.remove();
-
-            const box = document.createElement('div');
-            box.id = 'sossCancelConfirmBox';
-            box.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;';
-            box.innerHTML = `
-                <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-                    <div style="text-align:center;margin-bottom:20px;">
-                        <div style="width:56px;height:56px;background:#FEF2F2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="#EF4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                        </div>
-                        <h6 style="font-weight:700;color:#1B1F2E;margin-bottom:8px;">SOS Cancel Karna Hai?</h6>
-                        <p style="color:#6B7280;font-size:13px;margin:0;">Mechanic notification cancel ho jayega.</p>
-                    </div>
-                    <div style="display:flex;gap:10px;">
-                        <button onclick="document.getElementById('sossCancelConfirmBox').remove()"
-                            style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">
-                            Nahi, Rakho
-                        </button>
-                        <button id="confirmSOSCancelBtn"
-                            onclick="doSOSCancel(${sosId})"
-                            style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">
-                            Haan, Cancel Karo
-                        </button>
-                    </div>
-                </div>`;
-            document.body.appendChild(box);
-        }
-
-        async function doSOSCancel(sosId) {
-            const btn = document.getElementById('confirmSOSCancelBtn');
-            if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
-
-            try {
-                const res = await fetch(`${getApiBase()}/sos/${sosId}/cancel`, {
-                    method: 'POST',
-                    headers: authHeaders()
-                });
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.detail || 'Cancel nahi hua');
-                }
-                document.getElementById('sossCancelConfirmBox')?.remove();
-                showToast('SOS cancel ho gayi!', 'success');
-                setTimeout(() => loadSOSBookings(), 1000);
-            } catch (e) {
-                document.getElementById('sossCancelConfirmBox')?.remove();
-                showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             loadUserInfo();
             loadActiveBookings();
 
             const searchBox = document.getElementById('bookingSearchBox');
-            
-            // Search functionality
             searchBox?.addEventListener('input', (e) => {
                 activeSearchQuery = e.target.value;
                 sosSearchQuery = e.target.value;
-                
-                // Re-display based on active tab
                 const activeTab = document.querySelector('.tab-pane.show.active');
                 if (activeTab?.id === 'active') {
                     displayActiveBookings(1);
@@ -700,7 +576,6 @@
                 }
             });
 
-            // Load SOS when tab is clicked
             document.getElementById('sos-tab')?.addEventListener('click', () => {
                 if (allSOSBookings.length === 0) {
                     loadSOSBookings();
@@ -709,7 +584,6 @@
                 }
             });
 
-            // Load Active Bookings when tab is clicked
             document.getElementById('active-tab')?.addEventListener('click', () => {
                 if (allActiveBookings.length === 0) {
                     loadActiveBookings();
