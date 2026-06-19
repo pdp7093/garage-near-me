@@ -10,9 +10,8 @@
     <meta name="theme-color" content="#DC2626">
     <link rel="stylesheet" href="/css/bootstrap.css" />
     <link rel="stylesheet" href="/css/style.css" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         .dashboard-nav .nav-link {
             color: var(--color-text-muted);
@@ -67,14 +66,12 @@
                 </div>
                 <span class="gnm-logo-text">GarageNearMe</span>
             </a>
-            
             <div class="d-none d-md-flex align-items-center gap-3">
                 <a href="search-results" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
                 <div class="dropdown">
                     <div id="topAvatarCircle" class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer overflow-hidden" style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown"></div>
                 </div>
             </div>
-            
             <button class="gnm-hamburger d-md-none" id="menuBtn" aria-label="Toggle menu">
                 <span></span><span></span><span></span>
             </button>
@@ -96,9 +93,7 @@
                                 <p class="text-muted small mb-0">+91 98765 43210</p>
                             </div>
                         </div>
-
                         <hr class="mb-4">
-
                         <nav class="nav flex-column dashboard-nav">
                             <a class="nav-link d-flex align-items-center gap-3" href="dashboard">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
@@ -120,7 +115,7 @@
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                 Profile Settings
                             </a>
-                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login">
+                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="#" onclick="logout(); return false;">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
                                 Logout
                             </a>
@@ -129,7 +124,7 @@
                 </div>
             </div>
 
-            <!-- ── RIGHT CONTENT (Past History) ── -->
+            <!-- ── RIGHT CONTENT ── -->
             <div class="col-lg-9">
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
                     <h3 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">Past History</h3>
@@ -164,23 +159,16 @@
                     </form>
                 </div>
 
-                <!-- History List Container -->
                 <div id="pastBookingsContainer">
                     <div class="text-center py-5 text-muted">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
+                        <div class="spinner-border text-primary" role="status"></div>
                         <p class="mt-2">Loading past history...</p>
                     </div>
                 </div>
 
-                <!-- Pagination -->
                 <nav aria-label="Page navigation" class="mt-4" id="paginationNav" style="display: none;">
-                    <ul class="pagination justify-content-center" id="paginationContainer">
-                        <!-- Dynamically populated -->
-                    </ul>
+                    <ul class="pagination justify-content-center" id="paginationContainer"></ul>
                 </nav>
-
             </div>
         </div>
     </div>
@@ -201,9 +189,7 @@
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4" id="jobcardModalBody">
-                    <!-- Dynamically populated -->
-                </div>
+                <div class="modal-body p-4" id="jobcardModalBody"></div>
             </div>
         </div>
     </div>
@@ -211,6 +197,7 @@
     <script src="/js/bootstrap.js"></script>
     <script src="/js/config.js"></script>
     <script src="/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const token = localStorage.getItem('gnm_token');
         let currentPage = 1;
@@ -221,15 +208,32 @@
             return { 'Authorization': `Bearer ${token}` };
         }
 
+        // ✅ SweetAlert2 logout confirmation
+        function logout() {
+            Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure you want to logout?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53E3E',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Logout',
+                cancelButtonText: 'Cancel',
+                customClass: { popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('gnm_token');
+                    localStorage.removeItem('gnm_user');
+                    localStorage.removeItem('gnm_role');
+                    window.location.href = 'login';
+                }
+            });
+        }
+
         async function loadUserInfo() {
-            if (!token) {
-                window.location.href = 'login';
-                return;
-            }
+            if (!token) { window.location.href = 'login'; return; }
             try {
-                const response = await fetch(`${getApiBase()}/auth/me`, {
-                    headers: authHeaders()
-                });
+                const response = await fetch(`${getApiBase()}/auth/me`, { headers: authHeaders() });
                 if (!response.ok) throw new Error('Failed to load user info');
                 const data = await response.json();
                 const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'JD';
@@ -245,9 +249,7 @@
                 document.querySelectorAll('h6').forEach(el => {
                     if (el.textContent.trim() === 'John Doe') {
                         el.textContent = data.name || 'John Doe';
-                        if (el.nextElementSibling) {
-                            el.nextElementSibling.textContent = data.phone || '+91 98765 43210';
-                        }
+                        if (el.nextElementSibling) el.nextElementSibling.textContent = data.phone || '+91 98765 43210';
                     }
                 });
             } catch (err) {
@@ -266,16 +268,10 @@
             const container = document.getElementById('pastBookingsContainer');
             const paginationNav = document.getElementById('paginationNav');
             
-            container.innerHTML = `
-                <div class="text-center py-5 text-muted">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2">Loading history...</p>
-                </div>
-            `;
+            container.innerHTML = `<div class="text-center py-5 text-muted"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Loading history...</p></div>`;
             paginationNav.style.display = 'none';
 
             try {
-                // Build query params
                 let queryParams = new URLSearchParams();
                 queryParams.append('page', page);
                 queryParams.append('size', pageSize);
@@ -283,10 +279,7 @@
                 if (date) queryParams.append('date', date);
                 if (status) queryParams.append('status', status);
 
-                const response = await fetch(`${getApiBase()}/bookings/my/past?${queryParams.toString()}`, {
-                    headers: authHeaders()
-                });
-
+                const response = await fetch(`${getApiBase()}/bookings/my/past?${queryParams.toString()}`, { headers: authHeaders() });
                 if (!response.ok) throw new Error('Failed to load bookings');
 
                 const data = await response.json();
@@ -295,11 +288,7 @@
                 pastBookingCache = pastBookings;
 
                 if (pastBookings.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center py-5 text-muted border rounded-4 bg-white">
-                            <p class="mb-0">No past bookings found.</p>
-                        </div>
-                    `;
+                    container.innerHTML = `<div class="text-center py-5 text-muted border rounded-4 bg-white"><p class="mb-0">No past bookings found.</p></div>`;
                     return;
                 }
 
@@ -343,8 +332,7 @@
                                     <button class="btn btn-sm btn-outline-secondary rounded-pill px-4 fw-medium" onclick="rebook(${booking.id})">Rebook</button>
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
 
                 container.innerHTML = html;
@@ -360,30 +348,11 @@
             const paginationContainer = document.getElementById('paginationContainer');
             document.getElementById('paginationNav').style.display = 'block';
             let html = '';
-            
-            // Previous
-            html += `
-                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} > 1) loadPastHistory(${currentPage - 1})">Previous</a>
-                </li>
-            `;
-            
-            // Pages
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} > 1) loadPastHistory(${currentPage - 1})">Previous</a></li>`;
             for (let i = 1; i <= totalPages; i++) {
-                html += `
-                    <li class="page-item ${currentPage === i ? 'active' : ''}">
-                        <a class="page-link" href="#" onclick="event.preventDefault(); loadPastHistory(${i})">${i}</a>
-                    </li>
-                `;
+                html += `<li class="page-item ${currentPage === i ? 'active' : ''}"><a class="page-link" href="#" onclick="event.preventDefault(); loadPastHistory(${i})">${i}</a></li>`;
             }
-            
-            // Next
-            html += `
-                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} < ${totalPages}) loadPastHistory(${currentPage + 1})">Next</a>
-                </li>
-            `;
-            
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="event.preventDefault(); if(${currentPage} < ${totalPages}) loadPastHistory(${currentPage + 1})">Next</a></li>`;
             paginationContainer.innerHTML = html;
         }
 
@@ -394,13 +363,7 @@
         }
 
         function escapeHtml(value) {
-            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[char]));
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
         }
 
         function normalizeWorkItem(item, index) {
@@ -416,22 +379,12 @@
 
             if (!items.length) {
                 const fallbackWork = booking.description || booking.service_type || (booking.booking_type === 'sos' ? 'Emergency SOS' : 'General Service');
-                return `
-                    <div class="border rounded-3 p-3 d-flex justify-content-between align-items-center">
-                        <span class="fw-medium">${escapeHtml(fallbackWork)}</span>
-                        <span class="text-muted small">Work details</span>
-                    </div>
-                `;
+                return `<div class="border rounded-3 p-3 d-flex justify-content-between align-items-center"><span class="fw-medium">${escapeHtml(fallbackWork)}</span><span class="text-muted small">Work details</span></div>`;
             }
 
             return items.map((item, index) => {
                 const work = normalizeWorkItem(item, index);
-                return `
-                    <div class="border rounded-3 p-3 d-flex justify-content-between gap-3 align-items-start mb-2">
-                        <span class="fw-medium">${escapeHtml(work.title)}</span>
-                        <span class="fw-bold text-dark flex-shrink-0">${formatCurrency(work.amount)}</span>
-                    </div>
-                `;
+                return `<div class="border rounded-3 p-3 d-flex justify-content-between gap-3 align-items-start mb-2"><span class="fw-medium">${escapeHtml(work.title)}</span><span class="fw-bold text-dark flex-shrink-0">${formatCurrency(work.amount)}</span></div>`;
             }).join('');
         }
 
@@ -450,62 +403,27 @@
             document.getElementById('jobcardModalLabel').textContent = serviceName;
             document.getElementById('jobcardModalBody').innerHTML = `
                 <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <div class="border rounded-3 p-3 h-100">
-                            <div class="text-muted small mb-1">Garage</div>
-                            <div class="fw-bold">${escapeHtml(booking.garage_name || 'Garage')}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="border rounded-3 p-3 h-100">
-                            <div class="text-muted small mb-1">Vehicle</div>
-                            <div class="fw-bold">${escapeHtml(booking.vehicle_number || booking.vehicle_model || 'N/A')}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="border rounded-3 p-3 h-100">
-                            <div class="text-muted small mb-1">Status</div>
-                            <span class="badge border rounded-pill px-3 py-2 ${statusClass}">${escapeHtml(statusText)}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="border rounded-3 p-3 h-100">
-                            <div class="text-muted small mb-1">Completed On</div>
-                            <div class="fw-bold">${completedDate}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="border rounded-3 p-3 h-100">
-                            <div class="text-muted small mb-1">Total Amount</div>
-                            <div class="fw-bold fs-5 text-dark">${formatCurrency(totalAmount)}</div>
-                        </div>
-                    </div>
+                    <div class="col-md-6"><div class="border rounded-3 p-3 h-100"><div class="text-muted small mb-1">Garage</div><div class="fw-bold">${escapeHtml(booking.garage_name || 'Garage')}</div></div></div>
+                    <div class="col-md-6"><div class="border rounded-3 p-3 h-100"><div class="text-muted small mb-1">Vehicle</div><div class="fw-bold">${escapeHtml(booking.vehicle_number || booking.vehicle_model || 'N/A')}</div></div></div>
+                    <div class="col-md-4"><div class="border rounded-3 p-3 h-100"><div class="text-muted small mb-1">Status</div><span class="badge border rounded-pill px-3 py-2 ${statusClass}">${escapeHtml(statusText)}</span></div></div>
+                    <div class="col-md-4"><div class="border rounded-3 p-3 h-100"><div class="text-muted small mb-1">Completed On</div><div class="fw-bold">${completedDate}</div></div></div>
+                    <div class="col-md-4"><div class="border rounded-3 p-3 h-100"><div class="text-muted small mb-1">Total Amount</div><div class="fw-bold fs-5 text-dark">${formatCurrency(totalAmount)}</div></div></div>
                 </div>
-
                 <h6 class="fw-bold mb-3" style="font-family:var(--font-head); color:var(--color-text);">Work Details</h6>
-                <div class="mb-3">
-                    ${renderWorkItems(booking)}
-                </div>
-
-                ${booking.additional_estimate_note ? `
-                    <div class="alert alert-warning border-0 rounded-3 mb-0">
-                        <div class="fw-bold mb-1">Additional Note</div>
-                        <div>${escapeHtml(booking.additional_estimate_note)}</div>
-                    </div>
-                ` : ''}
+                <div class="mb-3">${renderWorkItems(booking)}</div>
+                ${booking.additional_estimate_note ? `<div class="alert alert-warning border-0 rounded-3 mb-0"><div class="fw-bold mb-1">Additional Note</div><div>${escapeHtml(booking.additional_estimate_note)}</div></div>` : ''}
             `;
 
             new bootstrap.Modal(document.getElementById('jobcardModal')).show();
         }
 
         function rebook(bookingId) {
-            alert('Rebook feature coming soon!');
+            Swal.fire({ icon: 'info', title: 'Coming Soon!', text: 'Rebook feature will be available soon.', confirmButtonColor: '#FF6B35' });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadUserInfo();
             loadPastHistory(1);
-
             document.getElementById('filterForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 loadPastHistory(1);
