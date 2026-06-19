@@ -10,9 +10,8 @@
     <meta name="theme-color" content="#DC2626">
     <link rel="stylesheet" href="/css/bootstrap.css" />
     <link rel="stylesheet" href="/css/style.css" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         .dashboard-nav .nav-link {
             color: var(--color-text-muted);
@@ -22,12 +21,10 @@
             margin-bottom: 8px;
             transition: all 0.2s ease;
         }
-
         .dashboard-nav .nav-link:hover {
             background-color: rgba(0, 0, 0, 0.03);
             color: var(--color-text);
         }
-
         .dashboard-nav .nav-link.active {
             background-color: rgba(255, 107, 53, 0.1);
             color: var(--color-primary);
@@ -44,22 +41,18 @@
             <a href="index" class="gnm-logo text-decoration-none">
                 <div class="gnm-logo-icon">
                     <svg viewBox="0 0 24 24" fill="white" width="18" height="18">
-                        <path
-                            d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+                        <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
                     </svg>
                 </div>
                 <span class="gnm-logo-text">GarageNearMe</span>
             </a>
-
             <div class="d-none d-md-flex align-items-center gap-3">
                 <a href="search-results" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Find Garage</a>
-                <!-- User Avatar -->
                 <div class="dropdown">
                     <div id="topAvatarCircle" class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold shadow-sm cursor-pointer overflow-hidden"
                         style="width:40px; height:40px; font-family:var(--font-head);" data-bs-toggle="dropdown"></div>
                 </div>
             </div>
-
             <button class="gnm-hamburger d-md-none" id="menuBtn" aria-label="Toggle menu">
                 <span></span><span></span><span></span>
             </button>
@@ -70,7 +63,7 @@
     <div class="container py-4 py-md-5 flex-grow-1">
         <div class="row g-4 g-lg-5">
 
-            <!-- ── LEFT SIDEBAR (Navigation) ── -->
+            <!-- ── LEFT SIDEBAR ── -->
             <div class="col-lg-3">
                 <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top:100px;">
                     <div class="card-body p-4">
@@ -78,26 +71,18 @@
                             <div id="sidebarAvatarCircle" class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold flex-shrink-0 overflow-hidden"
                                 style="width:56px; height:56px; background:var(--color-primary); font-size:20px; font-family:var(--font-head);"></div>
                             <div>
-                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
-                                    John Doe</h6>
+                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">John Doe</h6>
                                 <p class="text-muted small mb-0">+91 98765 43210</p>
                             </div>
                         </div>
-
                         <hr class="mb-4">
-
                         <nav class="nav flex-column dashboard-nav">
                             <a class="nav-link active d-flex align-items-center gap-3" href="dashboard">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
-                                </svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
                                 Dashboard Overview
                             </a>
                             <a class="nav-link d-flex align-items-center gap-3" href="my-bookings">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                    <path
-                                        d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
-                                </svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
                                 My Bookings
                             </a>
                             <a class="nav-link d-flex align-items-center gap-3" href="my-vehicles">
@@ -109,17 +94,11 @@
                                 Past History
                             </a>
                             <a class="nav-link d-flex align-items-center gap-3" href="profile">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                    <path
-                                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                </svg>
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                 Profile Settings
                             </a>
-                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login">
-                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                                    <path
-                                        d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
-                                </svg>
+                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="#" onclick="logout(); return false;">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
                                 Logout
                             </a>
                         </nav>
@@ -127,13 +106,11 @@
                 </div>
             </div>
 
-            <!-- ── RIGHT CONTENT (Dashboard Data) ── -->
+            <!-- ── RIGHT CONTENT ── -->
             <div class="col-lg-9">
+                <h3 class="fw-bold mb-4" style="font-family:var(--font-head); color:var(--color-text);">Welcome back, <span id="welcomeName">there</span>!</h3>
 
-                <h3 class="fw-bold mb-4" style="font-family:var(--font-head); color:var(--color-text);">Welcome back,
-                    John!</h3>
-
-                <!-- Active Booking Card — JS se fill hoga -->
+                <!-- Active Booking Card -->
                 <div class="card border border-primary shadow-sm rounded-4 overflow-hidden mb-5" id="activeBookingCard">
                     <div class="card-body p-4 text-center py-5 text-muted">
                         <div class="spinner-border spinner-border-sm" role="status"></div>
@@ -142,14 +119,12 @@
                 </div>
 
                 <div class="row g-4">
-                    <!-- Past Bookings -->
+                    <!-- Recent History -->
                     <div class="col-md-6">
                         <div class="card border-0 shadow-sm rounded-4 h-100">
-                            <div
-                                class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
-                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
-                                    Recent History</h6>
-                                <a href="#" class="text-decoration-none small">View All</a>
+                            <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">Recent History</h6>
+                                <a href="past-history" class="text-decoration-none small">View All</a>
                             </div>
                             <div class="list-group list-group-flush" id="recentHistory">
                                 <div class="list-group-item p-4 text-muted small">
@@ -162,14 +137,9 @@
                     <!-- My Vehicles -->
                     <div class="col-md-6">
                         <div class="card border-0 shadow-sm rounded-4 h-100">
-                            <div
-                                class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
-                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">
-                                    My Vehicles</h6>
-
-                                <a href="my-vehicles" class="btn btn-sm btn-outline-primary rounded-pill px-3">+
-                                    Add
-                                    New</a>
+                            <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">My Vehicles</h6>
+                                <a href="my-vehicles" class="btn btn-sm btn-outline-primary rounded-pill px-3">+ Add New</a>
                             </div>
                             <div class="card-body p-4" id="vehiclesMini">
                                 <div class="text-muted small">
@@ -179,7 +149,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -192,6 +161,7 @@
     <script src="/js/bootstrap.js"></script>
     <script src="/js/script.js"></script>
     <script src="/js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         const token = localStorage.getItem('gnm_token');
@@ -217,34 +187,40 @@
         }
 
         function authHeaders() {
-            return {
-                'Authorization': `Bearer ${token}`
-            };
+            return { 'Authorization': `Bearer ${token}` };
         }
 
         function checkAuth() {
-            if (!token) {
-                window.location.href = 'login';
-                return false;
-            }
+            if (!token) { window.location.href = 'login'; return false; }
             return true;
         }
 
+        // ✅ SweetAlert2 logout confirmation
         function logout() {
-            localStorage.removeItem('gnm_token');
-            localStorage.removeItem('gnm_role');
-            window.location.href = 'login';
+            Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure you want to logout?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53E3E',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Logout',
+                cancelButtonText: 'Cancel',
+                customClass: { popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('gnm_token');
+                    localStorage.removeItem('gnm_user');
+                    localStorage.removeItem('gnm_role');
+                    window.location.href = 'login';
+                }
+            });
         }
 
         async function loadUserInfo() {
             try {
-                const response = await fetch(`${getApiBase()}/auth/me`, {
-                    headers: authHeaders()
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to load user info');
-                }
+                const response = await fetch(`${getApiBase()}/auth/me`, { headers: authHeaders() });
+                if (!response.ok) throw new Error('Failed to load user info');
 
                 const data = await response.json();
                 const initials = data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'JD';
@@ -257,22 +233,18 @@
                 if (topAvatar) topAvatar.innerHTML = avatarHtml;
                 if (sidebarAvatar) sidebarAvatar.innerHTML = avatarHtml;
 
-                if (!data.profile_image) {
-                    document.querySelectorAll('.rounded-circle').forEach(el => {
-                        if (el.textContent.trim() === 'JD') {
-                            el.textContent = initials;
-                        }
-                    });
-                }
-
                 document.querySelectorAll('h6').forEach(el => {
                     if (el.textContent.trim() === 'John Doe') {
                         el.textContent = data.name || 'John Doe';
-                        if (el.nextElementSibling) {
-                            el.nextElementSibling.textContent = data.phone || '+91 98765 43210';
-                        }
+                        if (el.nextElementSibling) el.nextElementSibling.textContent = data.phone || '+91 98765 43210';
                     }
                 });
+
+                // Welcome name update
+                const firstName = data.name ? data.name.split(' ')[0] : 'there';
+                const welcomeEl = document.getElementById('welcomeName');
+                if (welcomeEl) welcomeEl.textContent = firstName;
+
             } catch (err) {
                 console.error('User info load error:', err);
                 localStorage.removeItem('gnm_token');
@@ -289,24 +261,17 @@
 
         async function loadDashboard() {
             try {
-                const res = await fetch(`${getApiBase()}/bookings/my`, {
-                    headers: authHeaders()
-                });
+                const res = await fetch(`${getApiBase()}/bookings/my`, { headers: authHeaders() });
                 if (res.status === 401) { logout(); return; }
                 const bookings = await res.json();
-
                 renderActiveBooking(bookings);
                 renderRecentHistory(bookings);
-
             } catch (err) {
                 console.error("Dashboard load error:", err);
             }
 
-            // Vehicles bhi load karo
             try {
-                const res = await fetch(`${getApiBase()}/vehicles/`, {
-                    headers: authHeaders()
-                });
+                const res = await fetch(`${getApiBase()}/vehicles/`, { headers: authHeaders() });
                 const vehicles = await res.json();
                 renderVehiclesMini(vehicles);
             } catch (err) {
@@ -314,7 +279,6 @@
             }
         }
 
-        // ── Active Booking ──
         function renderActiveBooking(bookings) {
             const activeStatuses = ['pending', 'accepted', 'ongoing'];
             const active = bookings.find(b => activeStatuses.includes(b.status));
@@ -359,7 +323,6 @@
                 </div>`;
         }
 
-        // ── Recent History ──
         function renderRecentHistory(bookings) {
             const past = bookings.filter(b => pastStatuses.includes(b.status)).slice(0, 3);
             const el = document.getElementById("recentHistory");
@@ -380,7 +343,6 @@
                 </div>`).join("");
         }
 
-        // ── Vehicles Mini ──
         function renderVehiclesMini(vehicles) {
             const el = document.getElementById("vehiclesMini");
             if (!vehicles.length) {
@@ -403,7 +365,6 @@
                 </div>`).join("");
         }
 
-        // ── Estimate Approve/Reject ──
         async function approveEstimate(bookingId, decision) {
             try {
                 const res = await fetch(`${getApiBase()}/bookings/${bookingId}/approve-estimate`, {
@@ -412,20 +373,33 @@
                     body: JSON.stringify({ estimate_status: decision })
                 });
                 if (res.ok) location.reload();
-                else alert("Something went wrong. Try again.");
+                else Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong. Try again.', confirmButtonColor: '#E53E3E' });
             } catch (err) { console.error(err); }
         }
 
-        // ── Cancel Booking ──
+        // ✅ SweetAlert2 cancel confirmation
         async function cancelBooking(bookingId) {
-            if (!confirm("Are you sure you want to cancel this booking?")) return;
+            const result = await Swal.fire({
+                title: 'Cancel Booking?',
+                text: 'Are you sure you want to cancel this booking?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53E3E',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Cancel',
+                cancelButtonText: 'No, Keep It',
+                customClass: { popup: 'rounded-4' }
+            });
+
+            if (!result.isConfirmed) return;
+
             try {
                 const res = await fetch(`${getApiBase()}/bookings/${bookingId}`, {
                     method: "DELETE",
                     headers: authHeaders()
                 });
                 if (res.ok || res.status === 204) location.reload();
-                else alert("Cannot cancel this booking.");
+                else Swal.fire({ icon: 'error', title: 'Error', text: 'Cannot cancel this booking.', confirmButtonColor: '#E53E3E' });
             } catch (err) { console.error(err); }
         }
     </script>
