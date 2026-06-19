@@ -149,7 +149,6 @@
                 <div
                     style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:20px; padding:36px 32px; width:100%; max-width:420px; box-shadow:0 4px 24px rgba(0,0,0,0.06);">
 
-
                     <!-- Title -->
                     <h1 id="regTitle"
                         style="font-family:var(--font-head); font-size:22px; font-weight:700; color:var(--color-text); margin-bottom:6px;">
@@ -330,7 +329,6 @@
             btn.disabled = true;
 
             try {
-                // Pehle check karo phone already registered toh nahi
                 const response = await fetch(`${getApiBase()}/auth/send-otp-register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -340,12 +338,18 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
 
+                // ✅ Button reset karo
+                btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+
                 // OTP step dikhao
                 document.getElementById('stepDetails').style.display = 'none';
                 document.getElementById('stepOtp').style.display = 'block';
                 document.getElementById('otpPhoneDisplay').textContent = '+91 ' + phone;
                 document.getElementById('regTitle').textContent = 'Verify Phone';
-                document.getElementById('regSubtitle').textContent = 'We sent a 6-digit OTP to your phone';
+                document.getElementById('regSubtitle').textContent = 'We sent a 6-digit OTP to your WhatsApp';
+                document.getElementById('otpInput').value = '';
                 document.getElementById('otpInput').focus();
                 startResendTimer();
 
