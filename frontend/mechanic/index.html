@@ -95,7 +95,7 @@
           <div id="step-phone">
             <div class="text-center mb-4">
               <h3 class="fw-bold" style="font-family: var(--font-head);">Welcome Back</h3>
-              <p class="text-muted small">Enter your registered mobile number to get OTP.</p>
+              <p class="text-muted small">Enter your registered mobile number to get OTP on WhatsApp.</p>
             </div>
 
             <div class="form-floating mb-3">
@@ -111,7 +111,7 @@
               style="background: var(--color-primary);"
               onclick="handleSendOTP()">
               <span class="spinner-border spinner-border-sm me-2 d-none" id="otpSp"></span>
-              Send OTP
+              Send OTP on WhatsApp
             </button>
           </div>
 
@@ -125,7 +125,7 @@
                 </svg>
               </div>
               <h5 class="fw-bold mb-1" style="font-family: var(--font-head);">Enter OTP</h5>
-              <p class="text-muted small mb-0" id="otpSentTo">OTP sent to your number</p>
+              <p class="text-muted small mb-0" id="otpSentTo">OTP sent to your WhatsApp</p>
             </div>
 
             <div class="form-floating mb-3">
@@ -136,6 +136,14 @@
             </div>
 
             <div id="verifyAlert" class="alert d-none small mb-3" role="alert"></div>
+
+            <!-- Resend timer -->
+            <div class="text-center mb-3">
+              <span class="text-muted small" id="resendTimer"></span>
+              <a href="#" id="resendLink" onclick="handleSendOTP(); return false;"
+                class="text-decoration-none fw-bold small"
+                style="color: var(--color-primary); display:none;">Resend OTP</a>
+            </div>
 
             <button type="button" id="verifyOtpBtn"
               class="btn w-100 text-white rounded-pill py-3 fw-bold shadow-sm mb-2"
@@ -151,14 +159,6 @@
               ← Change Number
             </button>
 
-            <!-- Resend OTP -->
-            <div class="text-center mt-3">
-              <span class="text-muted small" id="resendWrap">
-                Didn't get OTP?
-                <a href="#" class="text-decoration-none fw-bold" style="color: var(--color-primary);"
-                  onclick="handleSendOTP(); return false;">Resend OTP</a>
-              </span>
-            </div>
           </div>
 
         </div>
@@ -285,6 +285,26 @@
   <script src="/js/config.js"></script>
   <script>
 
+    // ── Resend Timer
+    let resendTimerInterval = null;
+
+    function startResendTimer() {
+      let seconds = 30;
+      document.getElementById('resendTimer').textContent = `Resend in ${seconds}s`;
+      document.getElementById('resendLink').style.display = 'none';
+      if (resendTimerInterval) clearInterval(resendTimerInterval);
+      resendTimerInterval = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) {
+          clearInterval(resendTimerInterval);
+          document.getElementById('resendTimer').textContent = '';
+          document.getElementById('resendLink').style.display = 'inline';
+        } else {
+          document.getElementById('resendTimer').textContent = `Resend in ${seconds}s`;
+        }
+      }, 1000);
+    }
+
     // ── Tab Switching
     document.addEventListener('DOMContentLoaded', () => {
       const tabs  = document.querySelectorAll('.auth-tab');
@@ -300,6 +320,7 @@
           document.getElementById('step-otp').classList.add('d-none');
           document.getElementById('loginAlert').classList.add('d-none');
           document.getElementById('uploadDocsForm').classList.add('d-none');
+          if (resendTimerInterval) clearInterval(resendTimerInterval);
 
           tab.classList.add('active');
           const targetId = tab.getAttribute('data-target');
@@ -310,6 +331,14 @@
       // Agar already logged in → dashboard
       const token = localStorage.getItem('garage_token');
       if (token) window.location.href = 'dashboard.html';
+
+      // Enter key support
+      document.getElementById('otpInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleVerifyOTP();
+      });
+      document.getElementById('loginMobile').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSendOTP();
+      });
     });
 
     // ── STEP 1: Send OTP
@@ -319,7 +348,6 @@
       const sp       = document.getElementById('otpSp');
       const btn      = document.getElementById('sendOtpBtn');
 
-      // Validate
       if (!/^\d{10}$/.test(phone)) {
         alertBox.textContent = 'Please enter a valid 10-digit mobile number.';
         alertBox.className   = 'alert alert-danger small mb-3';
@@ -330,6 +358,7 @@
       alertBox.classList.add('d-none');
       sp.classList.remove('d-none');
       btn.disabled = true;
+      btn.querySelector('span + *') // keep spinner visible
 
       try {
         const res  = await fetch(`${getApiBase()}/garage-auth/send-otp`, {
@@ -340,28 +369,31 @@
         const data = await res.json();
 
         if (res.ok) {
-          // Testing: OTP console mein dikhao aur auto-fill karo
-          if (data.otp) {
-            console.log(`%c OTP (Testing Only): ${data.otp} `, 'background:#FF6B35;color:#fff;font-size:16px;padding:4px 8px;border-radius:4px;');
-            document.getElementById('otpInput').value = data.otp;
-          }
+          // ✅ Button reset karo
+          sp.classList.add('d-none');
+          btn.disabled = false;
 
-          document.getElementById('otpSentTo').textContent = `OTP sent to +91 ${phone}`;
+          document.getElementById('otpSentTo').textContent = `OTP sent to +91 ${phone} on WhatsApp`;
+          document.getElementById('otpInput').value = '';
           document.getElementById('step-phone').classList.add('d-none');
           document.getElementById('step-otp').classList.remove('d-none');
+          document.getElementById('verifyAlert').classList.add('d-none');
+          startResendTimer();
+          document.getElementById('otpInput').focus();
         } else {
           alertBox.textContent = data.detail || 'Phone number not registered. Contact admin.';
           alertBox.className   = 'alert alert-danger small mb-3';
           alertBox.classList.remove('d-none');
+          sp.classList.add('d-none');
+          btn.disabled = false;
         }
       } catch {
-        alertBox.textContent = 'Network error. Is the backend running?';
+        alertBox.textContent = 'Network error. Please try again.';
         alertBox.className   = 'alert alert-danger small mb-3';
         alertBox.classList.remove('d-none');
+        sp.classList.add('d-none');
+        btn.disabled = false;
       }
-
-      sp.classList.add('d-none');
-      btn.disabled = false;
     }
 
     // ── STEP 2: Verify OTP
@@ -392,24 +424,22 @@
         const data = await res.json();
 
         if (res.ok) {
-          // Token localStorage mein save karo
           localStorage.setItem('garage_token', data.access_token);
-          // Dashboard pe bhejo — wahan location check hoga
           window.location.href = 'dashboard.html';
         } else {
           alertBox.textContent = data.detail || 'Invalid or expired OTP. Try again.';
           alertBox.className   = 'alert alert-danger small mb-3';
           alertBox.classList.remove('d-none');
+          sp.classList.add('d-none');
           btn.disabled = false;
         }
       } catch {
         alertBox.textContent = 'Network error. Please try again.';
         alertBox.className   = 'alert alert-danger small mb-3';
         alertBox.classList.remove('d-none');
+        sp.classList.add('d-none');
         btn.disabled = false;
       }
-
-      sp.classList.add('d-none');
     }
 
     // ── Back to phone step
@@ -418,17 +448,14 @@
       document.getElementById('step-phone').classList.remove('d-none');
       document.getElementById('otpInput').value = '';
       document.getElementById('verifyAlert').classList.add('d-none');
+      if (resendTimerInterval) clearInterval(resendTimerInterval);
+      document.getElementById('resendTimer').textContent = '';
+      document.getElementById('resendLink').style.display = 'none';
+      // ✅ Send OTP button reset
+      const btn = document.getElementById('sendOtpBtn');
+      btn.disabled = false;
+      document.getElementById('otpSp').classList.add('d-none');
     }
-
-    // ── Enter key support on OTP input
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('otpInput').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleVerifyOTP();
-      });
-      document.getElementById('loginMobile').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleSendOTP();
-      });
-    });
 
     // ── Register: Submit application
     async function handleRegister(e) {
