@@ -328,45 +328,50 @@
             if (resendTimerInterval) clearInterval(resendTimerInterval);
         }
 
-        async function sendOtp() {
-            const phone = document.getElementById('phoneInput').value.trim();
-            if (phone.length !== 10) {
-                showError('phoneWrap', 'Please enter a valid 10-digit phone number.');
-                return;
-            }
+async function sendOtp() {
+    const phone = document.getElementById('phoneInput').value.trim();
+    if (phone.length !== 10) {
+        showError('phoneWrap', 'Please enter a valid 10-digit phone number.');
+        return;
+    }
 
-            const btn = document.getElementById('sendOtpBtn');
-            btn.innerHTML = 'Sending OTP... <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>';
-            btn.style.opacity = '0.75';
-            btn.disabled = true;
+    const btn = document.getElementById('sendOtpBtn');
+    btn.innerHTML = 'Sending OTP... <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>';
+    btn.style.opacity = '0.75';
+    btn.disabled = true;
 
-            try {
-                const response = await fetch(`${getApiBase()}/auth/send-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: '+91' + phone })
-                });
+    try {
+        const response = await fetch(`${getApiBase()}/auth/send-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: '+91' + phone })
+        });
 
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
 
-                // Show OTP step
-                document.getElementById('stepLogin').style.display = 'none';
-                document.getElementById('stepOtp').style.display = 'block';
-                document.getElementById('otpPhoneDisplay').textContent = '+91 ' + phone;
-                document.getElementById('loginTitle').textContent = 'Enter OTP';
-                document.getElementById('loginSubtitle').textContent = 'We sent a 6-digit OTP to your phone';
-                document.getElementById('otpInput').focus();
-                startResendTimer();
+        // ✅ Button reset karo pehle
+        btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
+        btn.style.opacity = '1';
+        btn.disabled = false;
 
-            } catch (err) {
-                btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
-                btn.style.opacity = '1';
-                btn.disabled = false;
-                showError('phoneWrap', err.message);
-            }
-        }
+        // Show OTP step
+        document.getElementById('stepLogin').style.display = 'none';
+        document.getElementById('stepOtp').style.display = 'block';
+        document.getElementById('otpPhoneDisplay').textContent = '+91 ' + phone;
+        document.getElementById('loginTitle').textContent = 'Enter OTP';
+        document.getElementById('loginSubtitle').textContent = 'We sent a 6-digit OTP to your WhatsApp';
+        document.getElementById('otpInput').value = ''; // ✅ OTP field clear karo
+        document.getElementById('otpInput').focus();
+        startResendTimer();
 
+    } catch (err) {
+        btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
+        btn.style.opacity = '1';
+        btn.disabled = false;
+        showError('phoneWrap', err.message);
+    }
+}
         async function resendOtp() {
             document.getElementById('resendLink').style.display = 'none';
             await sendOtpRequest();
