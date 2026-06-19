@@ -10,10 +10,9 @@
     <meta name="theme-color" content="#DC2626">
     <link rel="stylesheet" href="/css/bootstrap.css" />
     <link rel="stylesheet" href="/css/style.css" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         .dashboard-nav .nav-link {
             color: var(--color-text-muted);
@@ -101,7 +100,7 @@
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                                 Profile Settings
                             </a>
-                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="login">
+                            <a class="nav-link text-danger d-flex align-items-center gap-3 mt-4" href="#" onclick="logout(); return false;">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
                                 Logout
                             </a>
@@ -158,13 +157,12 @@
                     <h5 class="fw-bold mb-0" style="font-family:var(--font-head); color:var(--color-text);">Saved Addresses</h5>
                 </div>
                 <div class="row g-4" id="addressesList">
-                    <!-- Dynamic addresses will be loaded here -->
                     <div class="col-md-6">
                         <div class="skeleton" style="height:140px; border-radius:16px;"></div>
                     </div>
                 </div>
 
-                <!-- Add Address Card (Always visible at the end of the list) -->
+                <!-- Add Address Card -->
                 <div class="row mt-4 mb-5">
                     <div class="col-md-6">
                         <div class="card border border-dashed rounded-4 h-100 d-flex align-items-center justify-content-center bg-light shadow-sm" style="min-height: 140px; cursor:pointer; transition: all 0.2s;" onclick="showAddAddressModal()">
@@ -188,6 +186,7 @@
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/script.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Add Address Modal -->
     <div id="addAddressModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
@@ -250,6 +249,28 @@
             window.location.href = 'login';
         }
 
+        // ✅ SweetAlert2 logout confirmation
+        function logout() {
+            Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure you want to logout?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53E3E',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Logout',
+                cancelButtonText: 'Cancel',
+                borderRadius: '16px',
+                customClass: {
+                    popup: 'rounded-4'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    forceLogout();
+                }
+            });
+        }
+
         async function loadProfile() {
             try {
                 const response = await fetch(`${getApiBase()}/auth/me`, {
@@ -267,12 +288,10 @@
 
                 const data = await response.json();
                 
-                // Populate fields
                 document.getElementById('profileName').value = data.name;
                 document.getElementById('profilePhone').value = data.phone;
                 document.getElementById('profileEmail').value = data.email || '';
 
-                // Persist user data for shared nav/avatar state
                 const imgBase = window.location.origin;
                 localStorage.setItem('gnm_user', JSON.stringify({
                     name: data.name,
@@ -281,7 +300,6 @@
                     profile_image: data.profile_image ? `${imgBase}${data.profile_image}` : null
                 }));
 
-                // Update avatar circles
                 const profileAvatar = document.getElementById('profilePageAvatarCircle');
                 const sidebarAvatar = document.getElementById('sidebarAvatarCircle');
                 const topAvatar = document.getElementById('topAvatarCircle');
@@ -303,9 +321,15 @@
 
             } catch (err) {
                 console.error(err);
-                alert("Session expired. Please login again.");
-                localStorage.removeItem('gnm_token');
-                window.location.href = 'login';
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Session Expired',
+                    text: 'Please login again.',
+                    confirmButtonColor: '#E53E3E'
+                }).then(() => {
+                    localStorage.removeItem('gnm_token');
+                    window.location.href = 'login';
+                });
             }
         }
 
@@ -325,9 +349,7 @@
             try {
                 const response = await fetch(`${getApiBase()}/auth/me`, {
                     method: 'PATCH',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
 
@@ -336,10 +358,22 @@
                     throw new Error(data.detail || 'Failed to update profile');
                 }
 
-                alert('Profile updated successfully! ✅');
-                loadProfile(); // Reload to reflect changes
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Profile Updated!',
+                    text: 'Your changes have been saved successfully.',
+                    confirmButtonColor: '#FF6B35',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                loadProfile();
             } catch (err) {
-                alert(err.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: err.message,
+                    confirmButtonColor: '#E53E3E'
+                });
             } finally {
                 btn.textContent = 'Save Changes';
                 btn.disabled = false;
@@ -351,15 +385,13 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Validate file type
             if (!file.type.startsWith('image/')) {
-                alert('Please select an image file.');
+                Swal.fire({ icon: 'error', title: 'Invalid File', text: 'Please select an image file.', confirmButtonColor: '#E53E3E' });
                 return;
             }
 
-            // Validate file size (2MB)
             if (file.size > 2 * 1024 * 1024) {
-                alert('Image size should be less than 2MB.');
+                Swal.fire({ icon: 'error', title: 'File Too Large', text: 'Image size should be less than 2MB.', confirmButtonColor: '#E53E3E' });
                 return;
             }
 
@@ -369,9 +401,7 @@
             try {
                 const response = await fetch(`${getApiBase()}/auth/me`, {
                     method: 'PATCH',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
 
@@ -380,23 +410,17 @@
                     throw new Error(data.detail || 'Failed to upload image');
                 }
 
-                alert('Profile image updated successfully! ✅');
-                loadProfile(); // Reload to reflect changes
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Photo Updated!',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                loadProfile();
             } catch (err) {
-                alert(err.message);
+                Swal.fire({ icon: 'error', title: 'Error', text: err.message, confirmButtonColor: '#E53E3E' });
             }
         }
-
-        function logout() {
-            forceLogout();
-        }
-
-        // Add logout listener
-        document.querySelectorAll('a[href="login"]').forEach(el => {
-            if(el.textContent.includes('Logout')) {
-                el.onclick = function(e) { e.preventDefault(); logout(); };
-            }
-        });
 
         // ── Addresses Logic ──
         let map = null;
@@ -437,7 +461,19 @@
         }
 
         async function deleteAddress(id) {
-            if(!confirm("Are you sure you want to delete this address?")) return;
+            const result = await Swal.fire({
+                title: 'Delete Address?',
+                text: 'This address will be permanently removed.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E53E3E',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel'
+            });
+
+            if (!result.isConfirmed) return;
+
             try {
                 const res = await fetch(`${getApiBase()}/addresses/${id}`, {
                     method: 'DELETE',
@@ -446,7 +482,7 @@
                 if(!res.ok) throw new Error('Failed to delete');
                 loadAddresses();
             } catch (e) {
-                alert(e.message);
+                Swal.fire({ icon: 'error', title: 'Error', text: e.message, confirmButtonColor: '#E53E3E' });
             }
         }
 
@@ -454,15 +490,11 @@
             document.getElementById('addAddressModal').style.display = 'flex';
             setTimeout(() => {
                 if (!map) {
-                    // Default center: India (approx) or use browser location
                     map = L.map('addressMap').setView([20.5937, 78.9629], 5);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; OpenStreetMap contributors'
                     }).addTo(map);
-
-                    // Try to get user's current location
                     locateMe();
-
                     map.on('click', function(e) {
                         placeMarker(e.latlng.lat, e.latlng.lng);
                     });
@@ -492,11 +524,10 @@
                     map.setView([lat, lon], 16);
                     placeMarker(lat, lon);
                 } else {
-                    alert("Location not found. Try a different search term (e.g. 'Maninagar, Ahmedabad').");
+                    Swal.fire({ icon: 'info', title: 'Not Found', text: "Location not found. Try a different search term.", confirmButtonColor: '#FF6B35' });
                 }
             } catch(e) {
-                console.error("Search error", e);
-                alert("Error searching location. Please check your internet connection.");
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Error searching location. Check your internet connection.', confirmButtonColor: '#E53E3E' });
             } finally {
                 btn.textContent = originalText;
                 btn.disabled = false;
@@ -523,14 +554,12 @@
                     }, 
                     (error) => {
                         console.warn("Geolocation error:", error);
-                        alert("Could not detect exact location. Please ensure location permissions are granted.");
                         btn.disabled = false;
                         icon.style.opacity = '1';
                     }, 
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
-                alert("Geolocation is not supported by your browser.");
                 btn.disabled = false;
                 icon.style.opacity = '1';
             }
@@ -553,21 +582,13 @@
             document.getElementById('new-address-lat').value = lat;
             document.getElementById('new-address-lng').value = lng;
             
-            // Auto-fill address text using Reverse Geocoding
             try {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
                     headers: { 'Accept-Language': 'en-US,en;q=0.9' }
                 });
                 const data = await res.json();
                 if (data && data.display_name) {
-                    // Prepend with a placeholder for house number
-                    const currentVal = document.getElementById('new-address-text').value;
-                    if (!currentVal || currentVal.length < 10) {
-                        document.getElementById('new-address-text').value = data.display_name;
-                    } else {
-                        // If user already typed something substantial, ask or just overwrite
-                        document.getElementById('new-address-text').value = data.display_name;
-                    }
+                    document.getElementById('new-address-text').value = data.display_name;
                 }
             } catch(e) {
                 console.warn("Reverse geocoding error:", e);
