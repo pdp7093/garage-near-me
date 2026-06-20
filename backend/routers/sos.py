@@ -11,6 +11,7 @@ import os, math, random, secrets, string
 import models, schemas
 from database import get_db
 from routers.websocket_manager import ws_manager
+from routers.auth import send_whatsapp_otp
 
 # ── Firebase FCM ──────────────────────────
 import firebase_admin
@@ -468,6 +469,16 @@ def send_sos_estimate(
     print(f"Amount: ₹{payload.estimated_amount}")
     print(f"Customer OTP: {otp}")
     print(f"{'='*40}\n")
+
+    # ✅ WhatsApp OTP customer ko bhejo
+    customer = db.query(models.Customer).filter(
+        models.Customer.id == sos_request.customer_id
+    ).first()
+    if customer and customer.phone:
+        import asyncio
+        asyncio.create_task(
+            send_whatsapp_otp(customer.phone, otp)
+        )
 
     return {
         "message":          "Estimate sent! OTP generated.",

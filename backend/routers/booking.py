@@ -13,6 +13,8 @@ import unicodedata
 import models, schemas
 from database import get_db
 from routers.fcm import GarageNotifications, CustomerNotifications
+from routers.auth import send_whatsapp_otp
+import asyncio
 
 router = APIRouter()
 
@@ -905,11 +907,19 @@ def send_estimate_otp(
     booking.estimate_otp_sent_at  = datetime.utcnow()
     db.commit()
 
-    # TODO: SMS send karo customer ke phone pe
     print(f"\n{'='*40}")
     print(f"ESTIMATE OTP for Booking #{booking_id}: {otp}")
     print(f"Customer phone: {booking.customer.phone}")
     print(f"{'='*40}\n")
+
+    # ✅ WhatsApp OTP customer ko bhejo
+    customer = db.query(models.Customer).filter(
+        models.Customer.id == booking.customer_id
+    ).first()
+    if customer and customer.phone:
+        asyncio.create_task(
+            send_whatsapp_otp(customer.phone, otp)
+        )
 
     # FCM — Customer ko estimate ready ka alert
     if booking.customer and booking.customer.fcm_token and booking.estimated_amount:
@@ -1011,6 +1021,15 @@ def send_additional_estimate(
     print(f"\n{'='*40}")
     print(f"ADDITIONAL OTP for Booking #{booking_id}: {otp}")
     print(f"{'='*40}\n")
+
+    # ✅ WhatsApp OTP customer ko bhejo
+    customer = db.query(models.Customer).filter(
+        models.Customer.id == booking.customer_id
+    ).first()
+    if customer and customer.phone:
+        asyncio.create_task(
+            send_whatsapp_otp(customer.phone, otp)
+        )
 
     return {
         "message": "Additional estimate sent, OTP generated",
