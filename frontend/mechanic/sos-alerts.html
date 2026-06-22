@@ -104,33 +104,57 @@
 
   const API = () => getApiBase();
   let refreshInterval = null;
-  let _lastAlertIds   = null; // Smart re-render tracker
+  let _lastAlertIds   = null;
 
+  // ✅ Fix 1 — Always use integers, track timestamp for cleanup
   function getDeclinedSOS() {
-    return JSON.parse(localStorage.getItem('declined_sos') || '[]');
+    return JSON.parse(localStorage.getItem('declined_sos') || '[]').map(Number);
   }
 
   function addDeclinedSOS(id) {
+    id = parseInt(id); // ✅ Always integer
     const declined = getDeclinedSOS();
     if (!declined.includes(id)) {
       declined.push(id);
       localStorage.setItem('declined_sos', JSON.stringify(declined));
     }
+    // ✅ Timestamp save karo — 30 min baad auto-remove
+    const times = JSON.parse(localStorage.getItem('declined_sos_time') || '{}');
+    times[id] = Date.now();
+    localStorage.setItem('declined_sos_time', JSON.stringify(times));
+  }
+
+  // ✅ Fix 2 — 30 min purane declined SOS hata do (naya SOS same area mein aa sakta hai)
+  function cleanOldDeclinedSOS() {
+    const times = JSON.parse(localStorage.getItem('declined_sos_time') || '{}');
+    const now = Date.now();
+    const validIds = [];
+    const freshTimes = {};
+    for (const [id, time] of Object.entries(times)) {
+      if (now - time < 30 * 60 * 1000) { // 30 minutes
+        validIds.push(parseInt(id));
+        freshTimes[id] = time;
+      }
+    }
+    localStorage.setItem('declined_sos', JSON.stringify(validIds));
+    localStorage.setItem('declined_sos_time', JSON.stringify(freshTimes));
   }
 
   function goToSOSDetail(sosId) {
-    console.log('[SOS-ALERTS] Navigating to detail with sosId:', sosId);
     window.location.href = `/mechanic/sos-detail/${sosId}`;
   }
 
   async function loadSOSAlerts(forceRender = false) {
     try {
+      // ✅ Pehle purane declined clean karo
+      cleanOldDeclinedSOS();
+
       const res = await fetch(`${API()}/sos/active`, {
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
       if (!res.ok) throw new Error(await res.text());
       let alerts = await res.json();
-      
+
       // Check if mechanic already has an active SOS
       let myActive = alerts.find(a => ['accepted', 'on_the_way', 'in_progress'].includes(a.status));
       if (myActive) {
@@ -153,9 +177,10 @@
       // Sirf broadcasting wale + declined filter
       alerts = alerts.filter(a => a.status === 'broadcasting');
       const declined = getDeclinedSOS();
-      alerts = alerts.filter(a => !declined.includes(a.id));
+      // ✅ Fix — parseInt both sides for proper comparison
+      alerts = alerts.filter(a => !declined.includes(parseInt(a.id)));
 
-      // Smart re-render — sirf tab jab IDs change ho ya force karo
+      // Smart re-render
       const currentIds = JSON.stringify(alerts.map(a => a.id).sort());
       if (!forceRender && _lastAlertIds === currentIds) return;
       _lastAlertIds = currentIds;
@@ -164,8 +189,7 @@
       loadHistory();
     } catch(err) {
       document.getElementById('header-title').textContent = 'SOS load nahi hua';
-      document.getElementById('header-sub').textContent   = 'Error: ' + err.message;
-      document.getElementById('sos-container').innerHTML  = '';
+      document.getElementById('header-sub').textContent = err.message;
     }
   }
 
@@ -176,12 +200,15 @@
 
     if (alerts.length === 0) {
       stopRingtone();
-      title.textContent = 'Koi active SOS nahi hai';
-      sub.textContent   = 'Jab koi SOS aayega, yahan dikhega.';
+      title.textContent = 'No Active SOS Nearby';
+      sub.textContent   = 'You will be notified when a customer needs help.';
       container.innerHTML = `
-        <div class="col-12 text-center py-5">
-          <div style="font-size:60px;">📡</div>
-          <p class="text-muted mt-3">Radar active hai — koi emergency nahi abhi.</p>
+        <div class="col-12 col-md-10 col-lg-8">
+          <div class="rounded-4 p-5 text-center bg-white border">
+            <div style="font-size:60px;" class="mb-3">📡</div>
+            <h5 class="fw-bold text-muted">Radar is Active</h5>
+            <p class="text-muted small">Waiting for nearby SOS requests...</p>
+          </div>
         </div>`;
       return;
     }
@@ -189,9 +216,7 @@
     title.textContent = `${alerts.length} Emergency Request${alerts.length > 1 ? 's' : ''} Nearby`;
     sub.textContent   = 'Accept fast! First mechanic to accept gets the job.';
 
-    // Play loop ringtone
     startRingtone();
-
     container.innerHTML = alerts.map(a => buildSOSCard(a)).join('');
   }
 
@@ -247,7 +272,6 @@
       </div>`;
   }
 
-  // ── Sab alerts band karo ─────────────────────────────────────────────────
   function stopAllAlerts() {
     if (typeof stopRingtone === 'function') stopRingtone();
     const overlay = document.getElementById('gnm-incoming-call');
@@ -275,9 +299,9 @@
 
   async function rejectSOS(id, btn) {
     btn.disabled = true; btn.textContent = 'Declining...';
-    addDeclinedSOS(id);
+    addDeclinedSOS(id); // ✅ Integer store hoga
     stopAllAlerts();
-    _lastAlertIds = null; // Force re-render on next poll
+    _lastAlertIds = null;
     await loadSOSAlerts(true);
     // Backend ko bhi batao (silently)
     try {
@@ -340,8 +364,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    loadSOSAlerts(true); // Pehla load force karo
-    // Polling — sirf data change hone pe re-render hoga
+    loadSOSAlerts(true);
     refreshInterval = setInterval(() => loadSOSAlerts(), 5000);
   });
 </script>
