@@ -22,7 +22,6 @@ async def send_whatsapp_otp(phone: str, otp: str):
         return
     try:
         url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
-        # Phone number format: +91XXXXXXXXXX
         to_number = phone if phone.startswith("+") else f"+{phone}"
         data = {
             "From": TWILIO_WHATSAPP_FROM,
@@ -48,7 +47,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/garage-auth/verify-otp")
 
-OTP_EXPIRY_MINUTES = 10  # OTP 10 minute mein expire ho jaayega
+OTP_EXPIRY_MINUTES = 10
 
 
 # ──────────────────────────────────────────
@@ -94,14 +93,6 @@ async def send_otp(
     request: schemas.OTPSendRequest,
     db: Session = Depends(get_db)
 ):
-    """
-    Garage owner apna phone number dalta hai → OTP milta hai.
-    
-    Sirf approved garages ko OTP milega.
-    Testing ke liye OTP response mein bhi return hoga.
-    Production mein: SMS gateway se send karo (Fast2SMS / Twilio)
-    """
-    # Check karo ki yeh phone registered garage ka hai
     garage = db.query(models.Garage).filter(
         models.Garage.phone   == request.phone,
         models.Garage.is_active == True
@@ -113,16 +104,13 @@ async def send_otp(
             detail="No active garage found with this phone number. Please contact admin."
         )
 
-    # Purane unused OTPs delete karo (same phone ke liye)
     db.query(models.GarageOTP).filter(
         models.GarageOTP.phone   == request.phone,
         models.GarageOTP.is_used == False
     ).delete()
 
-    # Naya 6-digit OTP generate karo
     otp = str(random.randint(100000, 999999))
 
-    # Database mein save karo
     garage_otp = models.GarageOTP(
         phone      = request.phone,
         otp        = otp,
@@ -132,13 +120,10 @@ async def send_otp(
     db.add(garage_otp)
     db.commit()
 
-    # Fast2SMS se OTP bhejo
     await send_whatsapp_otp(request.phone, otp)
     print(f"[OTP] {request.phone} → {otp}")
 
-    return {
-        "message": f"OTP sent to {request.phone}"
-    }
+    return {"message": f"OTP sent to {request.phone}"}
 
 
 # ──────────────────────────────────────────
@@ -151,11 +136,6 @@ def verify_otp(
     request: schemas.OTPVerifyRequest,
     db: Session = Depends(get_db)
 ):
-    """
-    Garage owner OTP dalta hai → JWT token milta hai.
-    Token se phir saare protected endpoints access kar sakta hai.
-    """
-    # OTP dhundho — phone + otp + unused + not expired
     otp_record = db.query(models.GarageOTP).filter(
         models.GarageOTP.phone   == request.phone,
         models.GarageOTP.otp     == request.otp,
@@ -169,7 +149,6 @@ def verify_otp(
             detail="Invalid or expired OTP. Please request a new one."
         )
 
-    # Garage fetch karo
     garage = db.query(models.Garage).filter(
         models.Garage.phone    == request.phone,
         models.Garage.is_active == True
@@ -178,11 +157,9 @@ def verify_otp(
     if not garage:
         raise HTTPException(status_code=404, detail="Garage not found")
 
-    # OTP mark as used
     otp_record.is_used = True
     db.commit()
 
-    # JWT token banao
     token = create_access_token(
         data={
             "sub":     garage.phone,
@@ -208,21 +185,37 @@ def get_my_profile(
     """
     Token se apna profile fetch karo.
     Dashboard load hote waqt yahi call hoga.
-    Checks if grace period has expired and auto-locks if unpaid.
+
+    Billing Logic:
+    - Trial period: ₹500 tak free — ₹500 reach hone pe sirf trial complete mark karo, BLOCK NAHI
+    - Post-trial: 15th/30th pe billing cycle chalti hai → 48hr grace → phir block
+    - Grace period expire hone pe auto-lock
     """
-    if not current_garage.has_completed_trial and current_garage.pending_platform_dues and current_garage.pending_platform_dues >= 500.0:
-        if not current_garage.is_credit_locked:
-            current_garage.is_credit_locked = True
+
+    # ✅ TRIAL PERIOD — ₹500 reach hua to sirf trial complete karo, block nahi
+    if not current_garage.has_completed_trial:
+        if current_garage.pending_platform_dues and current_garage.pending_platform_dues >= 500.0:
+            current_garage.has_completed_trial = True  # ✅ Sirf flag karo
+            current_garage.is_credit_locked = False    # ✅ Block bilkul nahi
             db.commit()
             db.refresh(current_garage)
+
+    # ✅ POST-TRIAL — sirf grace period expire hone pe block karo
     elif current_garage.has_completed_trial and current_garage.grace_period_ends_at:
-        from datetime import datetime
         grace_naive = current_garage.grace_period_ends_at.replace(tzinfo=None)
-        if grace_naive < datetime.utcnow() and current_garage.pending_platform_dues and current_garage.pending_platform_dues > 0:
-            if not current_garage.is_credit_locked:
-                current_garage.is_credit_locked = True
-                db.commit()
-                db.refresh(current_garage)
+        if grace_naive < datetime.utcnow():
+            if current_garage.pending_platform_dues and current_garage.pending_platform_dues > 0:
+                if not current_garage.is_credit_locked:
+                    current_garage.is_credit_locked = True
+                    db.commit()
+                    db.refresh(current_garage)
+            else:
+                # Dues zero ho gaye — unblock karo
+                if current_garage.is_credit_locked:
+                    current_garage.is_credit_locked = False
+                    current_garage.grace_period_ends_at = None
+                    db.commit()
+                    db.refresh(current_garage)
 
     return current_garage
 
@@ -238,11 +231,6 @@ def save_fcm_token(
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    """
-    Garage ka FCM token save karo — push notifications ke liye.
-    Login ke baad ya app open hone pe call hoga.
-    POST /api/garage-auth/fcm-token
-    """
     current_garage.fcm_token = token_data.fcm_token
     db.commit()
     return {"message": "FCM token saved"}
@@ -259,9 +247,6 @@ def update_my_profile(
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    """
-    Garage apna profile update kare — naam, type, SOS toggle etc.
-    """
     for field, value in update_data.model_dump(exclude_unset=True).items():
         setattr(current_garage, field, value)
 
