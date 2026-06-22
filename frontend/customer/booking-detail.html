@@ -351,7 +351,11 @@
   }
 
   function renderTimeline(currentStatus) {
-    const currentIdx = STATUSES.findIndex(s => s.key === currentStatus);
+    // ✅ completed pe sab steps done dikhao
+    const currentIdx = currentStatus === 'completed'
+      ? STATUSES.length
+      : STATUSES.findIndex(s => s.key === currentStatus);
+
     const timeline = document.getElementById('timeline');
     timeline.innerHTML = STATUSES.map((s, i) => {
       let dotClass = 'pending', labelClass = 'pending', icon = '○';
