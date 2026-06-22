@@ -829,7 +829,7 @@ async def send_additional_estimate(
 
 
 # ──────────────────────────────────────────
-# VERIFY ADDITIONAL OTP
+# VERIFY ADDITIONAL OTP — Garage side
 # ──────────────────────────────────────────
 
 @router.post("/{booking_id}/verify-additional-otp", response_model=schemas.BookingResponse)
@@ -849,6 +849,42 @@ def verify_additional_otp(
         raise HTTPException(status_code=400, detail="No additional estimate sent")
     if booking.additional_otp != otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
+    if booking.additional_otp_verified:
+        raise HTTPException(status_code=400, detail="OTP already used")
+
+    booking.additional_otp_verified = True
+    db.commit()
+    db.refresh(booking)
+    return booking
+
+
+# ──────────────────────────────────────────
+# VERIFY ADDITIONAL OTP — Customer side
+# ✅ Customer apni tracking page se OTP enter kare
+# POST /api/bookings/{booking_id}/customer-verify-additional-otp
+# ──────────────────────────────────────────
+
+@router.post("/{booking_id}/customer-verify-additional-otp", response_model=schemas.BookingResponse)
+def customer_verify_additional_otp(
+    booking_id: int,
+    otp: str,
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    """
+    Customer tracking page se additional OTP verify kare.
+    WhatsApp pe aaya OTP yahan enter karo → additional kaam shuru.
+    """
+    booking = db.query(models.Booking).filter(
+        models.Booking.id          == booking_id,
+        models.Booking.customer_id == current_customer.id
+    ).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if not booking.additional_otp:
+        raise HTTPException(status_code=400, detail="No additional estimate sent yet")
+    if booking.additional_otp != otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP. Please check your WhatsApp.")
     if booking.additional_otp_verified:
         raise HTTPException(status_code=400, detail="OTP already used")
 
