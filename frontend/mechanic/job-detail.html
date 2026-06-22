@@ -676,7 +676,7 @@
         const otpData = await otpRes.json();
         if (!otpRes.ok) throw new Error(otpData.detail || 'OTP send failed');
 
-        showToast(`Estimate sent! OTP: ${otpData.otp}`, 'success');
+        showToast('OTP resent! Customer ke WhatsApp pe gaya.', 'success');
         setTimeout(() => location.reload(), 1500);
       } catch(e) { showError('est-error', e.message || 'Failed to send estimate. Try again.'); }
       finally { btn.disabled = false; btn.textContent = 'Send Estimate & OTP Maango'; }
@@ -696,7 +696,7 @@
         });
         if (!res.ok) throw new Error();
         const data = await res.json();
-        showToast(`Additional estimate sent! OTP: ${data.otp}`, 'success');
+        showToast('Additional estimate sent! OTP customer ke WhatsApp pe gaya.', 'success');
         setTimeout(() => location.reload(), 1500);
       } catch { showError('add-error', 'Failed to send additional estimate.'); }
       finally { btn.disabled = false; btn.textContent = 'Send Additional Estimate'; }
@@ -713,7 +713,7 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Failed');
-        showToast(`OTP resent! OTP: ${data.otp}`, 'success');
+        showToast('OTP resent! Customer ke WhatsApp pe gaya.', 'success');
       } catch(e) {
         showToast(e.message || 'Resend failed.', 'danger');
       } finally {
@@ -733,7 +733,7 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Failed');
-        showToast(`OTP resent! OTP: ${data.otp}`, 'success');
+        showToast('OTP resent! Customer ke WhatsApp pe gaya.', 'success');
       } catch(e) {
         showToast(e.message || 'Resend failed.', 'danger');
       } finally {
