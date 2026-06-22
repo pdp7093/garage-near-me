@@ -201,21 +201,34 @@ def get_my_profile(
             db.refresh(current_garage)
 
     # ✅ POST-TRIAL — sirf grace period expire hone pe block karo
-    elif current_garage.has_completed_trial and current_garage.grace_period_ends_at:
-        grace_naive = current_garage.grace_period_ends_at.replace(tzinfo=None)
-        if grace_naive < datetime.utcnow():
-            if current_garage.pending_platform_dues and current_garage.pending_platform_dues > 0:
-                if not current_garage.is_credit_locked:
-                    current_garage.is_credit_locked = True
-                    db.commit()
-                    db.refresh(current_garage)
+    elif current_garage.has_completed_trial:
+        if current_garage.grace_period_ends_at:
+            grace_naive = current_garage.grace_period_ends_at.replace(tzinfo=None)
+            if grace_naive < datetime.utcnow():
+                if current_garage.pending_platform_dues and current_garage.pending_platform_dues > 0:
+                    if not current_garage.is_credit_locked:
+                        current_garage.is_credit_locked = True
+                        db.commit()
+                        db.refresh(current_garage)
+                else:
+                    # Dues zero ho gaye — unblock karo
+                    if current_garage.is_credit_locked:
+                        current_garage.is_credit_locked = False
+                        current_garage.grace_period_ends_at = None
+                        db.commit()
+                        db.refresh(current_garage)
             else:
-                # Dues zero ho gaye — unblock karo
+                # Grace period active hai — block nahi hona chahiye
                 if current_garage.is_credit_locked:
                     current_garage.is_credit_locked = False
-                    current_garage.grace_period_ends_at = None
                     db.commit()
                     db.refresh(current_garage)
+        else:
+            # Post-trial without grace period — block nahi hona chahiye
+            if current_garage.is_credit_locked:
+                current_garage.is_credit_locked = False
+                db.commit()
+                db.refresh(current_garage)
 
     return current_garage
 

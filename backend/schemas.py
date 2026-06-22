@@ -312,6 +312,7 @@ class GarageResponse(BaseModel):
     has_gst:              bool
     gst_number:           Optional[str] = None
     pending_platform_dues: float
+    has_completed_trial:  bool
     is_credit_locked:     bool
     grace_period_ends_at:  Optional[datetime] = None
     created_at:           datetime

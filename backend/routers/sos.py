@@ -587,7 +587,7 @@ def complete_sos(
     current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
 
     if not current_garage.has_completed_trial and current_garage.pending_platform_dues >= 500.0:
-        current_garage.is_credit_locked = True
+        current_garage.has_completed_trial = True
 
     db.commit()
 
