@@ -11,147 +11,34 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
   <style>
-    .timeline {
-      position: relative;
-      padding-left: 1.5rem;
-    }
-
-    .timeline::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 2px;
-      height: 100%;
-      background: #e9ecef;
-    }
-
-    .timeline-item {
-      position: relative;
-      margin-bottom: 1.5rem;
-    }
-
-    .timeline-item:last-child {
-      margin-bottom: 0;
-    }
-
-    .timeline-item::before {
-      content: '';
-      position: absolute;
-      top: 4px;
-      left: -1.5rem;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #e9ecef;
-      border: 3px solid white;
-      transform: translateX(-6px);
-      z-index: 2;
-    }
-
-    .timeline-item.active::before {
-      background: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
-    }
-
-    .timeline-item.done::before {
-      background: #10B981;
-    }
-
-    .timeline-item.done::after {
-      content: '';
-      position: absolute;
-      top: 4px;
-      left: -1.5rem;
-      width: 2px;
-      height: calc(100% + 1.5rem);
-      background: #10B981;
-      transform: translateX(-0.5px);
-      z-index: 1;
-    }
-
-    .timeline-item:last-child::after {
-      display: none;
-    }
-
-    .estimate-item-row {
-      background: white;
-      border: 1px solid var(--color-border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .otp-input {
-      letter-spacing: 6px;
-      font-size: 22px;
-      font-weight: 700;
-      text-align: center;
-      font-family: monospace;
-    }
-
-    .status-badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 20px;
-    }
-
-    .status-pending {
-      background: #EFF6FF;
-      color: #2563EB;
-    }
-
-    .status-accepted {
-      background: #F0FDF4;
-      color: #16A34A;
-    }
-
-    .status-ongoing {
-      background: #FFFBEB;
-      color: #D97706;
-    }
-
-    .status-completed {
-      background: #F0FDF4;
-      color: #15803D;
-    }
-
-    .status-rejected {
-      background: #FEF2F2;
-      color: #DC2626;
-    }
-
-    .skeleton {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 8px;
-    }
-
-    @keyframes shimmer {
-      0% {
-        background-position: 200% 0
-      }
-
-      100% {
-        background-position: -200% 0
-      }
-    }
+    .timeline { position: relative; padding-left: 1.5rem; }
+    .timeline::before { content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%; background: #e9ecef; }
+    .timeline-item { position: relative; margin-bottom: 1.5rem; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-item::before { content: ''; position: absolute; top: 4px; left: -1.5rem; width: 14px; height: 14px; border-radius: 50%; background: #e9ecef; border: 3px solid white; transform: translateX(-6px); z-index: 2; }
+    .timeline-item.active::before { background: var(--color-primary); box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2); }
+    .timeline-item.done::before { background: #10B981; }
+    .timeline-item.done::after { content: ''; position: absolute; top: 4px; left: -1.5rem; width: 2px; height: calc(100% + 1.5rem); background: #10B981; transform: translateX(-0.5px); z-index: 1; }
+    .timeline-item:last-child::after { display: none; }
+    .estimate-item-row { background: white; border: 1px solid var(--color-border); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
+    .otp-input { letter-spacing: 6px; font-size: 22px; font-weight: 700; text-align: center; font-family: monospace; }
+    .status-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+    .status-pending { background: #EFF6FF; color: #2563EB; }
+    .status-accepted { background: #F0FDF4; color: #16A34A; }
+    .status-ongoing { background: #FFFBEB; color: #D97706; }
+    .status-completed { background: #F0FDF4; color: #15803D; }
+    .status-rejected { background: #FEF2F2; color: #DC2626; }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+    @keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
   </style>
 </head>
 
 <body>
   <div class="mechanic-layout">
     <div id="sidebar-container"></div>
-    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
-      style="z-index:1030;"></div>
+    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index:1030;"></div>
 
     <main class="mechanic-main">
       <div id="topbar-container"></div>
@@ -174,7 +61,7 @@
         <div id="page-content" style="display:none;">
           <div class="row g-4">
 
-            <!-- ── LEFT COLUMN ── -->
+            <!-- LEFT COLUMN -->
             <div class="col-12 col-lg-7">
 
               <!-- Pickup Location Card -->
@@ -183,8 +70,7 @@
                   <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background:#e9ecef;">
                     <div class="text-muted text-center">
                       <svg viewBox="0 0 24 24" fill="var(--color-text-muted)" width="48" height="48" class="mb-2">
-                        <path
-                          d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                       </svg>
                       <div style="font-size:13px;">Pickup Location</div>
                     </div>
@@ -210,18 +96,15 @@
 
               <!-- Customer & Vehicle Card -->
               <div class="bg-white rounded-4 border shadow-sm p-4 mb-4">
-                <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size:12px;letter-spacing:1px;">Customer &
-                  Vehicle</h6>
+                <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size:12px;letter-spacing:1px;">Customer & Vehicle</h6>
                 <div class="d-flex align-items-center gap-3 mb-4">
                   <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
-                    style="width:50px;height:50px;font-size:20px;background:var(--color-primary);"
-                    id="customer-initial">?</div>
+                    style="width:50px;height:50px;font-size:20px;background:var(--color-primary);" id="customer-initial">?</div>
                   <div>
                     <h5 class="fw-bold mb-0" id="customer-name" style="font-family:var(--font-head);">—</h5>
                     <div class="text-muted" style="font-size:13px;" id="customer-phone">—</div>
                   </div>
                 </div>
-
                 <div class="row g-3">
                   <div class="col-sm-4">
                     <div class="bg-light rounded-3 p-3 text-center">
@@ -242,46 +125,30 @@
                     </div>
                   </div>
                 </div>
-
-                <!-- Services requested -->
                 <div class="mt-4" id="service-section">
-                  <div class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">
-                    Services Requested</div>
+                  <div class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Services Requested</div>
                   <div id="service-type-text" class="text-dark" style="font-size:14px;"></div>
                 </div>
-
-                <!-- Description -->
                 <div class="mt-3" id="desc-section" style="display:none;">
-                  <div class="text-muted mb-1" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">
-                    Problem Description</div>
-                  <div class="bg-light rounded-3 p-3 text-dark" id="booking-desc"
-                    style="font-size:14px;font-style:italic;"></div>
+                  <div class="text-muted mb-1" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Problem Description</div>
+                  <div class="bg-light rounded-3 p-3 text-dark" id="booking-desc" style="font-size:14px;font-style:italic;"></div>
                 </div>
-
-                <!-- Scheduled -->
                 <div class="mt-3" id="schedule-section" style="display:none;">
-                  <div class="text-muted mb-1" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">
-                    Scheduled For</div>
+                  <div class="text-muted mb-1" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Scheduled For</div>
                   <div class="fw-semibold text-dark" id="scheduled-at" style="font-size:14px;"></div>
                 </div>
               </div>
 
             </div>
 
-            <!-- ── RIGHT COLUMN ── -->
+            <!-- RIGHT COLUMN -->
             <div class="col-12 col-lg-5">
               <div class="bg-white rounded-4 border shadow-sm p-4 sticky-top" style="top:80px;">
-
-                <!-- Booking header -->
                 <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-                  <h5 class="fw-bold mb-0" style="font-family:var(--font-head);">Job #<span
-                      id="booking-id-display"></span></h5>
+                  <h5 class="fw-bold mb-0" style="font-family:var(--font-head);">Job #<span id="booking-id-display"></span></h5>
                   <span class="status-badge" id="status-badge">—</span>
                 </div>
-
-                <!-- ═══ FLOW SECTION — changes per status ═══ -->
                 <div id="flow-section"></div>
-
               </div>
             </div>
 
@@ -300,9 +167,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body px-4">
-          <div id="garage-services-list">
-            <div class="text-center py-4 text-muted small">Loading services...</div>
-          </div>
+          <div id="garage-services-list"><div class="text-center py-4 text-muted small">Loading services...</div></div>
         </div>
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
@@ -322,15 +187,12 @@
         </div>
         <div class="modal-body px-4">
           <p class="text-muted mb-3" style="font-size:13px;" id="otp-modal-desc">Enter customer's OTP:</p>
-          <input type="text" id="otp-input" class="form-control otp-input rounded-3 border-2" maxlength="6"
-            placeholder="------">
+          <input type="text" id="otp-input" class="form-control otp-input rounded-3 border-2" maxlength="6" placeholder="------">
           <div id="otp-error" class="text-danger mt-2 d-none" style="font-size:13px;"></div>
         </div>
         <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-outline-secondary rounded-pill px-3"
-            data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn text-white rounded-pill px-4 fw-bold"
-            style="background:var(--color-primary);" id="otp-confirm-btn" onclick="confirmOTP()">Confirm</button>
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:var(--color-primary);" id="otp-confirm-btn" onclick="confirmOTP()">Confirm</button>
         </div>
       </div>
     </div>
@@ -343,23 +205,20 @@
   <script>
     let bookingId = new URLSearchParams(window.location.search).get('id');
     if (!bookingId) {
-        const pathParts = window.location.pathname.replace(/\/$/, '').split('/');
-        const slug = pathParts[pathParts.length - 1];
-        if (slug && slug !== 'job-detail' && slug !== 'job-detail.html') {
-            bookingId = slug;
-        }
+      const pathParts = window.location.pathname.replace(/\/$/, '').split('/');
+      const slug = pathParts[pathParts.length - 1];
+      if (slug && slug !== 'job-detail' && slug !== 'job-detail.html') bookingId = slug;
     }
     initMechanicChrome(`Job #${bookingId || 'Details'}`, null, '/mechanic/bookings.html');
 
     let booking = null;
     let estimateItems = [];
     let additionalItems = [];
-    let otpAction = null; // 'estimate' | 'additional'
+    let otpAction = null;
     let myGarageServices = [];
     let selectedGarageServices = new Set();
-    let garageServicesContext = 'estimate'; // 'estimate' | 'additional'
+    let garageServicesContext = 'estimate';
 
-    // ── Load ──
     async function loadJob() {
       if (!bookingId) { window.location.href = '/mechanic/bookings.html'; return; }
       try {
@@ -368,26 +227,24 @@
         });
         if (!res.ok) throw new Error();
         booking = await res.json();
-        bookingId = booking.id; // UPDATE: Override slug with integer ID for subsequent API calls
+        bookingId = booking.id;
 
-        // Garage visiting_charge ab directly booking response mein aata hai
-        if (booking.requires_pick_and_drop && 
-            booking.garage_visiting_charge && 
-            (booking.pickup_charge === null || booking.pickup_charge === undefined)) {
-            booking.pickup_charge = booking.garage_visiting_charge;
+        if (booking.requires_pick_and_drop && booking.garage_visiting_charge &&
+          (booking.pickup_charge === null || booking.pickup_charge === undefined)) {
+          booking.pickup_charge = booking.garage_visiting_charge;
         }
 
         try {
-            const sRes = await fetch(`${getApiBase()}/garage/me/services`, {
-                headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
-            });
-            if (sRes.ok) myGarageServices = await sRes.json();
+          const sRes = await fetch(`${getApiBase()}/garage/me/services`, {
+            headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+          });
+          if (sRes.ok) myGarageServices = await sRes.json();
         } catch (e) { console.error('Failed to load garage services'); }
 
         if (booking.estimate_details) {
-            estimateItems = booking.estimate_details;
+          estimateItems = booking.estimate_details;
         } else if (booking.status === 'pending' || booking.status === 'accepted') {
-            autoPopulateRequestedServices();
+          autoPopulateRequestedServices();
         }
 
         if (booking.additional_estimate_details) additionalItems = booking.additional_estimate_details;
@@ -402,48 +259,40 @@
     }
 
     function autoPopulateRequestedServices() {
-        if (!booking.service_type) return;
-        
-        const requested = booking.service_type.split(',').map(s => s.trim()).filter(s => s);
-        requested.forEach(req => {
-            const match = myGarageServices.find(s => s.is_available && s.service_name.toLowerCase() === req.toLowerCase());
-            if (match) {
-                estimateItems.push({ item_name: match.service_name, price: match.price || 0 });
-            } else {
-                estimateItems.push({ item_name: req, price: 0 });
-            }
-        });
+      if (!booking.service_type) return;
+      const requested = booking.service_type.split(',').map(s => s.trim()).filter(s => s);
+      requested.forEach(req => {
+        const match = myGarageServices.find(s => s.is_available && s.service_name.toLowerCase() === req.toLowerCase());
+        if (match) {
+          estimateItems.push({ item_name: match.service_name, price: match.price || 0 });
+        } else {
+          estimateItems.push({ item_name: req, price: 0 });
+        }
+      });
     }
 
-    // ── Render page ──
     function renderPage() {
       document.getElementById('page-skeleton').style.display = 'none';
       document.getElementById('page-content').style.display = '';
 
-      // Booking ID
       const bookingNo = booking.booking_number || ('BK-' + booking.id);
       document.getElementById('booking-id-display').textContent = bookingNo;
 
-      // Update chrome title dynamically
       const chromeTitle = document.getElementById('topbar-title');
-      if (chromeTitle) {
-        chromeTitle.textContent = `Job #${bookingNo}`;
-      }
+      if (chromeTitle) chromeTitle.textContent = `Job #${bookingNo}`;
       document.title = `Job #${bookingNo} - GarageNearMe`;
 
-      // Status badge
       const sc = {
-        pending: { label: 'New Booking', cls: 'status-pending' },
-        accepted: { label: 'Accepted', cls: 'status-accepted' },
-        ongoing: { label: 'In Progress', cls: 'status-ongoing' },
-        completed: { label: 'Completed', cls: 'status-completed' },
-        rejected: { label: 'Rejected', cls: 'status-rejected' },
+        pending:   { label: 'New Booking', cls: 'status-pending' },
+        accepted:  { label: 'Accepted',    cls: 'status-accepted' },
+        ongoing:   { label: 'In Progress', cls: 'status-ongoing' },
+        completed: { label: 'Completed',   cls: 'status-completed' },
+        rejected:  { label: 'Rejected',    cls: 'status-rejected' },
       }[booking.status] || { label: booking.status, cls: 'status-pending' };
       const sb = document.getElementById('status-badge');
       sb.textContent = sc.label;
       sb.className = `status-badge ${sc.cls}`;
 
-      // Location
       const loc = booking.pickup_address || booking.customer_address || '—';
       document.getElementById('booking-location').textContent = loc;
       if (booking.customer_lat && booking.customer_lng) {
@@ -452,20 +301,17 @@
         nb.style.display = 'flex';
       }
 
-      // Customer
       document.getElementById('customer-initial').textContent = `C${booking.customer_id}`;
       const custName = booking.customer_name || `Customer #${booking.customer_id}`;
       const custPhone = booking.customer_phone ? ` (+91 ${booking.customer_phone})` : '';
       document.getElementById('customer-name').textContent = custName + custPhone;
       document.getElementById('customer-phone').textContent = 'Booking se linked';
 
-      // Vehicle
       const vt = booking.vehicle_type === 'two_wheeler' ? '2 Wheeler' : booking.vehicle_type === 'four_wheeler' ? '4 Wheeler' : booking.vehicle_type || '—';
       document.getElementById('vehicle-type').textContent = vt;
       document.getElementById('vehicle-model').textContent = booking.vehicle_model || '—';
       document.getElementById('vehicle-number').textContent = booking.vehicle_number || '—';
 
-      // Services
       const svcEl = document.getElementById('service-type-text');
       if (booking.service_type) {
         svcEl.textContent = booking.service_type;
@@ -473,27 +319,22 @@
         svcEl.innerHTML = '<span class="text-muted fst-italic">No services selected — inspection required</span>';
       }
 
-      // Description
       if (booking.description) {
         document.getElementById('desc-section').style.display = '';
         document.getElementById('booking-desc').textContent = booking.description;
       }
 
-      // Schedule
       if (booking.scheduled_at) {
         document.getElementById('schedule-section').style.display = '';
         document.getElementById('scheduled-at').textContent = new Date(booking.scheduled_at)
           .toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       }
 
-      // Flow
       renderFlow();
     }
 
-    // ── Render flow based on status ──
     function renderFlow() {
       const el = document.getElementById('flow-section');
-
       if (booking.status === 'pending') {
         el.innerHTML = renderPendingFlow();
       } else if (booking.status === 'accepted') {
@@ -503,11 +344,10 @@
       } else if (booking.status === 'completed') {
         el.innerHTML = renderCompletedFlow();
       } else if (booking.status === 'rejected' || booking.status === 'cancelled') {
-        el.innerHTML = `<div class="text-center py-4 text-muted"><h6>This booking is ${booking.status} .</h6><a href="/mechanic/bookings.html" class="btn btn-sm btn-outline-secondary rounded-pill mt-2">← Back</a></div>`;
+        el.innerHTML = `<div class="text-center py-4 text-muted"><h6>This booking is ${booking.status}.</h6><a href="/mechanic/bookings.html" class="btn btn-sm btn-outline-secondary rounded-pill mt-2">← Back</a></div>`;
       }
     }
 
-    // ── PENDING: Accept / Reject ──
     function renderPendingFlow() {
       return `
       <div class="mb-4">
@@ -520,61 +360,58 @@
         <div class="fw-semibold text-dark">${booking.pickup_address}</div>
       </div>` : ''}
       <div class="d-flex gap-3">
-        <button onclick="rejectBooking()" class="btn btn-outline-danger rounded-pill flex-grow-1 fw-medium">
-          Reject
-        </button>
-        <button onclick="acceptBooking()" class="btn text-white rounded-pill flex-grow-1 fw-bold" style="background:var(--color-primary);">
-          Accept Booking
-        </button>
+        <button onclick="rejectBooking()" class="btn btn-outline-danger rounded-pill flex-grow-1 fw-medium">Reject</button>
+        <button onclick="acceptBooking()" class="btn text-white rounded-pill flex-grow-1 fw-bold" style="background:var(--color-primary);">Accept Booking</button>
       </div>`;
     }
 
-    // ── ACCEPTED: Send Estimate ──
     function renderEstimateFlow() {
       const estStatus = booking.estimate_status;
 
       if (estStatus === 'pending') {
-        // Estimate bheja, OTP ka wait
         return `
         <div class="timeline">
-          <div class="timeline-item done"><div class="fw-bold text-success">Booking Accepted</div></div>
+          <div class="timeline-item done"><div class="fw-bold text-success">Booking Accepted ✓</div></div>
           <div class="timeline-item active">
-            <div class="fw-bold" style="color:var(--color-primary);">Estimate Sent — Waiting for OTP</div>
-            <div class="text-muted small mt-1">Ask customer for OTP to start work.</div>
-            <div class="mt-3">
-              <div class="d-flex flex-column gap-2">
-                ${renderEstimateItems(estimateItems, false)}
-                ${booking.pickup_charge ? `
-                <div class="estimate-item-row">
-                  <span style="font-size:13px;font-weight:500;">Pick & Drop Charge</span>
-                  <span style="font-size:13px;font-weight:700;">₹${booking.pickup_charge}</span>
-                </div>` : ''}
-              </div>
-              <div class="d-flex justify-content-between fw-bold mt-3 pt-2 border-top">
-                <span>Total</span><span style="color:var(--color-primary);">₹${booking.estimated_amount || (estimateItems.reduce((s, i) => s + (i.price || 0), 0) + (booking.pickup_charge ? parseFloat(booking.pickup_charge) : 0))}</span>
-              </div>
-              ${booking.has_hidden_issues ? `<div class="mt-2 p-2 rounded-3" style="background:#FFF7ED;border:1px solid #FED7AA;font-size:12px;color:#C2410C;">⚠️ Hidden issues possible — Customer informed</div>` : ''}
+            <div class="fw-bold mb-1" style="color:var(--color-primary);">Estimate Sent — Waiting for OTP</div>
+            <div class="text-muted small mb-3">Customer ke WhatsApp pe OTP gaya hai.</div>
+            <div class="d-flex flex-column gap-2">
+              ${renderEstimateItems(estimateItems, false)}
+              ${booking.pickup_charge ? `
+              <div class="estimate-item-row">
+                <span style="font-size:13px;font-weight:500;">Pick & Drop Charge</span>
+                <span style="font-size:13px;font-weight:700;">₹${booking.pickup_charge}</span>
+              </div>` : ''}
             </div>
-            <button onclick="openOTP('estimate')" class="btn text-white rounded-pill w-100 mt-3 fw-bold" style="background:var(--color-primary);">
-              Enter Customer OTP
-            </button>
+            <div class="d-flex justify-content-between fw-bold mt-3 pt-2 border-top">
+              <span>Total</span>
+              <span style="color:var(--color-primary);">₹${booking.estimated_amount || (estimateItems.reduce((s, i) => s + (i.price || 0), 0) + (booking.pickup_charge ? parseFloat(booking.pickup_charge) : 0))}</span>
+            </div>
+            ${booking.has_hidden_issues ? `<div class="mt-2 p-2 rounded-3" style="background:#FFF7ED;border:1px solid #FED7AA;font-size:12px;color:#C2410C;">⚠️ Hidden issues possible — Customer informed</div>` : ''}
+
+            <!-- ✅ Resend + Enter OTP buttons -->
+            <div class="d-flex gap-2 mt-3">
+              <button onclick="resendEstimateOTP()" class="btn btn-outline-secondary rounded-pill fw-medium" style="font-size:13px;" id="resend-est-btn">
+                🔄 Resend OTP
+              </button>
+              <button onclick="openOTP('estimate')" class="btn text-white rounded-pill flex-grow-1 fw-bold" style="background:var(--color-primary);">
+                Enter Customer OTP
+              </button>
+            </div>
           </div>
           <div class="timeline-item"><div class="text-muted">Work Started</div></div>
         </div>`;
       }
 
-      // Estimate nahi bheja abhi
       return `
       <div class="timeline">
         <div class="timeline-item done"><div class="fw-bold text-success">Booking Accepted ✓</div></div>
         <div class="timeline-item active">
           <div class="fw-bold mb-3" style="color:var(--color-primary);">Send Estimate</div>
 
-          <!-- Estimate items -->
           <label class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;">Known Issues &amp; Cost</label>
           <div id="est-items-list" class="mb-2 d-flex flex-column gap-2">${renderEstimateItems(estimateItems, true)}</div>
 
-          <!-- Add item -->
           <div class="row g-2 mb-2">
             <div class="col-7"><input type="text" id="est-item-name" class="form-control form-control-sm rounded-3" placeholder="Service / Item name"></div>
             <div class="col-3"><input type="number" id="est-item-price" class="form-control form-control-sm rounded-3" placeholder="₹"></div>
@@ -585,20 +422,17 @@
             Select from Garage Services
           </button>
 
-          <!-- Total -->
           <div class="d-flex justify-content-between fw-bold py-2 border-top border-bottom mb-3">
             <span>Total</span>
             <span style="color:var(--color-primary);" id="est-total">₹${estimateItems.reduce((s, i) => s + (i.price || 0), 0) + (booking.requires_pick_and_drop ? parseFloat(booking.pickup_charge || 0) : 0)}</span>
           </div>
 
-          <!-- Pickup charge -->
           ${booking.requires_pick_and_drop ? `
           <div class="mb-3">
             <label class="form-label text-muted small fw-semibold">Pick &amp; Drop Charge (₹)</label>
             <input type="number" id="pickup-charge-input" class="form-control form-control-sm rounded-3" placeholder="0" value="${booking.pickup_charge || ''}" oninput="updateEstTotal()">
           </div>` : ''}
 
-          <!-- Hidden issues toggle -->
           <div class="form-check form-switch d-flex align-items-center gap-2 mb-3 p-0">
             <input class="form-check-input ms-0 mt-0" type="checkbox" role="switch" id="hidden-issues-toggle" style="width:36px;height:18px;">
             <label class="form-check-label text-dark fw-semibold" for="hidden-issues-toggle" style="font-size:13px;">
@@ -619,7 +453,6 @@
       </div>`;
     }
 
-    // ── ONGOING: Additional estimate / complete ──
     function renderOngoingFlow() {
       const hasAdditional = !!booking.additional_estimate;
       const additionalVerified = booking.additional_otp_verified;
@@ -646,13 +479,20 @@
         <div class="timeline-item ${hasAdditional && !additionalVerified ? 'active' : hasAdditional && additionalVerified ? 'done' : 'active'}">
           ${hasAdditional && !additionalVerified ? `
             <div class="fw-bold mb-2" style="color:var(--color-primary);">Additional Estimate — Waiting for OTP</div>
+            <div class="text-muted small mb-2">Customer ke WhatsApp pe OTP gaya hai.</div>
             ${renderEstimateItems(additionalItems, false)}
             <div class="d-flex justify-content-between fw-bold mt-1 pt-1 border-top mb-3" style="font-size:13px;">
               <span>Additional</span><span>₹${booking.additional_estimate}</span>
             </div>
-            <button onclick="openOTP('additional')" class="btn text-white rounded-pill w-100 fw-bold" style="background:var(--color-primary);">
-              Enter Additional OTP
-            </button>
+            <!-- ✅ Resend + Enter OTP buttons -->
+            <div class="d-flex gap-2">
+              <button onclick="resendAdditionalOTP()" class="btn btn-outline-secondary rounded-pill fw-medium" style="font-size:13px;" id="resend-add-btn">
+                🔄 Resend OTP
+              </button>
+              <button onclick="openOTP('additional')" class="btn text-white rounded-pill flex-grow-1 fw-bold" style="background:var(--color-primary);">
+                Enter Additional OTP
+              </button>
+            </div>
           ` : hasAdditional && additionalVerified ? `
             <div class="fw-bold text-success">Additional Work Approved ✓</div>
             <div class="text-muted small">₹${booking.additional_estimate} additional work approved</div>
@@ -660,7 +500,6 @@
             <div class="fw-bold mb-2" style="color:var(--color-primary);">Work in Progress</div>
             <div class="text-muted small mb-3">If hidden issues found, send an additional estimate.</div>
 
-            <!-- Additional estimate builder -->
             <label class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;">Additional Items</label>
             <div id="add-items-list" class="mb-2 d-flex flex-column gap-2">${renderEstimateItems(additionalItems, true, true)}</div>
             <div class="row g-2 mb-2">
@@ -687,7 +526,7 @@
           <div class="fw-bold mb-3" style="color:var(--color-primary);">Complete Job</div>
           <div class="mb-3">
             <label class="form-label text-muted small fw-semibold">Final Amount (₹)</label>
-            <input type="number" id="final-amount-input" class="form-control rounded-3" 
+            <input type="number" id="final-amount-input" class="form-control rounded-3"
               value="${(parseFloat(booking.estimated_amount || 0) + parseFloat(booking.additional_estimate || 0)).toFixed(0)}"
               placeholder="Final amount">
           </div>
@@ -699,7 +538,6 @@
       </div>`;
     }
 
-    // ── COMPLETED ──
     function renderCompletedFlow() {
       const total = parseFloat(booking.final_amount || 0);
       return `
@@ -721,12 +559,8 @@
       </a>`;
     }
 
-    // ── Estimate items renderer ──
     function renderEstimateItems(items, editable, isAdditional = false) {
-      if (!items || items.length === 0) {
-        return `<div class="text-muted small text-center py-2">Koi item nahi</div>`;
-      }
-      const listId = isAdditional ? 'add-items-list' : 'est-items-list';
+      if (!items || items.length === 0) return `<div class="text-muted small text-center py-2">Koi item nahi</div>`;
       return items.map((item, i) => `
       <div class="estimate-item-row">
         <span style="font-size:13px;font-weight:500;">${item.item_name}</span>
@@ -741,13 +575,10 @@
       const el = document.getElementById('est-total');
       let t = estimateItems.reduce((s, i) => s + (i.price || 0), 0);
       const pcEl = document.getElementById('pickup-charge-input');
-      if (pcEl && pcEl.value) {
-          t += parseFloat(pcEl.value) || 0;
-      }
+      if (pcEl && pcEl.value) t += parseFloat(pcEl.value) || 0;
       if (el) el.textContent = `₹${t}`;
     }
 
-    // ── Actions ──
     async function acceptBooking() {
       try {
         const res = await fetch(`${getApiBase()}/bookings/${bookingId}/status`, {
@@ -810,7 +641,7 @@
     async function sendEstimate() {
       if (estimateItems.length === 0) { showError('est-error', 'Add at least one item.'); return; }
       const btn = document.getElementById('send-est-btn');
-      btn.disabled = true; btn.textContent = 'Bhej raha ...';
+      btn.disabled = true; btn.textContent = 'Bhej raha...';
 
       const pickupCharge = booking.requires_pick_and_drop
         ? parseFloat(document.getElementById('pickup-charge-input')?.value || 0)
@@ -818,7 +649,6 @@
       const hasHidden = document.getElementById('hidden-issues-toggle')?.checked || false;
 
       try {
-        // 1. Accept if pending
         if (booking.status === 'pending') {
           await fetch(`${getApiBase()}/bookings/${bookingId}/status`, {
             method: 'PATCH',
@@ -827,7 +657,6 @@
           });
         }
 
-        // 2. Send estimate
         const res = await fetch(`${getApiBase()}/bookings/${bookingId}/estimate`, {
           method: 'PATCH',
           headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}`, 'Content-Type': 'application/json' },
@@ -840,25 +669,23 @@
         });
         if (!res.ok) throw new Error();
 
-        // 3. Send OTP
         const otpRes = await fetch(`${getApiBase()}/bookings/${bookingId}/send-estimate-otp`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
         });
         const otpData = await otpRes.json();
+        if (!otpRes.ok) throw new Error(otpData.detail || 'OTP send failed');
 
-        booking = await res.json();
-        booking.has_hidden_issues = hasHidden;
-        showToast(`Estimate sent! OTP: ${otpData.otp}`, 'success');
+        showToast('OTP resent! Customer ke WhatsApp pe gaya.', 'success');
         setTimeout(() => location.reload(), 1500);
-      } catch { showError('est-error', 'Failed to send estimate. Try again.'); }
+      } catch(e) { showError('est-error', e.message || 'Failed to send estimate. Try again.'); }
       finally { btn.disabled = false; btn.textContent = 'Send Estimate & OTP Maango'; }
     }
 
     async function sendAdditionalEstimate() {
       if (additionalItems.length === 0) { showError('add-error', 'Add at least one item.'); return; }
       const btn = document.getElementById('send-add-btn');
-      btn.disabled = true; btn.textContent = 'Bhej raha ...';
+      btn.disabled = true; btn.textContent = 'Bhej raha...';
       const note = document.getElementById('add-note')?.value.trim() || null;
 
       try {
@@ -869,96 +696,126 @@
         });
         if (!res.ok) throw new Error();
         const data = await res.json();
-        showToast(`Additional estimate sent! OTP: ${data.otp}`, 'success');
+        showToast('Additional estimate sent! OTP customer ke WhatsApp pe gaya.', 'success');
         setTimeout(() => location.reload(), 1500);
       } catch { showError('add-error', 'Failed to send additional estimate.'); }
-      finally { btn.disabled = false; btn.textContent = 'Additional Send Estimate'; }
+      finally { btn.disabled = false; btn.textContent = 'Send Additional Estimate'; }
     }
 
-    // ── Garage Services Modal Logic ──
+    // ✅ Resend Estimate OTP
+    async function resendEstimateOTP() {
+      const btn = document.getElementById('resend-est-btn');
+      btn.disabled = true; btn.textContent = 'Bhej raha...';
+      try {
+        const res = await fetch(`${getApiBase()}/bookings/${bookingId}/send-estimate-otp`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed');
+        showToast('OTP resent! Customer ke WhatsApp pe gaya.', 'success');
+      } catch(e) {
+        showToast(e.message || 'Resend failed.', 'danger');
+      } finally {
+        btn.disabled = false; btn.textContent = '🔄 Resend OTP';
+      }
+    }
+
+    // ✅ Resend Additional OTP
+    async function resendAdditionalOTP() {
+      const btn = document.getElementById('resend-add-btn');
+      btn.disabled = true; btn.textContent = 'Bhej raha...';
+      try {
+        const res = await fetch(`${getApiBase()}/bookings/${bookingId}/additional-estimate`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: additionalItems, note: null })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed');
+        showToast('OTP resent! Customer ke WhatsApp pe gaya.', 'success');
+      } catch(e) {
+        showToast(e.message || 'Resend failed.', 'danger');
+      } finally {
+        btn.disabled = false; btn.textContent = '🔄 Resend OTP';
+      }
+    }
+
     function openGarageServices(context = 'estimate') {
-        garageServicesContext = context;
-        selectedGarageServices.clear();
-        // Modal title update karo
-        const modalTitle = document.querySelector('#garageServicesModal .modal-title');
-        if (modalTitle) {
-            modalTitle.textContent = context === 'additional' 
-                ? 'Additional Items — Garage Services' 
-                : 'Select Predefined Services';
+      garageServicesContext = context;
+      selectedGarageServices.clear();
+      const modalTitle = document.querySelector('#garageServicesModal .modal-title');
+      if (modalTitle) modalTitle.textContent = context === 'additional' ? 'Additional Items — Garage Services' : 'Select Predefined Services';
+      const container = document.getElementById('garage-services-list');
+
+      if (myGarageServices.length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted small">Koi predefined service nahi. Dashboard > Services mein add karein.</div>';
+      } else {
+        const grouped = {};
+        myGarageServices.forEach(s => {
+          if (!s.is_available) return;
+          const cat = s.category || 'Other';
+          if (!grouped[cat]) grouped[cat] = [];
+          grouped[cat].push(s);
+        });
+
+        let html = '';
+        for (const cat in grouped) {
+          html += `<div class="fw-bold mt-3 mb-2" style="font-size:13px;color:var(--color-primary);text-transform:uppercase;">${cat}</div>`;
+          grouped[cat].forEach(s => {
+            html += `
+            <div class="form-check d-flex align-items-center mb-2 p-2 rounded-3 border" style="background:#f8f9fa;">
+              <input class="form-check-input ms-0 me-2 mt-0" type="checkbox" id="gs-${s.id}" value="${s.id}" onchange="toggleServiceSelection(${s.id}, this.checked)">
+              <label class="form-check-label w-100 d-flex justify-content-between align-items-center" for="gs-${s.id}" style="font-size:14px;cursor:pointer;">
+                <span>${s.service_name}</span>
+                <span class="fw-bold text-dark">${s.price ? `₹${s.price}` : 'Price not set'}</span>
+              </label>
+            </div>`;
+          });
         }
-        const container = document.getElementById('garage-services-list');
-        
-        if (myGarageServices.length === 0) {
-            container.innerHTML = '<div class="text-center py-4 text-muted small">Aapne koi predefined service add nahi ki . Pehle Dashboard > Services me jake service add karein.</div>';
-        } else {
-            const grouped = {};
-            myGarageServices.forEach(s => {
-                if (!s.is_available) return;
-                const cat = s.category || 'Other';
-                if (!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push(s);
-            });
-            
-            let html = '';
-            for (const cat in grouped) {
-                html += `<div class="fw-bold mt-3 mb-2" style="font-size:13px;color:var(--color-primary);text-transform:uppercase;">${cat}</div>`;
-                grouped[cat].forEach(s => {
-                    const priceStr = s.price ? `₹${s.price}` : 'Price not set';
-                    html += `
-                    <div class="form-check d-flex align-items-center mb-2 p-2 rounded-3 border" style="background:#f8f9fa;">
-                        <input class="form-check-input ms-0 me-2 mt-0" type="checkbox" id="gs-${s.id}" value="${s.id}" onchange="toggleServiceSelection(${s.id}, this.checked)">
-                        <label class="form-check-label w-100 d-flex justify-content-between align-items-center" for="gs-${s.id}" style="font-size:14px;cursor:pointer;">
-                            <span>${s.service_name}</span>
-                            <span class="fw-bold text-dark">${priceStr}</span>
-                        </label>
-                    </div>`;
-                });
-            }
-            if (html === '') html = '<div class="text-center py-4 text-muted small">No active predefined services found.</div>';
-            container.innerHTML = html;
-        }
-        
-        new bootstrap.Modal(document.getElementById('garageServicesModal')).show();
+        if (!html) html = '<div class="text-center py-4 text-muted small">No active predefined services found.</div>';
+        container.innerHTML = html;
+      }
+      new bootstrap.Modal(document.getElementById('garageServicesModal')).show();
     }
 
     function toggleServiceSelection(id, isChecked) {
-        if (isChecked) selectedGarageServices.add(id);
-        else selectedGarageServices.delete(id);
+      if (isChecked) selectedGarageServices.add(id);
+      else selectedGarageServices.delete(id);
     }
 
     function confirmGarageServices() {
-        if (selectedGarageServices.size > 0) {
-            myGarageServices.forEach(s => {
-                if (selectedGarageServices.has(s.id)) {
-                    if (garageServicesContext === 'additional') {
-                        additionalItems.push({ item_name: s.service_name, price: s.price || 0 });
-                    } else {
-                        estimateItems.push({ item_name: s.service_name, price: s.price || 0 });
-                    }
-                }
-            });
+      if (selectedGarageServices.size > 0) {
+        myGarageServices.forEach(s => {
+          if (selectedGarageServices.has(s.id)) {
             if (garageServicesContext === 'additional') {
-                const listEl = document.getElementById('add-items-list');
-                if (listEl) listEl.innerHTML = renderEstimateItems(additionalItems, true, true);
+              additionalItems.push({ item_name: s.service_name, price: s.price || 0 });
             } else {
-                document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
-                updateEstTotal();
+              estimateItems.push({ item_name: s.service_name, price: s.price || 0 });
             }
+          }
+        });
+        if (garageServicesContext === 'additional') {
+          const listEl = document.getElementById('add-items-list');
+          if (listEl) listEl.innerHTML = renderEstimateItems(additionalItems, true, true);
+        } else {
+          document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
+          updateEstTotal();
         }
-        bootstrap.Modal.getInstance(document.getElementById('garageServicesModal')).hide();
+      }
+      bootstrap.Modal.getInstance(document.getElementById('garageServicesModal')).hide();
     }
 
-    // ── OTP Modal ──
     function openOTP(type) {
       otpAction = type;
       document.getElementById('otp-input').value = '';
       document.getElementById('otp-error').classList.add('d-none');
       if (type === 'estimate') {
         document.getElementById('otp-modal-title').textContent = 'Verify Estimate OTP';
-        document.getElementById('otp-modal-desc').textContent = 'Enter customer\'s OTP to start work:';
+        document.getElementById('otp-modal-desc').textContent = "Enter customer's OTP to start work:";
       } else {
         document.getElementById('otp-modal-title').textContent = 'Verify Additional Work OTP';
-        document.getElementById('otp-modal-desc').textContent = 'Enter customer\'s OTP to start additional work:';
+        document.getElementById('otp-modal-desc').textContent = "Enter customer's OTP to start additional work:";
       }
       new bootstrap.Modal(document.getElementById('otpModal')).show();
     }
@@ -967,7 +824,7 @@
       const otp = document.getElementById('otp-input').value.trim();
       if (otp.length !== 6) { showOTPError('Enter 6 digit OTP.'); return; }
       const btn = document.getElementById('otp-confirm-btn');
-      btn.disabled = true; btn.textContent = 'Verify ho raha ...';
+      btn.disabled = true; btn.textContent = 'Verify ho raha...';
 
       const endpoint = otpAction === 'estimate'
         ? `/bookings/${bookingId}/verify-estimate-otp?otp=${otp}`
@@ -986,24 +843,20 @@
         bootstrap.Modal.getInstance(document.getElementById('otpModal')).hide();
         showToast('OTP verified! ✓', 'success');
         setTimeout(() => location.reload(), 1000);
-      } catch (e) { showOTPError(e.message || 'Invalid OTP. Try again.'); }
+      } catch(e) { showOTPError(e.message || 'Invalid OTP. Try again.'); }
       finally { btn.disabled = false; btn.textContent = 'Confirm'; }
     }
 
     async function completeJob() {
       const finalAmount = parseFloat(document.getElementById('final-amount-input')?.value || 0);
       const btn = document.getElementById('complete-btn');
-      btn.disabled = true; btn.textContent = 'Complete ho raha ...';
+      btn.disabled = true; btn.textContent = 'Complete ho raha...';
 
       try {
         const res = await fetch(`${getApiBase()}/bookings/${bookingId}/status`, {
           method: 'PATCH',
           headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            status: 'completed', 
-            garage_note: `Final amount: ₹${finalAmount}`,
-            final_amount: finalAmount
-          })
+          body: JSON.stringify({ status: 'completed', garage_note: `Final amount: ₹${finalAmount}`, final_amount: finalAmount })
         });
         if (!res.ok) throw new Error();
         booking = await res.json();
@@ -1013,7 +866,6 @@
       finally { btn.disabled = false; btn.textContent = 'Mark Job as Complete ✓'; }
     }
 
-    // ── Helpers ──
     function showError(id, msg) {
       const el = document.getElementById(id);
       if (el) { el.textContent = msg; el.classList.remove('d-none'); }
@@ -1034,6 +886,4 @@
     document.addEventListener('DOMContentLoaded', loadJob);
   </script>
 </body>
-
 </html>
-

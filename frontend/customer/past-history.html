@@ -341,7 +341,8 @@
         }
 
         function normalizeWorkItem(item, index) {
-            const title = item.name || item.service || item.title || item.description || `Work item ${index + 1}`;
+            // ✅ item_name field add kiya — booking.py mein yahi field save hoti hai
+            const title = item.item_name || item.name || item.service || item.title || item.description || `Work item ${index + 1}`;
             const amount = item.price ?? item.amount ?? item.total ?? item.cost;
             return { title, amount };
         }
