@@ -366,7 +366,7 @@
 
     try {
       const bookingIntId = bookingData ? bookingData.id : bookingId;
-      const res = await fetch(`${getApiBase()}/bookings/${bookingIntId}/verify-additional-otp?otp=${otp}`, {
+      const res = await fetch(`${getApiBase()}/bookings/${bookingIntId}/customer-verify-additional-otp?otp=${otp}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
