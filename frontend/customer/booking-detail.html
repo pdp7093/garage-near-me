@@ -269,9 +269,28 @@
 
     document.getElementById('booking-title').textContent = `Booking #GNM-${b.id}`;
     document.getElementById('status-badge').innerHTML = STATUS_BADGE[b.status] || `<span class="badge bg-secondary">${b.status}</span>`;
-    document.getElementById('booking-amount').textContent = b.final_amount
-      ? `₹${parseFloat(b.final_amount).toLocaleString('en-IN')}`
-      : b.estimated_amount ? `₹${parseFloat(b.estimated_amount).toLocaleString('en-IN')}` : 'Estimating...';
+    // ✅ Total = estimated + additional estimate
+    const estimatedAmt = parseFloat(b.estimated_amount || 0);
+    const additionalAmt = parseFloat(b.additional_estimate || 0);
+    const totalAmt = b.final_amount
+      ? parseFloat(b.final_amount)
+      : estimatedAmt + additionalAmt;
+
+    document.getElementById('booking-amount').textContent = totalAmt > 0
+      ? `₹${totalAmt.toLocaleString('en-IN')}`
+      : 'Estimating...';
+
+    // Label update
+    const amountLabelEl = document.querySelector('.text-end .text-muted');
+    if (amountLabelEl) {
+      if (b.final_amount) {
+        amountLabelEl.textContent = 'Final Amount';
+      } else if (additionalAmt > 0) {
+        amountLabelEl.textContent = `₹${estimatedAmt} + ₹${additionalAmt} Additional`;
+      } else {
+        amountLabelEl.textContent = 'Estimated';
+      }
+    }
 
     if (b.garage_name && b.status !== 'pending') {
       document.getElementById('garage-section').style.display = 'block';
