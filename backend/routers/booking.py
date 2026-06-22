@@ -883,7 +883,7 @@ def update_booking_payment_status(
 import random
 
 @router.post("/{booking_id}/send-estimate-otp")
-def send_estimate_otp(
+async def send_estimate_otp(
     booking_id: int,
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
@@ -917,11 +917,10 @@ def send_estimate_otp(
         models.Customer.id == booking.customer_id
     ).first()
     if customer and customer.phone:
-        asyncio.create_task(
-            send_whatsapp_otp(customer.phone, otp)
-        )
-
-    # FCM — Customer ko estimate ready ka alert
+        try:
+            await send_whatsapp_otp(customer.phone, otp)
+        except Exception as e:
+            print(f"[OTP] WhatsApp send error: {e}")
     if booking.customer and booking.customer.fcm_token and booking.estimated_amount:
         CustomerNotifications.estimate_ready(
             token=booking.customer.fcm_token,
@@ -987,7 +986,7 @@ class AdditionalEstimatePayload(BaseModel):
     note: Optional[str] = None
 
 @router.patch("/{booking_id}/additional-estimate")
-def send_additional_estimate(
+async def send_additional_estimate(
     booking_id: int,
     payload: AdditionalEstimatePayload,
     db: Session = Depends(get_db),
@@ -1027,9 +1026,10 @@ def send_additional_estimate(
         models.Customer.id == booking.customer_id
     ).first()
     if customer and customer.phone:
-        asyncio.create_task(
-            send_whatsapp_otp(customer.phone, otp)
-        )
+        try:
+            await send_whatsapp_otp(customer.phone, otp)
+        except Exception as e:
+            print(f"[OTP] WhatsApp send error: {e}")
 
     return {
         "message": "Additional estimate sent, OTP generated",
