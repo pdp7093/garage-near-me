@@ -11,45 +11,46 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
   <style>
     body { background: var(--color-bg); }
-
     .status-timeline { position: relative; padding-left: 32px; }
-    .status-timeline::before {
-      content: '';
-      position: absolute;
-      left: 10px; top: 8px; bottom: 8px;
-      width: 2px;
-      background: var(--color-border);
-    }
+    .status-timeline::before { content: ''; position: absolute; left: 10px; top: 8px; bottom: 8px; width: 2px; background: var(--color-border); }
     .timeline-step { position: relative; margin-bottom: 24px; }
     .timeline-step:last-child { margin-bottom: 0; }
-    .step-dot {
-      position: absolute;
-      left: -27px; top: 2px;
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      border: 2px solid var(--color-border);
-      background: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px;
-    }
+    .step-dot { position: absolute; left: -27px; top: 2px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--color-border); background: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; }
     .step-dot.done   { background: #22C55E; border-color: #22C55E; color: #fff; }
     .step-dot.active { background: #FF6B35; border-color: #FF6B35; color: #fff; animation: pulse-dot 1.5s infinite; }
     .step-dot.pending{ background: #fff; border-color: var(--color-border); }
-    @keyframes pulse-dot {
-      0%   { box-shadow: 0 0 0 0 rgba(255,107,53,0.4); }
-      70%  { box-shadow: 0 0 0 8px rgba(255,107,53,0); }
-      100% { box-shadow: 0 0 0 0 rgba(255,107,53,0); }
-    }
+    @keyframes pulse-dot { 0%{box-shadow:0 0 0 0 rgba(255,107,53,0.4);}70%{box-shadow:0 0 0 8px rgba(255,107,53,0);}100%{box-shadow:0 0 0 0 rgba(255,107,53,0);} }
     .step-label { font-weight: 600; font-size: 14px; color: var(--color-text); }
     .step-label.pending { color: var(--color-text-muted); font-weight: 400; }
     .step-time { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
-
     .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 14px; }
     .info-row:last-child { border-bottom: none; }
     .info-label { color: var(--color-text-muted); }
     .info-value { font-weight: 600; color: var(--color-text); }
-
     .garage-card { background: var(--color-primary); border-radius: 16px; padding: 20px; color: #fff; }
+
+    /* ✅ Additional Estimate Card */
+    .additional-estimate-card {
+      background: #FFF7ED;
+      border: 2px solid #F97316;
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .otp-input-field {
+      letter-spacing: 8px;
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      font-family: monospace;
+      border: 2px solid #F97316;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .otp-input-field:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(255,107,53,0.15);
+    }
   </style>
 </head>
 <body>
@@ -75,7 +76,7 @@
     <style>@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}</style>
   </div>
 
-  <!-- Main content (hidden until loaded) -->
+  <!-- Main content -->
   <div id="main-content" style="display:none;">
 
     <!-- Header -->
@@ -90,14 +91,12 @@
       </div>
     </div>
 
-    <!-- Garage Info (sirf jab accept hua ho) -->
+    <!-- Garage Info -->
     <div class="garage-card mb-4" id="garage-section" style="display:none;">
       <div class="d-flex align-items-center gap-3">
         <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
              id="garage-avatar"
-             style="width:48px;height:48px;background:rgba(255,255,255,0.15);font-size:18px;flex-shrink:0;">
-          G
-        </div>
+             style="width:48px;height:48px;background:rgba(255,255,255,0.15);font-size:18px;flex-shrink:0;">G</div>
         <div>
           <div class="fw-bold" id="garage-name" style="font-size:16px;">—</div>
           <div style="font-size:13px;opacity:0.8;" id="garage-address">—</div>
@@ -105,19 +104,61 @@
       </div>
     </div>
 
-    <!-- Pending state — garage nahi mila abhi -->
+    <!-- Pending state -->
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 text-center" id="searching-section" style="display:none;">
       <div class="mb-3" style="font-size:48px;">🔍</div>
       <h6 class="fw-bold mb-2">Garage Dhundh Raha Hai...</h6>
       <p class="text-muted mb-0" style="font-size:13px;">Aapke area ke garages ko request bheja ja raha hai. Thoda wait karo!</p>
     </div>
 
+    <!-- ✅ Additional Estimate Card — sirf tab dikhega jab additional estimate aaya ho aur verify nahi hua -->
+    <div class="additional-estimate-card mb-4" id="additional-estimate-section" style="display:none;">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span style="font-size:24px;">⚠️</span>
+        <div>
+          <div class="fw-bold" style="color:#C2410C;font-size:15px;">Hidden Issues Mile!</div>
+          <div class="text-muted" style="font-size:13px;">Mechanic ne additional kaam ka estimate bheja hai.</div>
+        </div>
+      </div>
+
+      <!-- Additional items list -->
+      <div id="additional-items-list" class="mb-3"></div>
+
+      <!-- Additional total -->
+      <div class="d-flex justify-content-between fw-bold py-2 border-top border-warning mb-3">
+        <span style="color:#C2410C;">Additional Amount</span>
+        <span style="color:#C2410C;" id="additional-total">₹0</span>
+      </div>
+
+      <!-- Note -->
+      <div id="additional-note-section" style="display:none;" class="mb-3 p-3 rounded-3" style="background:#FEF3C7;">
+        <div class="text-muted small mb-1">Mechanic Note:</div>
+        <div id="additional-note-text" class="fw-medium" style="font-size:13px;color:#92400E;"></div>
+      </div>
+
+      <!-- OTP Input -->
+      <div class="mb-3">
+        <div class="fw-bold mb-2" style="font-size:14px;color:#1B1F2E;">WhatsApp pe aaya OTP enter karo:</div>
+        <input type="tel" id="additional-otp-input" class="form-control otp-input-field w-100"
+          maxlength="6" inputmode="numeric" placeholder="——————"
+          oninput="this.value=this.value.replace(/\D/g,'')">
+        <div id="additional-otp-error" class="text-danger mt-2 d-none" style="font-size:13px;"></div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button onclick="rejectAdditionalEstimate()" class="btn btn-outline-danger rounded-pill fw-medium flex-shrink-0" style="font-size:13px;">
+          Reject
+        </button>
+        <button onclick="verifyAdditionalOTP()" class="btn text-white rounded-pill flex-grow-1 fw-bold" style="background:#F97316;" id="additional-otp-btn">
+          Approve & Start Work
+        </button>
+      </div>
+    </div>
+
     <!-- Status Timeline -->
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
       <h6 class="fw-bold mb-4" style="font-family:var(--font-head);">Booking Status</h6>
-      <div class="status-timeline" id="timeline">
-        <!-- JS se render hoga -->
-      </div>
+      <div class="status-timeline" id="timeline"></div>
     </div>
 
     <!-- Booking Details -->
@@ -130,7 +171,7 @@
       <div class="info-row"><span class="info-label">Scheduled</span><span class="info-value" id="detail-date">—</span></div>
     </div>
 
-    <!-- Cancel Button (sirf pending/accepted pe) -->
+    <!-- Cancel Button -->
     <div id="cancel-section">
       <button onclick="showCancelConfirm()" class="btn w-100 btn-outline-danger rounded-pill py-3 fw-bold">
         Cancel Booking
@@ -177,7 +218,6 @@
 <script src="/js/config.js"></script>
 <script src="/js/script.js"></script>
 <script>
-  // Booking slug/ID URL se nikalo: /booking-detail/bk-abc123-7
   const pathParts = window.location.pathname.split('/');
   const bookingId = pathParts[pathParts.length - 1];
   const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
@@ -191,13 +231,12 @@
   let bookingData = null;
   let pollInterval = null;
 
-  // ── Status config ──────────────────────────────────────────
   const STATUSES = [
-    { key: 'pending',   label: 'Booking Request Bheja',    icon: '📋' },
-    { key: 'accepted',  label: 'Garage ne Accept Kiya',    icon: '✓'  },
-    { key: 'picked_up', label: 'Vehicle Pickup Ho Gaya',   icon: '🚗' },
-    { key: 'ongoing',   label: 'Repair Chal Rahi Hai',     icon: '🔧' },
-    { key: 'completed', label: 'Kaam Complete Ho Gaya!',   icon: '🎉' },
+    { key: 'pending',   label: 'Booking Request Bheja',  icon: '📋' },
+    { key: 'accepted',  label: 'Garage ne Accept Kiya',  icon: '✓'  },
+    { key: 'picked_up', label: 'Vehicle Pickup Ho Gaya', icon: '🚗' },
+    { key: 'ongoing',   label: 'Repair Chal Rahi Hai',   icon: '🔧' },
+    { key: 'completed', label: 'Kaam Complete Ho Gaya!', icon: '🎉' },
   ];
 
   const STATUS_BADGE = {
@@ -209,7 +248,6 @@
     cancelled: '<span class="badge rounded-pill px-3 py-2" style="background:#FEF2F2;color:#DC2626;font-size:13px;">Cancelled</span>',
   };
 
-  // ── Load booking ───────────────────────────────────────────
   async function loadBooking() {
     try {
       const res = await fetch(`${getApiBase()}/bookings/${bookingId}`, {
@@ -229,14 +267,12 @@
     document.getElementById('skeleton').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
 
-    // Header
     document.getElementById('booking-title').textContent = `Booking #GNM-${b.id}`;
     document.getElementById('status-badge').innerHTML = STATUS_BADGE[b.status] || `<span class="badge bg-secondary">${b.status}</span>`;
     document.getElementById('booking-amount').textContent = b.final_amount
       ? `₹${parseFloat(b.final_amount).toLocaleString('en-IN')}`
       : b.estimated_amount ? `₹${parseFloat(b.estimated_amount).toLocaleString('en-IN')}` : 'Estimating...';
 
-    // Garage info
     if (b.garage_name && b.status !== 'pending') {
       document.getElementById('garage-section').style.display = 'block';
       document.getElementById('searching-section').style.display = 'none';
@@ -249,10 +285,34 @@
       document.getElementById('garage-section').style.display = 'none';
     }
 
-    // Timeline
+    // ✅ Additional estimate card — sirf jab additional estimate aaya ho aur verify nahi hua
+    const addSection = document.getElementById('additional-estimate-section');
+    if (b.additional_estimate && !b.additional_otp_verified && b.status === 'ongoing') {
+      addSection.style.display = 'block';
+
+      // Additional items
+      const itemsList = document.getElementById('additional-items-list');
+      if (b.additional_estimate_details && b.additional_estimate_details.length > 0) {
+        itemsList.innerHTML = b.additional_estimate_details.map(item => `
+          <div class="d-flex justify-content-between py-2 border-bottom border-warning" style="font-size:14px;">
+            <span style="color:#92400E;">${item.item_name || item.name}</span>
+            <span class="fw-bold" style="color:#C2410C;">₹${item.price || item.amount || 0}</span>
+          </div>`).join('');
+      }
+
+      document.getElementById('additional-total').textContent = `₹${parseFloat(b.additional_estimate).toLocaleString('en-IN')}`;
+
+      // Note
+      if (b.additional_estimate_note) {
+        document.getElementById('additional-note-section').style.display = 'block';
+        document.getElementById('additional-note-text').textContent = b.additional_estimate_note;
+      }
+    } else {
+      addSection.style.display = 'none';
+    }
+
     renderTimeline(b.status);
 
-    // Details
     document.getElementById('detail-id').textContent = `#GNM-${b.id}`;
     document.getElementById('detail-service').textContent = b.service_type || 'General Service';
     document.getElementById('detail-vehicle').textContent =
@@ -262,15 +322,9 @@
       ? new Date(b.scheduled_at).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
       : new Date(b.created_at).toLocaleDateString('en-IN');
 
-    // Cancel button — sirf pending ya accepted pe
     const cancelSection = document.getElementById('cancel-section');
-    if (['pending', 'accepted'].includes(b.status)) {
-      cancelSection.style.display = 'block';
-    } else {
-      cancelSection.style.display = 'none';
-    }
+    cancelSection.style.display = ['pending', 'accepted'].includes(b.status) ? 'block' : 'none';
 
-    // Stop polling if completed/cancelled
     if (['completed', 'cancelled'].includes(b.status) && pollInterval) {
       clearInterval(pollInterval);
       pollInterval = null;
@@ -280,15 +334,10 @@
   function renderTimeline(currentStatus) {
     const currentIdx = STATUSES.findIndex(s => s.key === currentStatus);
     const timeline = document.getElementById('timeline');
-
     timeline.innerHTML = STATUSES.map((s, i) => {
-      let dotClass = 'pending';
-      let labelClass = 'pending';
-      let icon = '○';
-
+      let dotClass = 'pending', labelClass = 'pending', icon = '○';
       if (i < currentIdx) { dotClass = 'done'; icon = '✓'; labelClass = ''; }
       else if (i === currentIdx) { dotClass = 'active'; icon = s.icon; labelClass = ''; }
-
       return `
         <div class="timeline-step">
           <div class="step-dot ${dotClass}">${icon}</div>
@@ -298,7 +347,54 @@
     }).join('');
   }
 
-  // ── Cancel ─────────────────────────────────────────────────
+  // ✅ Customer additional OTP verify kare
+  async function verifyAdditionalOTP() {
+    const otp = document.getElementById('additional-otp-input').value.trim();
+    const errorEl = document.getElementById('additional-otp-error');
+    const btn = document.getElementById('additional-otp-btn');
+
+    errorEl.classList.add('d-none');
+
+    if (otp.length !== 6) {
+      errorEl.textContent = '6 digit OTP enter karo.';
+      errorEl.classList.remove('d-none');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verify ho raha...';
+
+    try {
+      const bookingIntId = bookingData ? bookingData.id : bookingId;
+      const res = await fetch(`${getApiBase()}/bookings/${bookingIntId}/verify-additional-otp?otp=${otp}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Invalid OTP');
+      }
+
+      showToast('Additional work approved! ✓', 'success');
+      document.getElementById('additional-estimate-section').style.display = 'none';
+      setTimeout(() => loadBooking(), 1000);
+    } catch(e) {
+      errorEl.textContent = e.message || 'Invalid OTP. Try again.';
+      errorEl.classList.remove('d-none');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Approve & Start Work';
+    }
+  }
+
+  // Customer reject kare additional estimate
+  async function rejectAdditionalEstimate() {
+    if (!confirm('Additional estimate reject karna chahte ho? Booking cancel ho sakti hai.')) return;
+    // For now just show info — backend mein reject endpoint add kar sakte hain baad mein
+    showToast('Mechanic ko contact karo reject ke liye.', 'warning');
+  }
+
   function showCancelConfirm() {
     document.getElementById('cancelConfirmBox').style.display = 'flex';
   }
@@ -338,10 +434,8 @@
     setTimeout(() => t.remove(), 3000);
   }
 
-  // ── Init ───────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     loadBooking();
-    // Poll every 10 seconds for status updates
     pollInterval = setInterval(loadBooking, 10000);
   });
 </script>
