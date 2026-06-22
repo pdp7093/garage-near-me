@@ -26,8 +26,8 @@ async def automated_billing_cycle_task():
     while True:
         try:
             now = datetime.utcnow()
-            # Run on 1st and 15th of the month
-            if now.day in (1, 15):
+            # Run on 15th and 30th of the month
+            if now.day in (15, 30):
                 date_str = now.strftime("%Y-%m-%d")
                 if last_run_date != date_str:
                     logging.info(f"Triggering automated 15-day billing cycle for {date_str}...")

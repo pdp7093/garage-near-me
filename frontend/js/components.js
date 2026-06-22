@@ -273,7 +273,11 @@ async function updateMechanicChrome() {
             <div class="text-center p-5 bg-white rounded shadow-lg border border-danger" style="max-width: 500px; transform: translateY(-10%);">
               <i class="bi bi-lock-fill text-danger mb-2 d-block" style="font-size: 3.5rem;"></i>
               <h2 class="mt-3 text-danger fw-bold tracking-tight">Account Locked</h2>
-              <p class="text-muted mt-3 mb-4" style="font-size: 1.1rem;">Your pending platform dues have reached or exceeded the ₹500.00 threshold. To resume receiving new SOS and Normal bookings, please clear your outstanding dues.</p>
+              <p class="text-muted mt-3 mb-4" style="font-size: 1.1rem;">
+                ${garage.has_completed_trial 
+                  ? 'Your previous billing cycle payment is due. To resume receiving new SOS and Normal bookings, please clear your outstanding dues.' 
+                  : 'Your pending platform dues have reached or exceeded the ₹500.00 threshold. To resume receiving new SOS and Normal bookings, please clear your outstanding dues.'}
+              </p>
               <div class="bg-light p-3 rounded mb-4 border">
                 <div class="text-uppercase text-muted small fw-bold mb-1">Total Outstanding</div>
                 <h3 class="fw-bold text-dark mb-0">₹${parseFloat(garage.pending_platform_dues || 0).toFixed(2)}</h3>
@@ -364,7 +368,7 @@ async function mechanicCheckLocationSet() {
     if (garage.is_credit_locked) {
       const currentPath = window.location.pathname.split('/').pop() || 'dashboard';
       if (currentPath !== 'payout-history') {
-        showCreditLockOverlay(garage.pending_platform_dues);
+        showCreditLockOverlay(garage.pending_platform_dues, garage.has_completed_trial);
         return; // Don't check location if locked
       }
     }
@@ -465,7 +469,7 @@ function showGracePeriodBanner(duesAmount, graceEndsAt) {
   contentContainer.prepend(banner);
 }
 
-function showCreditLockOverlay(duesAmount) {
+function showCreditLockOverlay(duesAmount, hasCompletedTrial) {
   // Prevent double rendering
   if (document.getElementById('creditLockOverlay')) return;
 
@@ -508,7 +512,11 @@ function showCreditLockOverlay(duesAmount) {
       </div>
 
       <h3 style="font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 12px; font-size: 24px; color: #EF4444; text-transform: uppercase; letter-spacing: 0.5px;">Credit Limit Exceeded!</h3>
-      <p style="color: #94A3B8; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">Aapka platform commission outstanding ₹500 cross ho gaya hai. Aapka account block kar diya gaya hai aur nayi bookings / SOS alerts temporarily suspended hain.</p>
+      <p style="color: #94A3B8; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
+        ${hasCompletedTrial 
+          ? 'Aapke previous billing cycle ka payment due hai. Aapka account block kar diya gaya hai aur nayi bookings / SOS alerts temporarily suspended hain.' 
+          : 'Aapka platform commission outstanding ₹500 cross ho gaya hai. Aapka account block kar diya gaya hai aur nayi bookings / SOS alerts temporarily suspended hain.'}
+      </p>
 
       <!-- Amount Box -->
       <div style="background: rgba(15, 23, 42, 0.4); border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 15px; margin-bottom: 30px;">
