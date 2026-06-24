@@ -61,6 +61,8 @@ ALGORITHM  = os.getenv("ALGORITHM", "HS256")
 customer_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 garage_oauth2   = OAuth2PasswordBearer(tokenUrl="/api/garage/login")
 
+SOS_VISITING_CHARGE = 100.0  # ₹100 fixed
+
 
 # ──────────────────────────────────────────
 # AUTH HELPERS
@@ -105,10 +107,79 @@ def haversine(lat1, lng1, lat2, lng2):
 
 
 def _resolve_sos(sos_id: str, db) -> models.SOS:
-    """Slug ya integer ID se SOS lookup karo."""
     if sos_id.isdigit():
         return db.query(models.SOS).filter(models.SOS.id == int(sos_id)).first()
     return db.query(models.SOS).filter(models.SOS.slug == sos_id).first()
+
+
+# ──────────────────────────────────────────
+# VISITING CHARGE BILL HELPER
+# ──────────────────────────────────────────
+
+def _generate_sos_visiting_charge_bill(sos_request: models.SOS, garage: models.Garage, db: Session):
+    """₹100 visiting charge bill generate karo SOS cancel/reject pe."""
+    existing_bill = db.query(models.Bill).filter(models.Bill.sos_id == sos_request.id).first()
+    if existing_bill:
+        return existing_bill
+
+    garage_address = ""
+    if garage.location:
+        addr_parts = [garage.location.shop_number, garage.location.street, garage.location.city]
+        garage_address = ", ".join([p for p in addr_parts if p])
+
+    customer = db.query(models.Customer).filter(models.Customer.id == sos_request.customer_id).first()
+    vehicle_info = " • ".join([p for p in [sos_request.vehicle_model or sos_request.vehicle_type, sos_request.vehicle_number] if p])
+
+    items = [{"item_name": "SOS Visiting Charge", "price": SOS_VISITING_CHARGE, "qty": 1}]
+
+    commission_rule = db.query(models.CommissionRule).filter(
+        models.CommissionRule.is_active == True,
+        models.CommissionRule.min_amount <= SOS_VISITING_CHARGE,
+        (models.CommissionRule.max_amount >= SOS_VISITING_CHARGE) | (models.CommissionRule.max_amount == None)
+    ).first()
+
+    platform_commission = 0.0
+    if commission_rule:
+        if hasattr(commission_rule, 'is_fixed') and commission_rule.is_fixed:
+            platform_commission = float(commission_rule.fixed_amount or 0)
+        else:
+            platform_commission = (SOS_VISITING_CHARGE * float(commission_rule.percentage)) / 100.0
+
+    garage_earnings = SOS_VISITING_CHARGE - platform_commission
+
+    bill = models.Bill(
+        sos_id=sos_request.id,
+        customer_id=sos_request.customer_id,
+        garage_id=garage.id,
+        bill_number=f"GNM-SOS-{sos_request.id}-VISIT",
+        subtotal=SOS_VISITING_CHARGE,
+        tax_amount=0.0,
+        total_amount=SOS_VISITING_CHARGE,
+        platform_commission=platform_commission,
+        garage_earnings=garage_earnings,
+        items=items,
+        garage_name=garage.name,
+        garage_address=garage_address,
+        garage_gst=None,
+        customer_name=customer.name if customer else None,
+        vehicle_info=vehicle_info,
+        service_type="SOS Visiting Charge — Cancelled/Rejected"
+    )
+    db.add(bill)
+
+    # Garage dues update
+    if garage.pending_platform_dues is None:
+        garage.pending_platform_dues = 0.0
+    garage.pending_platform_dues = float(garage.pending_platform_dues) + platform_commission
+
+    if not garage.has_completed_trial and garage.pending_platform_dues >= 500.0:
+        garage.has_completed_trial = True
+
+    sos_request.visiting_charge_billed = True
+    sos_request.final_charge = SOS_VISITING_CHARGE
+
+    db.commit()
+    return bill
 
 
 # ──────────────────────────────────────────
@@ -134,7 +205,6 @@ class SOSEstimatePayload(BaseModel):
 
 # ──────────────────────────────────────────
 # 1. CUSTOMER — CREATE SOS
-# POST /api/sos/create
 # ──────────────────────────────────────────
 
 @router.post("/create")
@@ -143,17 +213,12 @@ async def create_sos(
     db: Session = Depends(get_db),
     current_customer: models.Customer = Depends(get_current_customer)
 ):
-    """
-    Customer SOS trigger karta hai.
-    2km radius ke sabhi active + SOS-available garages ko broadcast hoga.
-    """
-    # Radius mein SOS-available garages dhundho
     garages = (
         db.query(models.Garage)
         .join(models.GarageLocation)
         .filter(
-            models.Garage.is_active       == True,
-            models.Garage.is_verified     == True,
+            models.Garage.is_active        == True,
+            models.Garage.is_verified      == True,
             models.Garage.is_sos_available == True,
             models.GarageLocation.latitude  != None,
             models.GarageLocation.longitude != None,
@@ -169,17 +234,15 @@ async def create_sos(
             nearby_garages.append({ "id": g.id, "name": g.name, "distance_km": round(dist, 2) })
 
     if not nearby_garages:
-        # Radius badha ke try karo
         for g in garages:
             loc = g.location
             dist = haversine(data.lat, data.lng, loc.latitude, loc.longitude)
             if dist <= 10.0:
                 nearby_garages.append({ "id": g.id, "name": g.name, "distance_km": round(dist, 2) })
 
-    # SOS request create karo — dedicated SOS table mein
     sos_request = models.SOS(
         customer_id             = current_customer.id,
-        garage_id               = None,  # Blast notification to all, not just first
+        garage_id               = None,
         vehicle_type            = data.vehicle_type or "unknown",
         vehicle_model           = data.vehicle_model,
         vehicle_number          = data.vehicle_number,
@@ -204,7 +267,6 @@ async def create_sos(
     db.commit()
     db.refresh(sos_request)
 
-    # Random slug generate karo (koi ID visible nahi)
     chars = string.ascii_lowercase + string.digits
     while True:
         candidate = ''.join(secrets.choice(chars) for _ in range(10))
@@ -215,14 +277,12 @@ async def create_sos(
     db.commit()
     db.refresh(sos_request)
 
-    # WebSocket + FCM broadcast — nearby garages ko notification
     nearby_garage_ids = [g["id"] for g in nearby_garages]
     vt_label = "2 Wheeler" if data.vehicle_type == "two_wheeler" else "4 Wheeler" if data.vehicle_type == "four_wheeler" else data.vehicle_type or "Vehicle"
 
     notif_title = f"🆘 Emergency SOS — {vt_label} Breakdown"
     notif_body  = "A vehicle needs immediate assistance nearby. Open the app to respond."
 
-    # WebSocket (foreground mechanics)
     await ws_manager.broadcast_to_garages(nearby_garage_ids, {
         "type":   "sos_alert",
         "sos_id": sos_request.id,
@@ -232,7 +292,6 @@ async def create_sos(
         "screen": "sos-alerts",
     })
 
-    # FCM (background mechanics) — sirf ek baar, create pe only
     nearby_garage_objs = [g for g in garages if g.id in nearby_garage_ids]
     fcm_tokens = [g.fcm_token for g in nearby_garage_objs if g.fcm_token]
     if fcm_tokens:
@@ -268,7 +327,6 @@ async def create_sos(
 
 # ──────────────────────────────────────────
 # 2. GARAGE — GET ACTIVE SOS ALERTS
-# GET /api/sos/active
 # ──────────────────────────────────────────
 
 @router.get("/active")
@@ -276,15 +334,10 @@ def get_active_sos(
     db: Session = Depends(get_db),
     current_garage: models.Garage = Depends(get_current_garage)
 ):
-    """
-    Garage ke liye active (broadcasting/accepted) SOS requests.
-    Garage ki location ke 2km radius mein.
-    """
     loc = current_garage.location
     if not loc or not loc.latitude or not loc.longitude:
         return []
 
-    # Pending/Broadcasting/Accepted SOS requests for this garage
     active_garage_statuses = [models.SOSStatus.accepted, models.SOSStatus.on_the_way, models.SOSStatus.in_progress]
     sos_requests = db.query(models.SOS).filter(
         or_(
@@ -300,7 +353,6 @@ def get_active_sos(
         else:
             dist = None
 
-        # Time ago
         now      = datetime.utcnow()
         diff     = now - s.created_at.replace(tzinfo=None)
         mins     = int(diff.total_seconds() / 60)
@@ -329,7 +381,6 @@ def get_active_sos(
 
 # ──────────────────────────────────────────
 # 3. GARAGE — GET SOS DETAIL
-# GET /api/sos/{booking_id}
 # ──────────────────────────────────────────
 
 @router.get("/{sos_id}")
@@ -388,7 +439,6 @@ def get_sos_detail(
 
 # ──────────────────────────────────────────
 # 4. GARAGE — ACCEPT SOS
-# POST /api/sos/{booking_id}/accept
 # ──────────────────────────────────────────
 
 @router.post("/{sos_id}/accept")
@@ -415,7 +465,6 @@ def accept_sos(
 
 # ──────────────────────────────────────────
 # 5. GARAGE — REJECT SOS
-# POST /api/sos/{booking_id}/reject
 # ──────────────────────────────────────────
 
 @router.post("/{sos_id}/reject")
@@ -427,19 +476,16 @@ def reject_sos(
     sos_request = _resolve_sos(sos_id, db)
     if not sos_request or sos_request.status != models.SOSStatus.broadcasting:
         raise HTTPException(status_code=404, detail="SOS not found")
-
-    # Locally reject for this garage only (frontend will hide it)
-    # Status remains broadcasting for other garages
     return { "message": "SOS rejected locally", "sos_id": sos_request.id }
 
 
 # ──────────────────────────────────────────
 # 6. GARAGE — SEND SOS ESTIMATE
-# PATCH /api/sos/{booking_id}/estimate
+# ✅ async def — WhatsApp OTP properly awaited
 # ──────────────────────────────────────────
 
 @router.patch("/{sos_id}/estimate")
-def send_sos_estimate(
+async def send_sos_estimate(
     sos_id: str,
     payload: SOSEstimatePayload,
     db: Session = Depends(get_db),
@@ -455,7 +501,6 @@ def send_sos_estimate(
     sos_request.estimate_details = payload.estimate_details
     sos_request.estimate_status  = models.EstimateStatus.pending
 
-    # OTP generate karo
     otp = str(random.randint(100000, 999999))
     sos_request.estimate_otp          = otp
     sos_request.estimate_otp_verified = False
@@ -464,32 +509,29 @@ def send_sos_estimate(
     db.commit()
     db.refresh(sos_request)
 
-    # TODO: SMS customer ko
     print(f"\n📋 SOS Estimate sent — SOS #{sos_id}")
     print(f"Amount: ₹{payload.estimated_amount}")
     print(f"Customer OTP: {otp}")
     print(f"{'='*40}\n")
 
-    # ✅ WhatsApp OTP customer ko bhejo
-    customer = db.query(models.Customer).filter(
-        models.Customer.id == sos_request.customer_id
-    ).first()
+    # ✅ await — async context mein properly kaam karega
+    customer = db.query(models.Customer).filter(models.Customer.id == sos_request.customer_id).first()
     if customer and customer.phone:
-        import asyncio
-        asyncio.create_task(
-            send_whatsapp_otp(customer.phone, otp)
-        )
+        try:
+            await send_whatsapp_otp(customer.phone, otp)
+        except Exception as e:
+            print(f"[OTP] WhatsApp send error: {e}")
 
     return {
         "message":          "Estimate sent! OTP generated.",
         "estimated_amount": payload.estimated_amount,
-        "otp":              otp  # TESTING ONLY
+        "otp":              otp,
+        "estimate_otp":     otp,
     }
 
 
 # ──────────────────────────────────────────
 # 7. GARAGE — VERIFY OTP → START WORK
-# POST /api/sos/{booking_id}/verify-otp
 # ──────────────────────────────────────────
 
 @router.post("/{sos_id}/verify-otp")
@@ -517,13 +559,7 @@ def verify_sos_otp(
 
 
 # ──────────────────────────────────────────
-# 8. GARAGE — COMPLETE SOS
-# POST /api/sos/{booking_id}/complete
-# ──────────────────────────────────────────
-
-# ──────────────────────────────────────────
-# GARAGE — MARK ARRIVED
-# PATCH /api/sos/{sos_id}/mark-arrived
+# 8. GARAGE — MARK ARRIVED
 # ──────────────────────────────────────────
 
 @router.post("/{sos_id}/mark-arrived")
@@ -539,12 +575,15 @@ def mark_arrived(
         raise HTTPException(status_code=400, detail="SOS not in accepted state")
 
     sos_request.arrived_at = datetime.utcnow()
-    # Status 'accepted' hi rehega — frontend arrived_at check karta hai
     db.commit()
     db.refresh(sos_request)
 
     return {"message": "Arrived marked!", "arrived_at": sos_request.arrived_at.isoformat()}
 
+
+# ──────────────────────────────────────────
+# 9. GARAGE — COMPLETE SOS
+# ──────────────────────────────────────────
 
 @router.post("/{sos_id}/complete")
 def complete_sos(
@@ -565,7 +604,6 @@ def complete_sos(
     sos_request.final_charge = final_amount
     sos_request.completed_at = datetime.utcnow()
 
-    # Calculate platform commission
     final_charge_float = float(final_amount)
     commission_rule = db.query(models.CommissionRule).filter(
         models.CommissionRule.is_active == True,
@@ -578,7 +616,6 @@ def complete_sos(
         platform_commission = (final_charge_float * float(commission_rule.percentage)) / 100.0
 
     garage_earnings = final_charge_float - platform_commission
-
     sos_request.platform_commission = platform_commission
     sos_request.garage_earnings = garage_earnings
 
@@ -595,8 +632,7 @@ def complete_sos(
 
 
 # ──────────────────────────────────────────
-# 9. GARAGE — SOS HISTORY
-# GET /api/sos/history
+# 10. GARAGE — SOS HISTORY
 # ──────────────────────────────────────────
 
 @router.get("/history/all")
@@ -605,11 +641,8 @@ def get_sos_history(
     current_garage: models.Garage = Depends(get_current_garage)
 ):
     sos_requests = db.query(models.SOS).filter(
-        models.SOS.garage_id    == current_garage.id,
-        models.SOS.status.in_([
-            models.SOSStatus.completed,
-            models.SOSStatus.cancelled,
-        ])
+        models.SOS.garage_id == current_garage.id,
+        models.SOS.status.in_([models.SOSStatus.completed, models.SOSStatus.cancelled])
     ).order_by(models.SOS.created_at.desc()).all()
 
     return [{
@@ -630,8 +663,7 @@ def get_sos_history(
 
 
 # ──────────────────────────────────────────
-# 10. CUSTOMER — GET SOS STATUS
-# GET /api/sos/customer/{booking_id}
+# 11. CUSTOMER — GET SOS HISTORY
 # ──────────────────────────────────────────
 
 @router.get("/customer/history")
@@ -639,10 +671,6 @@ def get_customer_sos_history(
     db: Session = Depends(get_db),
     current_customer: models.Customer = Depends(get_current_customer)
 ):
-    """
-    Customer ke saari SOS requests (active + completed + cancelled)
-    GET /api/sos/customer/history
-    """
     sos_requests = db.query(models.SOS).filter(
         models.SOS.customer_id == current_customer.id
     ).order_by(models.SOS.created_at.desc()).all()
@@ -652,10 +680,7 @@ def get_customer_sos_history(
         garage = sos.garage
         dist = None
         if garage and garage.location and garage.location.latitude and sos.latitude:
-            dist = haversine(
-                garage.location.latitude, garage.location.longitude,
-                sos.latitude, sos.longitude
-            )
+            dist = haversine(garage.location.latitude, garage.location.longitude, sos.latitude, sos.longitude)
 
         result.append({
             "id": sos.id,
@@ -677,10 +702,15 @@ def get_customer_sos_history(
             "completed_at": sos.completed_at.isoformat() if sos.completed_at else None,
             "created_at": sos.created_at.isoformat(),
             "estimate_details": sos.estimate_details,
+            "visiting_charge_billed": getattr(sos, 'visiting_charge_billed', False),
         })
 
     return result
 
+
+# ──────────────────────────────────────────
+# 12. CUSTOMER — GET SOS STATUS
+# ──────────────────────────────────────────
 
 @router.get("/customer/{sos_id}")
 def get_sos_status_customer(
@@ -697,39 +727,35 @@ def get_sos_status_customer(
         raise HTTPException(status_code=404, detail="SOS request not found")
 
     garage = sos_request.garage
-
-    # Distance calculate karo agar location available hai
     dist = None
     if garage and garage.location and garage.location.latitude and sos_request.latitude:
-        dist = haversine(
-            garage.location.latitude, garage.location.longitude,
-            sos_request.latitude, sos_request.longitude
-        )
+        dist = haversine(garage.location.latitude, garage.location.longitude, sos_request.latitude, sos_request.longitude)
 
     return {
-        "id":               sos_request.id,
-        "sos_number":       sos_request.sos_number,
-        "status":           sos_request.status.value,
-        "garage_name":      garage.name if garage else None,
-        "distance_km":      round(dist, 2) if dist else None,
-        "estimated_charge": float(sos_request.estimated_charge) if sos_request.estimated_charge else None,
-        "estimate_status":  sos_request.estimate_status.value,
-        "final_charge":     float(sos_request.final_charge) if sos_request.final_charge else None,
-        "vehicle_type":     sos_request.vehicle_type,
-        "vehicle_model":    sos_request.vehicle_model,
-        "vehicle_number":   sos_request.vehicle_number,
-        "description":      sos_request.description,
-        "responded_at":     sos_request.responded_at.isoformat() if sos_request.responded_at else None,
-        "started_at":       sos_request.started_at.isoformat() if sos_request.started_at else None,
-        "completed_at":     sos_request.completed_at.isoformat() if sos_request.completed_at else None,
-        "created_at":       sos_request.created_at.isoformat(),
-        "estimate_details": sos_request.estimate_details,
+        "id":                    sos_request.id,
+        "sos_number":            sos_request.sos_number,
+        "status":                sos_request.status.value,
+        "garage_name":           garage.name if garage else None,
+        "distance_km":           round(dist, 2) if dist else None,
+        "estimated_charge":      float(sos_request.estimated_charge) if sos_request.estimated_charge else None,
+        "estimate_status":       sos_request.estimate_status.value,
+        "estimate_otp":          sos_request.estimate_otp if sos_request.estimate_status == models.EstimateStatus.pending else None,
+        "final_charge":          float(sos_request.final_charge) if sos_request.final_charge else None,
+        "vehicle_type":          sos_request.vehicle_type,
+        "vehicle_model":         sos_request.vehicle_model,
+        "vehicle_number":        sos_request.vehicle_number,
+        "description":           sos_request.description,
+        "responded_at":          sos_request.responded_at.isoformat() if sos_request.responded_at else None,
+        "started_at":            sos_request.started_at.isoformat() if sos_request.started_at else None,
+        "completed_at":          sos_request.completed_at.isoformat() if sos_request.completed_at else None,
+        "created_at":            sos_request.created_at.isoformat(),
+        "estimate_details":      sos_request.estimate_details,
+        "visiting_charge_billed": getattr(sos_request, 'visiting_charge_billed', False),
     }
 
 
 # ──────────────────────────────────────────
-# CUSTOMER — REBROADCAST SOS (repeat WS blast)
-# POST /api/sos/customer/{sos_id}/rebroadcast
+# 13. CUSTOMER — REBROADCAST SOS
 # ──────────────────────────────────────────
 
 @router.post("/customer/{sos_id}/rebroadcast")
@@ -742,15 +768,12 @@ async def rebroadcast_sos(
     if not sos_request:
         raise HTTPException(status_code=404, detail="SOS not found")
 
-    # Sirf broadcasting status mein hi rebroadcast karo
     if sos_request.status != models.SOSStatus.broadcasting:
         return {"rebroadcast": False, "reason": "SOS not broadcasting"}
 
-    # Sirf customer apna hi SOS rebroadcast kar sakta hai
     if sos_request.customer_id != current_customer.id:
         raise HTTPException(status_code=403, detail="Not your SOS")
 
-    # Nearby garages dhundho (same logic)
     garages = (
         db.query(models.Garage)
         .join(models.GarageLocation)
@@ -779,7 +802,6 @@ async def rebroadcast_sos(
     vt = sos_request.vehicle_type or "Vehicle"
     vt_label = "2 Wheeler" if vt == "two_wheeler" else "4 Wheeler" if vt == "four_wheeler" else vt
 
-    # Sirf WebSocket — FCM repeat nahi karna (ek baar pehle ja chuka)
     await ws_manager.broadcast_to_garages(nearby_ids, {
         "type":   "sos_alert",
         "sos_id": sos_request.id,
@@ -793,8 +815,8 @@ async def rebroadcast_sos(
 
 
 # ──────────────────────────────────────────
-# 11. CUSTOMER — CANCEL SOS
-# POST /api/sos/customer/{sos_id}/cancel
+# 14. CUSTOMER — CANCEL SOS
+# ✅ Broadcasting = free | Accepted/In-Progress = ₹100 visiting charge
 # ──────────────────────────────────────────
 
 @router.post("/customer/{sos_id}/cancel")
@@ -814,17 +836,75 @@ def cancel_sos_customer(
     if not sos_request:
         raise HTTPException(status_code=404, detail="SOS request not found or cannot be cancelled")
 
+    visiting_charge_applicable = False
+
+    # ✅ Mechanic accept kar chuka hai — ₹100 visiting charge
+    if sos_request.status in [models.SOSStatus.accepted, models.SOSStatus.in_progress]:
+        visiting_charge_applicable = True
+        garage = db.query(models.Garage).filter(models.Garage.id == sos_request.garage_id).first()
+        if garage:
+            _generate_sos_visiting_charge_bill(sos_request, garage, db)
+
     sos_request.status       = models.SOSStatus.cancelled
     sos_request.cancelled_at = datetime.utcnow()
     db.commit()
     db.refresh(sos_request)
 
-    return {"message": "SOS cancelled", "status": sos_request.status.value}
+    return {
+        "message": "SOS cancelled",
+        "status":  sos_request.status.value,
+        "visiting_charge_applicable": visiting_charge_applicable,
+        "visiting_charge": 100 if visiting_charge_applicable else 0,
+        "bill_note": "Mechanic ko ₹100 cash/UPI de dena." if visiting_charge_applicable else None,
+    }
 
 
 # ──────────────────────────────────────────
-# 11b. CUSTOMER — GET ACTIVE SOS
-# GET /api/sos/customer/active
+# 15. CUSTOMER — REJECT SOS ESTIMATE
+# ✅ ₹100 visiting charge — mechanic aaya tha
+# POST /api/sos/customer/{sos_id}/reject-estimate
+# ──────────────────────────────────────────
+
+@router.post("/customer/{sos_id}/reject-estimate")
+def reject_sos_estimate(
+    sos_id: str,
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    q = db.query(models.SOS).filter(models.SOS.customer_id == current_customer.id)
+    if sos_id.isdigit():
+        sos_request = q.filter(models.SOS.id == int(sos_id)).first()
+    else:
+        sos_request = q.filter(models.SOS.slug == sos_id).first()
+
+    if not sos_request:
+        raise HTTPException(status_code=404, detail="SOS not found")
+    if sos_request.estimate_status != models.EstimateStatus.pending:
+        raise HTTPException(status_code=400, detail="No pending estimate to reject")
+    if sos_request.estimate_otp_verified:
+        raise HTTPException(status_code=400, detail="Estimate already approved")
+
+    # ✅ ₹100 visiting charge — mechanic aaya tha
+    garage = db.query(models.Garage).filter(models.Garage.id == sos_request.garage_id).first()
+    if garage:
+        _generate_sos_visiting_charge_bill(sos_request, garage, db)
+
+    sos_request.estimate_status = models.EstimateStatus.rejected
+    sos_request.status          = models.SOSStatus.cancelled
+    sos_request.cancelled_at    = datetime.utcnow()
+    db.commit()
+    db.refresh(sos_request)
+
+    return {
+        "message":  "Estimate rejected. SOS cancelled.",
+        "status":   "cancelled",
+        "visiting_charge": 100,
+        "bill_note": "Mechanic ko ₹100 cash/UPI de dena."
+    }
+
+
+# ──────────────────────────────────────────
+# 16. CUSTOMER — GET ACTIVE SOS
 # ──────────────────────────────────────────
 
 @router.get("/customer/active")
@@ -838,17 +918,17 @@ def get_customer_active_sos(
         models.SOSStatus.on_the_way,
         models.SOSStatus.in_progress
     ]
-    
+
     active_sos = db.query(models.SOS).filter(
         models.SOS.customer_id == current_customer.id,
         models.SOS.status.in_(active_statuses)
     ).order_by(models.SOS.created_at.desc()).first()
-    
+
     if active_sos:
         return {
             "has_active": True,
-            "sos_id": active_sos.id,
+            "sos_id":   active_sos.id,
             "sos_slug": active_sos.slug if hasattr(active_sos, 'slug') else active_sos.id,
-            "status": active_sos.status.value
+            "status":   active_sos.status.value
         }
     return {"has_active": False}
