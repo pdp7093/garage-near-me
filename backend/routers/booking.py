@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, cast, Date
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 import os
@@ -22,6 +22,8 @@ ALGORITHM   = os.getenv("ALGORITHM", "HS256")
 
 customer_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 garage_oauth2   = OAuth2PasswordBearer(tokenUrl="/api/garage/login")
+
+VISITING_CHARGE = 100.0  # ₹100 fixed visiting charge on estimate reject
 
 
 # ──────────────────────────────────────────
@@ -84,6 +86,75 @@ def _make_booking_slug(booking_number: str, booking_id: int) -> str:
     s = re.sub(r"[\s_]+", "-", s)
     s = re.sub(r"-+", "-", s)
     return f"{s}-{booking_id}"
+
+
+def _generate_visiting_charge_bill(booking: models.Booking, garage: models.Garage, db: Session):
+    """
+    ₹100 visiting charge bill generate karo jab customer estimate reject kare.
+    """
+    existing_bill = db.query(models.Bill).filter(models.Bill.booking_id == booking.id).first()
+    if existing_bill:
+        return existing_bill  # Already exists
+
+    garage_address = ""
+    if garage.location:
+        addr_parts = [garage.location.shop_number, garage.location.street, garage.location.city]
+        garage_address = ", ".join([p for p in addr_parts if p])
+
+    vehicle_info = " • ".join([p for p in [booking.vehicle_model or booking.vehicle_type, booking.vehicle_number] if p])
+
+    items = [{"item_name": "Visiting Charge", "price": VISITING_CHARGE, "qty": 1}]
+
+    # Commission on ₹100 — fixed slab (₹40 fixed for small jobs)
+    commission_rule = db.query(models.CommissionRule).filter(
+        models.CommissionRule.is_active == True,
+        models.CommissionRule.min_amount <= VISITING_CHARGE,
+        (models.CommissionRule.max_amount >= VISITING_CHARGE) | (models.CommissionRule.max_amount == None)
+    ).first()
+
+    platform_commission = 0.0
+    if commission_rule:
+        if commission_rule.is_fixed:
+            platform_commission = float(commission_rule.fixed_amount or 0)
+        else:
+            platform_commission = (VISITING_CHARGE * float(commission_rule.percentage)) / 100.0
+
+    garage_earnings = VISITING_CHARGE - platform_commission
+
+    bill = models.Bill(
+        booking_id=booking.id,
+        customer_id=booking.customer_id,
+        garage_id=garage.id,
+        bill_number=f"GNM-{booking.id}-VISIT",
+        subtotal=VISITING_CHARGE,
+        tax_amount=0.0,
+        total_amount=VISITING_CHARGE,
+        platform_commission=platform_commission,
+        garage_earnings=garage_earnings,
+        items=items,
+        garage_name=garage.name,
+        garage_address=garage_address,
+        garage_gst=None,
+        customer_name=booking.customer.name if booking.customer else None,
+        vehicle_info=vehicle_info,
+        service_type="Visiting Charge — Estimate Rejected"
+    )
+    db.add(bill)
+
+    # Garage dues update
+    if garage.pending_platform_dues is None:
+        garage.pending_platform_dues = 0.0
+    garage.pending_platform_dues = float(garage.pending_platform_dues) + platform_commission
+
+    # Trial check
+    if not garage.has_completed_trial and garage.pending_platform_dues >= 500.0:
+        garage.has_completed_trial = True
+
+    booking.visiting_charge_billed = True
+    booking.final_amount = VISITING_CHARGE
+
+    db.commit()
+    return bill
 
 
 # ──────────────────────────────────────────
@@ -190,6 +261,10 @@ def create_sos_booking(
     return booking
 
 
+# ──────────────────────────────────────────
+# APPROVE / REJECT ESTIMATE
+# ──────────────────────────────────────────
+
 @router.patch("/{booking_id}/approve-estimate", response_model=schemas.BookingResponse)
 def approve_booking_estimate(
     booking_id: int,
@@ -212,8 +287,15 @@ def approve_booking_estimate(
         raise HTTPException(status_code=400, detail="Only approved or rejected is allowed")
 
     booking.estimate_status = models.EstimateStatus(update.estimate_status.value)
+
     if update.estimate_status == schemas.EstimateStatus.rejected:
         booking.status = models.BookingStatus.cancelled
+        booking.completed_at = datetime.utcnow()
+
+        # ✅ ₹100 visiting charge bill generate karo
+        garage = db.query(models.Garage).filter(models.Garage.id == booking.garage_id).first()
+        if garage:
+            _generate_visiting_charge_bill(booking, garage, db)
 
     db.commit()
     db.refresh(booking)
@@ -340,8 +422,23 @@ def cancel_booking_post(
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
+    # ✅ Sirf pending ya accepted cancel ho sakti hai
     if booking.status not in [models.BookingStatus.pending, models.BookingStatus.accepted]:
         raise HTTPException(status_code=400, detail="Sirf pending ya accepted booking cancel ho sakti hai.")
+
+    # ✅ 1 hour lock — agar mechanic ne accept kar liya aur slot 1hr se kam bacha hai
+    if booking.status == models.BookingStatus.accepted and booking.scheduled_at:
+        now_utc = datetime.utcnow()
+        scheduled = booking.scheduled_at
+        # Remove tzinfo agar aware datetime hai
+        if scheduled.tzinfo is not None:
+            scheduled = scheduled.replace(tzinfo=None)
+        time_left = scheduled - now_utc
+        if time_left.total_seconds() < 3600:  # 1 hour = 3600 seconds
+            raise HTTPException(
+                status_code=400,
+                detail="Slot se 1 ghante pehle booking cancel nahi ho sakti."
+            )
 
     booking.status       = models.BookingStatus.cancelled
     booking.completed_at = datetime.utcnow()
@@ -438,12 +535,31 @@ def cancel_booking_delete(
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    if booking.status != models.BookingStatus.pending:
-        raise HTTPException(status_code=400, detail=f"Cannot cancel booking with status '{booking.status}'")
+    # ✅ Pending — free cancel
+    if booking.status == models.BookingStatus.pending:
+        booking.status = models.BookingStatus.cancelled
+        db.commit()
+        return None
 
-    booking.status = models.BookingStatus.cancelled
-    db.commit()
-    return None
+    # ✅ Accepted — 1hr lock check
+    if booking.status == models.BookingStatus.accepted:
+        if booking.scheduled_at:
+            now_utc = datetime.utcnow()
+            scheduled = booking.scheduled_at
+            if scheduled.tzinfo is not None:
+                scheduled = scheduled.replace(tzinfo=None)
+            time_left = scheduled - now_utc
+            if time_left.total_seconds() < 3600:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Slot se 1 ghante pehle booking cancel nahi ho sakti."
+                )
+        booking.status = models.BookingStatus.cancelled
+        booking.completed_at = datetime.utcnow()
+        db.commit()
+        return None
+
+    raise HTTPException(status_code=400, detail=f"Cannot cancel booking with status '{booking.status.value}'")
 
 
 # ──────────────────────────────────────────
@@ -581,7 +697,6 @@ def update_booking_status(
             current_garage.pending_platform_dues = 0.0
         current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
 
-        # ✅ Trial complete — sirf flag karo, block nahi
         if not current_garage.has_completed_trial and current_garage.pending_platform_dues >= 500.0:
             current_garage.has_completed_trial = True
 
@@ -678,7 +793,6 @@ def update_booking_payment_status(
                 current_garage.pending_platform_dues = 0.0
             current_garage.pending_platform_dues = float(current_garage.pending_platform_dues) + float(platform_commission)
 
-            # ✅ Trial complete — sirf flag karo, block nahi
             if not current_garage.has_completed_trial and current_garage.pending_platform_dues >= 500.0:
                 current_garage.has_completed_trial = True
 
@@ -692,7 +806,6 @@ def update_booking_payment_status(
 
 # ──────────────────────────────────────────
 # SEND ESTIMATE OTP (Garage → Customer)
-# ✅ async def — WhatsApp OTP properly awaited
 # ──────────────────────────────────────────
 
 @router.post("/{booking_id}/send-estimate-otp")
@@ -721,7 +834,6 @@ async def send_estimate_otp(
     print(f"Customer phone: {booking.customer.phone}")
     print(f"{'='*40}\n")
 
-    # ✅ await — async context mein sahi kaam karega
     customer = db.query(models.Customer).filter(models.Customer.id == booking.customer_id).first()
     if customer and customer.phone:
         try:
@@ -772,7 +884,6 @@ def verify_estimate_otp(
 
 # ──────────────────────────────────────────
 # SEND ADDITIONAL ESTIMATE
-# ✅ async def — WhatsApp OTP properly awaited
 # ──────────────────────────────────────────
 
 from pydantic import BaseModel
@@ -817,7 +928,6 @@ async def send_additional_estimate(
     print(f"ADDITIONAL OTP for Booking #{booking_id}: {otp}")
     print(f"{'='*40}\n")
 
-    # ✅ await — async context mein sahi kaam karega
     customer = db.query(models.Customer).filter(models.Customer.id == booking.customer_id).first()
     if customer and customer.phone:
         try:
@@ -860,8 +970,6 @@ def verify_additional_otp(
 
 # ──────────────────────────────────────────
 # VERIFY ADDITIONAL OTP — Customer side
-# ✅ Customer apni tracking page se OTP enter kare
-# POST /api/bookings/{booking_id}/customer-verify-additional-otp
 # ──────────────────────────────────────────
 
 @router.post("/{booking_id}/customer-verify-additional-otp", response_model=schemas.BookingResponse)
@@ -871,10 +979,6 @@ def customer_verify_additional_otp(
     db: Session = Depends(get_db),
     current_customer: models.Customer = Depends(get_current_customer)
 ):
-    """
-    Customer tracking page se additional OTP verify kare.
-    WhatsApp pe aaya OTP yahan enter karo → additional kaam shuru.
-    """
     booking = db.query(models.Booking).filter(
         models.Booking.id          == booking_id,
         models.Booking.customer_id == current_customer.id
@@ -892,6 +996,48 @@ def customer_verify_additional_otp(
     db.commit()
     db.refresh(booking)
     return booking
+
+
+# ──────────────────────────────────────────
+# REJECT ADDITIONAL ESTIMATE — Customer side
+# ₹100 visiting charge bill generate hoga
+# ──────────────────────────────────────────
+
+@router.post("/{booking_id}/reject-additional-estimate")
+def reject_additional_estimate(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    booking = db.query(models.Booking).filter(
+        models.Booking.id          == booking_id,
+        models.Booking.customer_id == current_customer.id
+    ).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if not booking.additional_estimate:
+        raise HTTPException(status_code=400, detail="No additional estimate to reject")
+    if booking.additional_otp_verified:
+        raise HTTPException(status_code=400, detail="Additional estimate already approved")
+
+    booking.status = models.BookingStatus.cancelled
+    booking.completed_at = datetime.utcnow()
+
+    # ✅ ₹100 visiting charge bill
+    garage = db.query(models.Garage).filter(models.Garage.id == booking.garage_id).first()
+    if garage:
+        _generate_visiting_charge_bill(booking, garage, db)
+
+    db.commit()
+    db.refresh(booking)
+
+    return {
+        "message": "Additional estimate rejected. ₹100 visiting charge applicable.",
+        "booking_id": booking_id,
+        "status": "cancelled",
+        "visiting_charge": 100,
+        "bill_note": "Mechanic ko ₹100 cash/UPI de dena."
+    }
 
 
 # ──────────────────────────────────────────
