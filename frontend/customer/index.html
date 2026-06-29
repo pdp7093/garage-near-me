@@ -13,6 +13,12 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
     rel="stylesheet" />
+  <script>
+    // ✅ /index → / redirect
+    if (window.location.pathname === '/index' || window.location.pathname === '/index.html') {
+      window.location.replace('/');
+    }
+  </script>
 </head>
 
 <body>
@@ -29,10 +35,6 @@
       <div class="row align-items-center g-5">
         <!-- Left: Text + Search -->
         <div class="col-lg-6 z-1">
-          <div class="d-inline-flex align-items-center bg-white border rounded-pill px-3 py-2 mb-4 shadow-sm">
-            <span class="d-block rounded-circle me-2" style="width:8px; height:8px; background:var(--color-success);"></span>
-            <span style="font-size:13px; font-weight:600; color:var(--color-text);"><span id="heroGarageCount">—</span> verified garages active near you</span>
-          </div>
 
           <h1 class="display-4 fw-bold mb-3" style="font-family:var(--font-head); color:var(--color-text); line-height:1.2;">
             Find a Trusted Garage<br>
@@ -190,14 +192,12 @@
           const d = await res.json();
           const n = d.total_garages || 0;
           const label = n >= 100 ? n + '+' : n;
-          document.getElementById('heroGarageCount').textContent = label;
           document.getElementById('statVerifiedGarages').textContent = label;
           document.getElementById('statSosGarages').textContent = d.sos_garages != null ? d.sos_garages : '—';
           document.getElementById('statCities').textContent = d.cities != null ? d.cities : '—';
         }
       } catch (_) {}
     })();
-
 
     // ── GPS button ──
     document.getElementById('gpsBtn').addEventListener('click', function () {
@@ -216,7 +216,6 @@
           input.value = '';
           input.placeholder = 'Using GPS location ✓';
           icon.setAttribute('fill', '#22C55E');
-          // Reverse geocode to show area name
           fetch(`https://nominatim.openstreetmap.org/reverse?lat=${_heroLat}&lon=${_heroLng}&format=json`)
             .then(r => r.json())
             .then(d => {
@@ -260,7 +259,7 @@
             banner.style.cssText = 'position:fixed; top:0; left:0; width:100%; background:#DC2626; color:white; z-index:999999; text-align:center; padding:12px; font-weight:bold; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1); font-family:var(--font-head, sans-serif); display:flex; justify-content:center; align-items:center; gap:10px;';
             banner.innerHTML = '<span style="font-size:18px;">🚨</span> You have an active Emergency SOS! Tap here to track it. <span style="font-size:18px;">🚨</span>';
             banner.onclick = () => window.location.href = `sos-tracking.html?id=${data.sos_slug}`;
-            document.body.style.paddingTop = '48px'; // Make space for banner
+            document.body.style.paddingTop = '48px';
             document.body.prepend(banner);
           }
         }).catch(e => console.error('Error fetching active SOS', e));
