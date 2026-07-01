@@ -16,6 +16,7 @@
     <meta name="theme-color" content="#1B1F2E">
     <link rel="stylesheet" href="/css/bootstrap.css" />
     <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
@@ -280,6 +281,7 @@
         }
     </style>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/bootstrap.js"></script>
     <script src="/js/config.js"></script>
     <script src="/js/script.js"></script>
@@ -443,6 +445,12 @@ async function sendOtp() {
                 btn.innerHTML = 'Verify & Login <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
                 btn.style.opacity = '1';
                 btn.disabled = false;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Verification Failed',
+                    text: err.message || 'Invalid OTP. Please try again.',
+                    confirmButtonColor: 'var(--color-primary)'
+                });
                 showError('otpWrap', err.message);
             }
         }

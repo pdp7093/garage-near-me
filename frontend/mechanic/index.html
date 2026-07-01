@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css?v=c94eb7f0" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
 </head>
 
@@ -275,6 +276,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/bootstrap.js"></script>
   <script src="/js/config.js"></script>
   <script>
@@ -461,6 +463,12 @@
           localStorage.setItem('garage_token', data.access_token);
           window.location.href = 'dashboard.html';
         } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Verification Failed',
+            text: data.detail || 'Invalid or expired OTP. Try again.',
+            confirmButtonColor: 'var(--color-primary)'
+          });
           alertBox.textContent = data.detail || 'Invalid or expired OTP. Try again.';
           alertBox.className   = 'alert alert-danger small mb-3';
           alertBox.classList.remove('d-none');
