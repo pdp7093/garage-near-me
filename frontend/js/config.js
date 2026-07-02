@@ -205,142 +205,59 @@ async function saveFCMToken(fcmToken, role) {
     } catch (e) { console.error('FCM token save error:', e); }
 }
 
-// ── Incoming Call UI (SOS — foreground) ───────────────────────────────────
+// ── Incoming SOS Alert Toast (foreground) ─────────────────────────────────
 function showIncomingCall(title, body, data = {}) {
-    const existing = document.getElementById('gnm-incoming-call');
+    const existing = document.getElementById('gnm-sos-toast');
     if (existing) existing.remove();
+
     startRingtone();
 
-    const overlay = document.createElement('div');
-    overlay.id = 'gnm-incoming-call';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:64px 24px 80px;';
+    const toast = document.createElement('div');
+    toast.id = 'gnm-sos-toast';
+    toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:999999;width:calc(100% - 32px);max-width:480px;background:#DC2626;color:#fff;border-radius:16px;padding:16px 20px;box-shadow:0 8px 32px rgba(220,38,38,0.4);display:flex;align-items:center;gap:14px;cursor:pointer;';
 
-    overlay.innerHTML = `
+    toast.innerHTML = `
         <style>
-            @keyframes gnmRingPulse {
-                0%   { transform:scale(1);   opacity:0.7; }
-                100% { transform:scale(1.7); opacity:0;   }
-            }
-            @keyframes gnmFadeIn {
-                from { opacity:0; transform:translateY(20px); }
-                to   { opacity:1; transform:translateY(0);    }
-            }
-            #gnm-incoming-call .ring-wrap {
-                position:relative; width:130px; height:130px;
-                display:flex; align-items:center; justify-content:center;
-            }
-            #gnm-incoming-call .ring-pulse {
-                position:absolute; inset:0; border-radius:50%;
-                border:2px solid #FF6B35;
-                animation:gnmRingPulse 1.6s ease-out infinite;
-            }
-            #gnm-incoming-call .ring-pulse:nth-child(2){ animation-delay:0.5s; }
-            #gnm-incoming-call .ring-pulse:nth-child(3){ animation-delay:1.0s; }
-            #gnm-incoming-call .avatar {
-                width:110px; height:110px; border-radius:50%;
-                background:linear-gradient(135deg,#FF6B35,#e85d2a);
-                display:flex; align-items:center; justify-content:center;
-                font-size:46px; position:relative; z-index:1;
-                box-shadow:0 0 40px rgba(255,107,53,0.4);
-            }
-            #gnm-incoming-call .call-info {
-                text-align:center;
-                animation:gnmFadeIn 0.4s ease;
-            }
-            #gnm-incoming-call .call-tag {
-                display:inline-block;
-                background:rgba(255,107,53,0.15); color:#FF6B35;
-                border:1px solid rgba(255,107,53,0.3);
-                border-radius:20px; padding:4px 14px;
-                font-size:12px; letter-spacing:2px;
-                font-family:'DM Sans',sans-serif;
-                text-transform:uppercase; margin-bottom:16px;
-            }
-            #gnm-incoming-call .call-title {
-                color:#fff; font-size:24px; font-weight:700;
-                font-family:Syne,sans-serif; margin-bottom:10px;
-                line-height:1.2;
-            }
-            #gnm-incoming-call .call-body {
-                color:#9CA3AF; font-size:14px;
-                font-family:'DM Sans',sans-serif; line-height:1.6;
-                max-width:280px; margin:0 auto;
-            }
-            #gnm-incoming-call .actions {
-                display:flex; gap:56px; align-items:flex-start; justify-content:center;
-            }
-            #gnm-incoming-call .action-wrap { text-align:center; }
-            #gnm-incoming-call .btn-circle {
-                width:72px; height:72px; border-radius:50%;
-                border:none; cursor:pointer;
-                display:flex; align-items:center; justify-content:center;
-                transition:transform 0.15s;
-            }
-            #gnm-incoming-call .btn-circle:active { transform:scale(0.93); }
-            #gnm-incoming-call .btn-decline {
-                background:#E53E3E;
-                box-shadow:0 0 0 10px rgba(229,62,62,0.15);
-            }
-            #gnm-incoming-call .btn-accept {
-                background:#22C55E;
-                box-shadow:0 0 0 10px rgba(34,197,94,0.15);
-            }
-            #gnm-incoming-call .btn-label {
-                display:block; color:#6B7280; font-size:12px;
-                font-family:'DM Sans',sans-serif; margin-top:10px;
-            }
+            @keyframes sosSlideIn{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+            @keyframes sosPulse{0%,100%{opacity:1}50%{opacity:0.6}}
+            #gnm-sos-toast{animation:sosSlideIn 0.3s ease;}
+            #gnm-sos-toast .si{font-size:28px;flex-shrink:0;animation:sosPulse 1s infinite;}
+            #gnm-sos-toast .st{flex:1;}
+            #gnm-sos-toast .stitle{font-weight:700;font-size:14px;margin-bottom:2px;}
+            #gnm-sos-toast .sbody{font-size:12px;opacity:0.9;}
+            #gnm-sos-toast .sbtn{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+            #gnm-sos-toast .sclose{background:none;border:none;color:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;padding:0 4px;}
         </style>
-
-        <div class="call-info">
-            <div class="call-tag">🚨 SOS Emergency</div>
-            <div class="call-title">${title || 'Nayi SOS Alert'}</div>
-            <div class="call-body">${body || 'Koi mechanic ki madad maang raha hai!'}</div>
+        <div class="si">🚨</div>
+        <div class="st">
+            <div class="stitle">${title || 'New SOS Alert!'}</div>
+            <div class="sbody">${body || 'Koi breakdown mein hai!'}</div>
         </div>
-
-        <div class="ring-wrap">
-            <div class="ring-pulse"></div>
-            <div class="ring-pulse"></div>
-            <div class="ring-pulse"></div>
-            <div class="avatar">🔧</div>
-        </div>
-
-        <div class="actions">
-            <div class="action-wrap">
-                <button class="btn-circle btn-decline" id="gnm-decline-btn">
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-                <span class="btn-label">Decline</span>
-            </div>
-            <div class="action-wrap">
-                <button class="btn-circle btn-accept" id="gnm-accept-btn">
-                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.15 1.18 2 2 0 012.12 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/>
-                    </svg>
-                </button>
-                <span class="btn-label">Accept</span>
-            </div>
-        </div>
+        <button class="sbtn" id="gnm-sos-view">View SOS</button>
+        <button class="sclose" id="gnm-sos-dismiss">✕</button>
     `;
 
-    document.body.appendChild(overlay);
+    document.body.appendChild(toast);
 
-    document.getElementById('gnm-accept-btn').onclick = () => {
+    document.getElementById('gnm-sos-view').onclick = (e) => {
+        e.stopPropagation();
         stopRingtone();
-        overlay.remove();
-        const screen = data.screen || 'sos-alerts';
-        const m = ['bookings','sos-alerts','dashboard','services','earnings','payout-history','profile'];
-        window.location.href = (m.includes(screen) || screen.startsWith('sos'))
-            ? `/mechanic/${screen}` : `/${screen}`;
+        toast.remove();
+        window.location.href = '/mechanic/sos-alerts';
     };
-
-    document.getElementById('gnm-decline-btn').onclick = () => {
+    document.getElementById('gnm-sos-dismiss').onclick = (e) => {
+        e.stopPropagation();
         stopRingtone();
-        overlay.remove();
+        toast.remove();
     };
+    toast.onclick = () => {
+        stopRingtone();
+        toast.remove();
+        window.location.href = '/mechanic/sos-alerts';
+    };
+    setTimeout(() => { if (toast.parentNode) { stopRingtone(); toast.remove(); } }, 30000);
 }
+
 
 // ── Normal Toast (non-SOS foreground) ─────────────────────────────────────
 function showFCMToast(title, body, data = {}) {
