@@ -21,14 +21,16 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // CSS/JS: cache-first with network fallback
-  e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
-    if (res.ok && (url.pathname.startsWith('/css/') || url.pathname.startsWith('/js/'))) {
-      const cloneToCache = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, cloneToCache));
-    }
-    return res;
-  }).catch(() => cached)));
+  // Other assets (CSS/JS/Images): network-first with cache fallback (to automatically reflect changes)
+  e.respondWith(
+    fetch(e.request).then(res => {
+      if (res.ok && (url.pathname.startsWith('/css/') || url.pathname.startsWith('/js/') || url.pathname.startsWith('/assets/'))) {
+        const cloneToCache = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, cloneToCache));
+      }
+      return res;
+    }).catch(() => caches.match(e.request))
+  );
 });
 
 // ── Firebase FCM v9 compat ─────────────────────────────────────────────────
@@ -64,8 +66,9 @@ self.addEventListener('message', (event) => {
 
 // Background notification handler
 if (messaging) messaging.onBackgroundMessage(payload => {
-    const title = payload.notification?.title || 'GarageNearMe';
-    const body  = payload.notification?.body  || '';
+    // Read title and body from data since backend now sends data-only for WebPush to avoid double notifications
+    const title = payload.notification?.title || payload.data?.title || 'GarageNearMe';
+    const body  = payload.notification?.body  || payload.data?.body  || '';
     const data  = payload.data || {};
     const isSOS = data.type === 'sos';
 

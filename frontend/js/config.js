@@ -1,4 +1,8 @@
 function getApiBase() {
+    // Capacitor native app check — hamesha production URL use karo
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+        return "https://garagenearme.net/api";
+    }
     const host = window.location.hostname;
     if (host === "localhost" || host === "127.0.0.1") return "http://localhost:8000/api";
     if (/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)) {
@@ -8,6 +12,10 @@ function getApiBase() {
 }
 
 function getWsBase() {
+    // Capacitor native app check — hamesha production WSS use karo
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+        return "wss://garagenearme.net";
+    }
     const host = window.location.hostname;
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
     if (host === "localhost" || host === "127.0.0.1") return `ws://localhost:8000`;
@@ -17,13 +25,13 @@ function getWsBase() {
 
 // ── Firebase Config ────────────────────────────────────────────────────────
 const firebaseConfig = {
-    apiKey:            "AIzaSyAcTO4mDIopzinhQKrxOuDGp3-NclWYrJw",
-    authDomain:        "garagenearme-b5e36.firebaseapp.com",
-    projectId:         "garagenearme-b5e36",
-    storageBucket:     "garagenearme-b5e36.firebasestorage.app",
+    apiKey: "AIzaSyAcTO4mDIopzinhQKrxOuDGp3-NclWYrJw",
+    authDomain: "garagenearme-b5e36.firebaseapp.com",
+    projectId: "garagenearme-b5e36",
+    storageBucket: "garagenearme-b5e36.firebasestorage.app",
     messagingSenderId: "139028585448",
-    appId:             "1:139028585448:web:5225c22c98a9054b33e25d",
-    measurementId:     "G-BFR17F1KL3"
+    appId: "1:139028585448:web:5225c22c98a9054b33e25d",
+    measurementId: "G-BFR17F1KL3"
 };
 
 const VAPID_KEY = "BHU4b9XF3oH9piDcWFj6EfITIaPfth_uEAme59GKvaolsgki-4ygl68tlhde3FxqQtnmnEfau5StJ6CuwK-jzDU";
@@ -31,7 +39,7 @@ const VAPID_KEY = "BHU4b9XF3oH9piDcWFj6EfITIaPfth_uEAme59GKvaolsgki-4ygl68tlhde3
 let _fcmInitialized = false;
 
 // ── Ringtone (Web Audio API) ───────────────────────────────────────────────
-let _audioCtx     = null;
+let _audioCtx = null;
 let _ringInterval = null;
 
 function _getCtx() {
@@ -41,8 +49,8 @@ function _getCtx() {
 
 function _beep(freq, startOffset, dur, vol = 0.5) {
     try {
-        const ctx  = _getCtx();
-        const osc  = ctx.createOscillator();
+        const ctx = _getCtx();
+        const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
@@ -54,7 +62,7 @@ function _beep(freq, startOffset, dur, vol = 0.5) {
         gain.gain.linearRampToValueAtTime(0, ctx.currentTime + startOffset + dur);
         osc.start(ctx.currentTime + startOffset);
         osc.stop(ctx.currentTime + startOffset + dur);
-    } catch(e) {}
+    } catch (e) { }
 }
 
 // Phone double-ring pattern
@@ -81,10 +89,10 @@ function playNotificationBeep() {
 }
 
 // ── WebSocket Client (Mechanic only) ──────────────────────────────────────
-let _ws               = null;
-let _wsGarageId       = null;
+let _ws = null;
+let _wsGarageId = null;
 let _wsReconnectTimer = null;
-let _wsPingInterval   = null;
+let _wsPingInterval = null;
 
 function initWebSocket(garageId) {
     if (!garageId) return;
@@ -111,14 +119,14 @@ function _connectWS() {
             const data = JSON.parse(event.data);
             if (data.type === 'sos') {
                 showIncomingCall(data.title, data.body, data);
-            } else if (['webrtc_offer','webrtc_ice','webrtc_answer','webrtc_end'].includes(data.type)) {
+            } else if (['webrtc_offer', 'webrtc_ice', 'webrtc_answer', 'webrtc_end'].includes(data.type)) {
                 // WebRTC signaling — page-specific handler ko forward karo
                 window.dispatchEvent(new CustomEvent('gnm_webrtc', { detail: data }));
             } else {
                 playNotificationBeep();
                 showFCMToast(data.title, data.body, data);
             }
-        } catch(e) { /* pong ya kuch aur — ignore */ }
+        } catch (e) { /* pong ya kuch aur — ignore */ }
     };
 
     _ws.onclose = () => {
@@ -141,10 +149,10 @@ async function initFCM(role = 'customer') {
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') { console.warn('Notification permission denied'); return; }
 
-        const { initializeApp, getApps }           = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
+        const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
         const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js');
 
-        const app       = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+        const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
         const messaging = getMessaging(app);
 
         let swReg = await navigator.serviceWorker.register('/service-worker.js');
@@ -171,9 +179,9 @@ async function initFCM(role = 'customer') {
         // Foreground message handler
         onMessage(messaging, payload => {
             console.log('FCM foreground payload:', payload);
-            const title = payload.notification?.title || 'GarageNearMe';
-            const body  = payload.notification?.body  || '';
-            const data  = payload.data || {};
+            const title = payload.notification?.title || payload.data?.title || 'GarageNearMe';
+            const body = payload.notification?.body || payload.data?.body || '';
+            const data = payload.data || {};
 
             if (data.type === 'sos') {
                 showIncomingCall(title, body, data);
@@ -185,6 +193,29 @@ async function initFCM(role = 'customer') {
 
     } catch (err) {
         console.error('FCM init error:', err);
+    }
+}
+
+// ── Request Notification Permission Manually ────────────────────────────────
+async function requestNotificationPermission(role = 'garage') {
+    if (!('Notification' in window)) {
+        alert('This browser does not support desktop notifications');
+        return false;
+    }
+
+    if (Notification.permission === 'granted') {
+        if (typeof initFCM === 'function') initFCM(role);
+        return true;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+        if (typeof initFCM === 'function') initFCM(role);
+        alert('Notifications Enabled Successfully!');
+        return true;
+    } else {
+        alert('You denied the notification permission. Background SOS alerts will not work.');
+        return false;
     }
 }
 
@@ -207,6 +238,16 @@ async function saveFCMToken(fcmToken, role) {
 
 // ── Incoming SOS Alert Toast (foreground) ─────────────────────────────────
 function showIncomingCall(title, body, data = {}) {
+    const sosId = data.sos_id;
+
+    // Check if dismissed recently (within 30 seconds)
+    if (sosId) {
+        const dismissed = JSON.parse(localStorage.getItem('dismissed_sos_toast') || '{}');
+        if (dismissed[sosId] && (Date.now() - dismissed[sosId] < 30 * 1000)) {
+            return; // Skip showing toast if dismissed within last 30 seconds
+        }
+    }
+
     const existing = document.getElementById('gnm-sos-toast');
     if (existing) existing.remove();
 
@@ -249,6 +290,11 @@ function showIncomingCall(title, body, data = {}) {
         e.stopPropagation();
         stopRingtone();
         toast.remove();
+        if (sosId) {
+            const dismissed = JSON.parse(localStorage.getItem('dismissed_sos_toast') || '{}');
+            dismissed[sosId] = Date.now();
+            localStorage.setItem('dismissed_sos_toast', JSON.stringify(dismissed));
+        }
     };
     toast.onclick = () => {
         stopRingtone();
@@ -277,13 +323,50 @@ function showFCMToast(title, body, data = {}) {
     t.onclick = () => {
         const s = data.screen || '';
         if (s) {
-            const m = ['bookings','sos-alerts','dashboard','services','earnings'];
+            const m = ['bookings', 'sos-alerts', 'dashboard', 'services', 'earnings'];
             window.location.href = (m.includes(s) || s.startsWith('sos')) ? `/mechanic/${s}` : `/${s}`;
         }
         t.remove();
     };
     c.appendChild(t);
-    setTimeout(() => { if (t.parentNode) t.remove(); }, 8000);
+    setTimeout(() => { if (t.parentElement) t.remove(); }, 5000);
+}
+
+// ── Global SOS Polling (Fallback if FCM is not active) ────────────────────
+function startGlobalSOSPolling() {
+    const token = localStorage.getItem('garage_token');
+    if (!token) return;
+
+    setInterval(async () => {
+        try {
+            const res = await fetch(`${getApiBase()}/sos/active`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return;
+            const alerts = await res.json();
+            const activeAlerts = alerts.filter(a => a.status === 'broadcasting');
+
+            if (activeAlerts.length > 0) {
+                const latest = activeAlerts[0];
+                const declined = JSON.parse(localStorage.getItem('declined_sos') || '[]');
+                if (!declined.includes(latest.id)) {
+                    // Only show if we haven't dismissed it
+                    const dismissed = JSON.parse(localStorage.getItem('dismissed_sos_toast') || '{}');
+                    if (!dismissed[latest.id] || (Date.now() - dismissed[latest.id] > 30 * 1000)) {
+                        const vt = latest.vehicle_type === 'two_wheeler' ? '🏍️ 2 Wheeler' : latest.vehicle_type === 'four_wheeler' ? '🚗 4 Wheeler' : latest.vehicle_type;
+                        showIncomingCall(`SOS #${latest.id}`, `${vt} breakdown near you!`, { sos_id: latest.id });
+                    }
+                }
+            }
+        } catch (e) {
+            // Ignore polling errors
+        }
+    }, 10000); // Check every 10 seconds globally
+}
+
+// Start global polling automatically if logged in as mechanic
+if (localStorage.getItem('garage_token') && window.location.pathname.startsWith('/mechanic')) {
+    setTimeout(startGlobalSOSPolling, 3000);
 }
 
 // ── Animations ─────────────────────────────────────────────────────────────

@@ -381,9 +381,16 @@
           <div class="timeline-item active">
             <div class="fw-bold text-danger mb-2">Estimate Bheja — OTP Ka Wait</div>
             <div class="mt-3">
+              <div class="d-flex justify-content-between align-items-center py-2 border-bottom mb-2" style="font-size:13px;">
+                <span class="text-muted">Emergency Visiting Charge</span>
+                <span class="fw-semibold text-danger">₹100</span>
+              </div>
+              <div class="mb-2">
+                <span class="text-muted" style="font-size:12px;text-transform:uppercase;">Issues &amp; Cost</span>
+              </div>
               ${renderEstimateItems(estimateItems, false)}
               <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top">
-                <span>Total</span><span style="color:#EF4444;">₹${booking.estimated_amount || 0}</span>
+                <span>Grand Total</span><span style="color:#EF4444;">₹${booking.estimated_amount || 0}</span>
               </div>
             </div>
             ${booking.garage_note ? `<div class="text-muted mt-2" style="font-size:12px;">${booking.garage_note}</div>` : ''}
@@ -401,12 +408,6 @@
         <div class="timeline-item completed"><div class="fw-bold text-success">Arrived ✓</div></div>
         <div class="timeline-item active">
           <div class="fw-bold text-danger mb-3">Estimate Bhejo</div>
-          <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:13px;">
-              <span class="fw-semibold">Emergency Visiting Charge</span>
-              <span class="fw-bold text-danger">₹100</span>
-            </div>
-          </div>
           
           <label class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;">Issues &amp; Cost</label>
           <div id="est-items-list" class="mb-2 d-flex flex-column gap-2">${renderEstimateItems(estimateItems, true)}</div>
@@ -423,9 +424,19 @@
           </button>
 
           <!-- Total -->
-          <div class="d-flex justify-content-between fw-bold py-2 border-top border-bottom mb-3">
-            <span>Total</span>
-            <span style="color:#EF4444;" id="est-total">₹${estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100}</span>
+          <div class="d-flex flex-column py-2 border-top border-bottom mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
+              <span class="text-muted">Issues Cost</span>
+              <span class="fw-semibold" id="est-issues-total">₹${estimateItems.reduce((s, i) => s + (i.price || 0), 0)}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
+              <span class="text-muted">Emergency Visiting Charge</span>
+              <span class="fw-semibold text-danger">+ ₹100</span>
+            </div>
+            <div class="d-flex justify-content-between fw-bold pt-2 mt-1 border-top">
+              <span>Grand Total</span>
+              <span style="color:#EF4444;" id="est-total">₹${estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100}</span>
+            </div>
           </div>
           
           <div class="mb-3">
@@ -519,9 +530,12 @@
   }
 
   function updateEstTotal() {
-    const el = document.getElementById('est-total');
-    let t = estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100; // visiting charge
-    if (el) el.textContent = `₹${t}`;
+    const issuesTotal = estimateItems.reduce((s, i) => s + (i.price || 0), 0);
+    const totalEl = document.getElementById('est-total');
+    const issuesTotalEl = document.getElementById('est-issues-total');
+    
+    if (totalEl) totalEl.textContent = `₹${issuesTotal + 100}`;
+    if (issuesTotalEl) issuesTotalEl.textContent = `₹${issuesTotal}`;
   }
 
   function addEstItem() {

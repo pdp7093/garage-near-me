@@ -53,17 +53,31 @@ async function loadComponent(elementId, componentPath, callback = null) {
  * Highlights the active link in the sidebar based on current URL
  */
 function setActiveSidebarLink() {
-  const currentPath = window.location.pathname.split('/').pop() || 'index';
-  const links = document.querySelectorAll('.admin-nav-link, .sidebar-link, .gnm-nav-link');
+  const pathname = window.location.pathname.toLowerCase();
+  const links = document.querySelectorAll('.admin-nav-link, .sidebar-link, .gnm-nav-link, #mobileMenu a');
   
   links.forEach(link => {
-    // Remove active class from all
     link.classList.remove('active');
     
-    // Add active class if href matches current path
     const href = link.getAttribute('href');
-    if (href && currentPath.includes(href)) {
+    if (!href || href === '#' || href.startsWith('javascript:')) return;
+    
+    // Check if this is the Home link
+    const isHomeLink = href === '/' || href === '/index' || href === 'index' || href === 'index.html' || href === '/index.html';
+    const isAtHome = pathname === '/' || pathname === '/index' || pathname === '/index.html';
+    
+    if (isHomeLink && isAtHome) {
       link.classList.add('active');
+      return;
+    }
+    
+    // For other links, extract the base name
+    const cleanHref = href.split('?')[0].split('#')[0].split('/').pop().toLowerCase();
+    
+    if (cleanHref && cleanHref !== 'index' && cleanHref !== 'index.html' && cleanHref !== '') {
+      if (pathname.includes(cleanHref)) {
+        link.classList.add('active');
+      }
     }
   });
 }

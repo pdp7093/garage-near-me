@@ -196,7 +196,7 @@
 
     <div id="footer-container"></div>
 
-    <script src="/js/components.js"></script>
+    <script src="/js/components.js?v=3"></script>
     <script>
         Promise.all([
             loadComponent('navbar-container', 'components/navbar.html', () => {
@@ -227,14 +227,17 @@
             const params = new URLSearchParams(location.search);
 
             // Service from URL or index search
+            const serviceInput = document.getElementById('service-input');
             if (params.get('service')) {
-                document.getElementById('service-input').value = params.get('service');
+                if (serviceInput) serviceInput.value = params.get('service');
                 serviceQuery = params.get('service');
             }
 
-            document.getElementById('service-input').addEventListener('keydown', e => {
-                if (e.key === 'Enter') onSearch();
-            });
+            if (serviceInput) {
+                serviceInput.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') onSearch();
+                });
+            }
 
             // Location input: re-search on Enter
             document.getElementById('location-display').addEventListener('keydown', e => {
@@ -358,7 +361,10 @@
         }
 
         function onSearch() {
-            serviceQuery = document.getElementById('service-input').value.trim();
+            const serviceInput = document.getElementById('service-input');
+            if (serviceInput) {
+                serviceQuery = serviceInput.value.trim();
+            }
             const locText = document.getElementById('location-display').value.trim();
             // If location text doesn't match current coords (user typed something new), geocode it
             if (locText && locText !== 'Your Location' && locText !== 'Ahmedabad (approx.)' && userLat === null) {

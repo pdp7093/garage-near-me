@@ -124,14 +124,14 @@
     localStorage.setItem('declined_sos_time', JSON.stringify(times));
   }
 
-  // ✅ Fix 2 — 30 min purane declined SOS hata do (naya SOS same area mein aa sakta hai)
+  // ✅ Fix 2 — 30 sec purane declined SOS hata do (naya SOS same area mein aa sakta hai)
   function cleanOldDeclinedSOS() {
     const times = JSON.parse(localStorage.getItem('declined_sos_time') || '{}');
     const now = Date.now();
     const validIds = [];
     const freshTimes = {};
     for (const [id, time] of Object.entries(times)) {
-      if (now - time < 30 * 60 * 1000) { // 30 minutes
+      if (now - time < 30 * 1000) { // 30 seconds
         validIds.push(parseInt(id));
         freshTimes[id] = time;
       }

@@ -391,7 +391,7 @@
     async function loadGarageProfile() {
       const token = getToken();
       if (!token) {
-        window.location.href = 'index.html';
+        window.location.href = '/mechanic/index.html';
         return;
       }
 
@@ -402,7 +402,7 @@
 
         if (!response.ok) {
           localStorage.removeItem('garage_token');
-          window.location.href = 'index.html';
+          window.location.href = '/mechanic/index.html';
           return;
         }
 
@@ -540,7 +540,7 @@
 
       const token = getToken();
       if (!token) {
-        window.location.href = 'index.html';
+        window.location.href = '/mechanic/index.html';
         return;
       }
 

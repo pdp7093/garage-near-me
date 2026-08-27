@@ -364,7 +364,7 @@
       });
 
       const token = localStorage.getItem('garage_token');
-      if (token) window.location.href = 'dashboard.html';
+      if (token) window.location.href = '/mechanic/dashboard.html';
 
       document.getElementById('otpInput').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleVerifyOTP();
@@ -461,7 +461,7 @@
 
         if (res.ok) {
           localStorage.setItem('garage_token', data.access_token);
-          window.location.href = 'dashboard.html';
+          window.location.href = '/mechanic/dashboard.html';
         } else {
           Swal.fire({
             icon: 'error',

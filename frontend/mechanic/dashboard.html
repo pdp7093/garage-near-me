@@ -42,6 +42,9 @@
           <div>
             <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="garageName">Welcome back</h4>
             <p class="text-muted mb-0 small" id="garageMetaInfo">You have 2 pending requests today.</p>
+            <button id="enableNotificationBtn" class="btn btn-sm btn-outline-danger mt-2 fw-bold" onclick="requestNotificationPermission('garage')" style="font-size: 11px;">
+              🔔 Enable Push Notifications
+            </button>
           </div>
           <div class="d-flex align-items-center gap-3">
             <div class="text-end d-none d-sm-block">
@@ -149,7 +152,7 @@
 
   </div>
 
-  <script src="/js/config.js"></script>
+  <script src="/js/config.js?v=2"></script>
   <script src="/js/mechanic-auth.js"></script>
   <script src="/js/components.js?v=2"></script>
   <script src="/js/sos-notification-handler.js"></script>
@@ -174,7 +177,7 @@
 
       // Agar token nahi hai → login page
       if (!token) {
-        window.location.href = 'index.html';
+        window.location.href = '/mechanic/index.html';
         return;
       }
 
@@ -192,7 +195,7 @@
 
           localStorage.removeItem('garage_token');
 
-          window.location.href = 'index.html';
+          window.location.href = '/mechanic/index.html';
 
           return;
         }

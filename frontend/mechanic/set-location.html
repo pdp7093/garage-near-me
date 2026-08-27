@@ -290,7 +290,7 @@ const API = getApiBase();
 
 // ── Auth check
 const token = localStorage.getItem('garage_token');
-if (!token) window.location.href = 'index.html';
+if (!token) window.location.href = '/mechanic/index.html';
 
 // ── State
 let selectedLat = null;
@@ -522,7 +522,7 @@ async function saveLocation() {
       document.getElementById('successOverlay').classList.add('show');
 
       setTimeout(() => {
-        window.location.href = 'dashboard.html';
+        window.location.href = '/mechanic/dashboard.html';
       }, 2000);
     } else {
       const e = await res.json();
@@ -547,7 +547,7 @@ async function checkExistingLocation() {
     });
     if (!res.ok) {
       localStorage.removeItem('garage_token');
-      window.location.href = 'index.html';
+      window.location.href = '/mechanic/index.html';
       return;
     }
     const garage = await res.json();
