@@ -70,7 +70,7 @@ if (messaging) messaging.onBackgroundMessage(payload => {
     const title = payload.notification?.title || payload.data?.title || 'GarageNearMe';
     const body  = payload.notification?.body  || payload.data?.body  || '';
     const data  = payload.data || {};
-    const isSOS = data.type === 'sos';
+    const isSOS = data.type === 'sos' || data.type === 'sos_alert';
 
     if (!isSOS) {
         return self.registration.showNotification(title, {

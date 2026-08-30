@@ -1,5 +1,5 @@
 function getApiBase() {
-    // Capacitor native app check — hamesha production URL use karo
+    // Capacitor native app check
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
         return "https://garagenearme.net/api";
     }
@@ -12,7 +12,7 @@ function getApiBase() {
 }
 
 function getWsBase() {
-    // Capacitor native app check — hamesha production WSS use karo
+    // Capacitor native app check
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
         return "wss://garagenearme.net";
     }
@@ -284,7 +284,7 @@ function showIncomingCall(title, body, data = {}) {
         e.stopPropagation();
         stopRingtone();
         toast.remove();
-        window.location.href = '/mechanic/sos-alerts';
+        window.location.href = '/mechanic/sos-alerts.html';
     };
     document.getElementById('gnm-sos-dismiss').onclick = (e) => {
         e.stopPropagation();
@@ -299,7 +299,7 @@ function showIncomingCall(title, body, data = {}) {
     toast.onclick = () => {
         stopRingtone();
         toast.remove();
-        window.location.href = '/mechanic/sos-alerts';
+        window.location.href = '/mechanic/sos-alerts.html';
     };
     setTimeout(() => { if (toast.parentNode) { stopRingtone(); toast.remove(); } }, 30000);
 }
@@ -324,7 +324,7 @@ function showFCMToast(title, body, data = {}) {
         const s = data.screen || '';
         if (s) {
             const m = ['bookings', 'sos-alerts', 'dashboard', 'services', 'earnings'];
-            window.location.href = (m.includes(s) || s.startsWith('sos')) ? `/mechanic/${s}` : `/${s}`;
+            window.location.href = (m.includes(s) || s.startsWith('sos')) ? `/mechanic/${s}.html` : `/${s}.html`;
         }
         t.remove();
     };

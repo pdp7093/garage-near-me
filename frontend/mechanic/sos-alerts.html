@@ -141,7 +141,7 @@
   }
 
   function goToSOSDetail(sosId) {
-    window.location.href = `/mechanic/sos-detail/${sosId}`;
+    window.location.href = `/mechanic/sos-detail.html?id=${sosId}`;
   }
 
   async function loadSOSAlerts(forceRender = false) {
@@ -297,7 +297,7 @@
       });
       if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
       stopAllAlerts();
-      window.location.href = `/mechanic/sos-detail/${id}`;
+      window.location.href = `/mechanic/sos-detail.html?id=${id}`;
     } catch(e) {
       showToast(e.message || 'Accept nahi hua. Try again.', 'danger');
     }
@@ -398,7 +398,7 @@
             ${h.final_charge ? '₹' + h.final_charge : '--'}
           </td>
           <td class="text-center">
-            <a href="/mechanic/sos-detail/${h.slug || h.id}" class="btn btn-sm btn-outline-danger rounded-pill px-3">View</a>
+            <a href="/mechanic/sos-detail.html?id=${h.slug || h.id}" class="btn btn-sm btn-outline-danger rounded-pill px-3">View</a>
           </td>
         </tr>`;
       }).join('');

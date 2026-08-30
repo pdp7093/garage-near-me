@@ -11,7 +11,7 @@ import re, os, json
 
 from contextlib import asynccontextmanager
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 Base.metadata.create_all(bind=engine)
@@ -50,13 +50,66 @@ async def automated_billing_cycle_task():
         # Check every 1 hour (3600 seconds)
         await asyncio.sleep(3600)
 
+async def automated_sos_cleanup_task():
+    while True:
+        try:
+            from database import SessionLocal
+            import models
+            from routers.websocket_manager import ws_manager
+            
+            db = SessionLocal()
+            try:
+                now = datetime.utcnow()
+                cutoff_time = now - timedelta(minutes=15)
+                
+                expired_soses = db.query(models.SOS).filter(
+                    models.SOS.status == models.SOSStatus.broadcasting,
+                    models.SOS.created_at <= cutoff_time
+                ).all()
+                
+                for sos in expired_soses:
+                    logging.info(f"Auto-cancelling expired SOS #{sos.id}")
+                    sos.status = models.SOSStatus.cancelled
+                    sos.cancelled_at = now
+                    
+                    # Notify mechanics to stop the loop
+                    online_garage_ids = list(ws_manager.mechanic_connections.keys())
+                    if online_garage_ids:
+                        asyncio.create_task(ws_manager.broadcast_to_garages(online_garage_ids, {
+                            "type": "sos_cancelled",
+                            "sos_id": sos.id
+                        }))
+                    
+                    # Notify customer
+                    if sos.customer_id:
+                        asyncio.create_task(ws_manager.send_to_customer(sos.customer_id, {
+                            "type": "sos_cancelled",
+                            "sos_id": sos.id,
+                            "message": "SOS request expired after 15 minutes of inactivity."
+                        }))
+                        
+                if expired_soses:
+                    db.commit()
+            except Exception as e:
+                logging.error(f"Error in SOS cleanup task execution: {e}")
+            finally:
+                db.close()
+                
+        except Exception as e:
+            logging.error(f"Error in automated SOS cleanup loop: {e}")
+        
+        # Check every 1 minute
+        await asyncio.sleep(60)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Start the background task
     task = asyncio.create_task(automated_billing_cycle_task())
+    task_sos = asyncio.create_task(automated_sos_cleanup_task())
     yield
     # Shutdown: Cancel the task
     task.cancel()
+    task_sos.cancel()
 
 app = FastAPI(title="GarageNearMe API", lifespan=lifespan)
 

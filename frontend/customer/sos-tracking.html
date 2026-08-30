@@ -620,7 +620,9 @@
         _customerWs.onmessage = async (e) => {
             try {
                 const data = JSON.parse(e.data);
-                if (data.type === 'webrtc_answer' && _pc) {
+                if (data.type === 'sos_cancelled') {
+                    checkStatus();
+                } else if (data.type === 'webrtc_answer' && _pc) {
                     await _pc.setRemoteDescription(new RTCSessionDescription(data.answer));
                     document.getElementById('call-status').textContent = 'Connected ✅';
                     startCallTimer();

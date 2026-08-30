@@ -136,8 +136,8 @@
 
       // Update Back Button link
       const backBtn = document.querySelector('a[href="sos-detail.html"]');
-      if (backBtn) {
-        backBtn.href = `/mechanic/sos-detail/${bookingId}`;
+      if (backBtn && bookingId) {
+        backBtn.href = `/mechanic/sos-detail.html?id=${bookingId}`;
       }
 
       try {
