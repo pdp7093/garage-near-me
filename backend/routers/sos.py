@@ -295,8 +295,7 @@ async def create_sos(
     nearby_garage_objs = [g for g in garages if g.id in nearby_garage_ids]
     fcm_tokens = [g.fcm_token for g in nearby_garage_objs if g.fcm_token]
     if fcm_tokens:
-        import asyncio
-        asyncio.create_task(send_fcm_multicast(
+        await send_fcm_multicast(
             tokens=fcm_tokens,
             title=notif_title,
             body=notif_body,
@@ -306,7 +305,7 @@ async def create_sos(
                 "slug":   sos_request.slug or "",
                 "screen": "sos-alerts",
             }
-        ))
+        )
 
     print(f"\n{'='*50}")
     print(f"SOS BROADCAST — SOS #{sos_request.id} ({sos_request.sos_number})")
