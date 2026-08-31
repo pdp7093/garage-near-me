@@ -26,21 +26,22 @@ def send_notification(token: str, title: str, body: str, data: Optional[dict] = 
     if not FCM_AVAILABLE or not token:
         return False
     try:
-        # Prepare full data for WebPush which uses data-only messages to prevent double notifications
         full_data = {
             "title": title,
             "body": body,
             **{str(k): str(v) for k, v in (data or {}).items()}
         }
+        is_sos = (data or {}).get("type") in ("sos", "sos_alert")
         msg = messaging.Message(
             data=full_data,
             token=token,
             android=messaging.AndroidConfig(
                 priority="high",
                 notification=messaging.AndroidNotification(
-                    title=title, 
+                    title=title,
                     body=body,
-                    icon="@mipmap/ic_launcher"
+                    icon="@mipmap/ic_launcher",
+                    channel_id="sos_alerts" if is_sos else None
                 )
             ),
             webpush=messaging.WebpushConfig(

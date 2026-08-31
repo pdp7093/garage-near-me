@@ -282,11 +282,7 @@
     if (typeof stopRingtone === 'function') stopRingtone();
     const overlay = document.getElementById('gnm-incoming-call');
     if (overlay) overlay.remove();
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(reg => {
-        reg.getNotifications({ tag: 'sos-alert' }).then(notifs => notifs.forEach(n => n.close()));
-      });
-    }
+
   }
 
   async function acceptSOS(id) {

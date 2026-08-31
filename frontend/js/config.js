@@ -23,21 +23,6 @@ function getWsBase() {
     return `${proto}://${window.location.host}`;
 }
 
-// ── Firebase Config ────────────────────────────────────────────────────────
-const firebaseConfig = {
-    apiKey: "AIzaSyAcTO4mDIopzinhQKrxOuDGp3-NclWYrJw",
-    authDomain: "garagenearme-b5e36.firebaseapp.com",
-    projectId: "garagenearme-b5e36",
-    storageBucket: "garagenearme-b5e36.firebasestorage.app",
-    messagingSenderId: "139028585448",
-    appId: "1:139028585448:web:5225c22c98a9054b33e25d",
-    measurementId: "G-BFR17F1KL3"
-};
-
-const VAPID_KEY = "BHU4b9XF3oH9piDcWFj6EfITIaPfth_uEAme59GKvaolsgki-4ygl68tlhde3FxqQtnmnEfau5StJ6CuwK-jzDU";
-
-let _fcmInitialized = false;
-
 // ── Ringtone (Web Audio API) ───────────────────────────────────────────────
 let _audioCtx = null;
 let _ringInterval = null;
@@ -138,102 +123,6 @@ function _connectWS() {
     _ws.onerror = () => {
         _ws.close();
     };
-}
-
-// ── FCM Init ──────────────────────────────────────────────────────────────
-async function initFCM(role = 'customer') {
-    if (_fcmInitialized) return;
-    if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
-
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') { console.warn('Notification permission denied'); return; }
-
-        const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
-        const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js');
-
-        const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-        const messaging = getMessaging(app);
-
-        let swReg = await navigator.serviceWorker.register('/service-worker.js');
-        await navigator.serviceWorker.ready;
-        await swReg.update();
-
-        let token;
-        try {
-            token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-        } catch (tokenErr) {
-            console.warn('FCM token retry...', tokenErr);
-            await swReg.unregister();
-            swReg = await navigator.serviceWorker.register('/service-worker.js');
-            await navigator.serviceWorker.ready;
-            token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-        }
-
-        if (!token) { console.warn('FCM token nahi mila'); return; }
-
-        await saveFCMToken(token, role);
-        _fcmInitialized = true;
-        console.log('FCM initialized ✅');
-
-        // Foreground message handler
-        onMessage(messaging, payload => {
-            console.log('FCM foreground payload:', payload);
-            const title = payload.notification?.title || payload.data?.title || 'GarageNearMe';
-            const body = payload.notification?.body || payload.data?.body || '';
-            const data = payload.data || {};
-
-            if (data.type === 'sos') {
-                showIncomingCall(title, body, data);
-            } else {
-                playNotificationBeep();
-                showFCMToast(title, body, data);
-            }
-        });
-
-    } catch (err) {
-        console.error('FCM init error:', err);
-    }
-}
-
-// ── Request Notification Permission Manually ────────────────────────────────
-async function requestNotificationPermission(role = 'garage') {
-    if (!('Notification' in window)) {
-        alert('This browser does not support desktop notifications');
-        return false;
-    }
-
-    if (Notification.permission === 'granted') {
-        if (typeof initFCM === 'function') initFCM(role);
-        return true;
-    }
-
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-        if (typeof initFCM === 'function') initFCM(role);
-        alert('Notifications Enabled Successfully!');
-        return true;
-    } else {
-        alert('You denied the notification permission. Background SOS alerts will not work.');
-        return false;
-    }
-}
-
-// ── FCM Token Save ─────────────────────────────────────────────────────────
-async function saveFCMToken(fcmToken, role) {
-    try {
-        const authToken = localStorage.getItem('gnm_token') || localStorage.getItem('garage_token');
-        if (!authToken) return;
-        const endpoint = role === 'garage'
-            ? `${getApiBase()}/garage-auth/fcm-token`
-            : `${getApiBase()}/auth/fcm-token`;
-        await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-            body: JSON.stringify({ fcm_token: fcmToken })
-        });
-        console.log('FCM token saved ✅');
-    } catch (e) { console.error('FCM token save error:', e); }
 }
 
 // ── Incoming SOS Alert Toast (foreground) ─────────────────────────────────

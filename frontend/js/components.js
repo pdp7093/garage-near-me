@@ -770,21 +770,13 @@ async function initCustomerMenu() {
 }
 
 
-// App — Firebase SDK + Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker
-            .register('/service-worker.js')
-            .then(() => console.log('PWA ready'))
-            .catch(err => console.log(err));
-    });
-}
+
 
 // Firebase SDK load karo — chain loading (app pehle, phir messaging)
 function loadFirebaseSDKAndInit(role) {
     if (typeof firebase !== 'undefined' && firebase.apps !== undefined) {
         // Already loaded
-        if (typeof initFCM === 'function') initFCM(role).catch(() => {});
+
         return;
     }
 
@@ -804,9 +796,7 @@ function loadFirebaseSDKAndInit(role) {
                 'https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js',
                 () => {
                     setTimeout(() => {
-                        if (typeof initFCM === 'function') {
-                            initFCM(role).catch(e => console.error('FCM init error:', e));
-                        }
+
                     }, 300);
                 }
             );

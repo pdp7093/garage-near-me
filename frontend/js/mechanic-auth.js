@@ -6,23 +6,19 @@
 
 
 const MECHANIC_AUTH = {
-  // Check if user is logged in
   isLoggedIn() {
     return !!localStorage.getItem('garage_token');
   },
 
-  // Get stored token
   getToken() {
     return localStorage.getItem('garage_token');
   },
 
-  // Get mechanic info from session
   getMechanicInfo() {
     const info = localStorage.getItem('mechanic_info');
     return info ? JSON.parse(info) : null;
   },
 
-  // Store login session
   setSession(token, mechnicInfo) {
     localStorage.setItem('garage_token', token);
     if (mechnicInfo) {
@@ -30,14 +26,12 @@ const MECHANIC_AUTH = {
     }
   },
 
-  // Clear session on logout
   logout() {
     localStorage.removeItem('garage_token');
     localStorage.removeItem('mechanic_info');
     window.location.href = '/mechanic/';
   },
 
-  // Check if session is valid, redirect to login if not
   checkSession() {
     if (!this.isLoggedIn()) {
       window.location.href = '/mechanic/';
@@ -46,7 +40,6 @@ const MECHANIC_AUTH = {
     return true;
   },
 
-  // Verify token with backend
   async verifyToken() {
     const token = this.getToken();
     if (!token) {
@@ -72,14 +65,13 @@ const MECHANIC_AUTH = {
     }
   },
 
-  // Clear session data
   clearSession() {
     localStorage.removeItem('garage_token');
     localStorage.removeItem('mechanic_info');
   }
 };
 
-// ── WebSocket — real-time SOS notifications ───────────────────────────────
+// ── WebSocket — real-time SOS notifications (app open hone par) ───────────
 let _mechanicWs = null;
 let _mechanicWsReconnectTimer = null;
 let _mechanicWsPingTimer = null;
@@ -94,7 +86,6 @@ function connectMechanicSosWS() {
   const garageId = _getGarageIdFromToken();
   if (!garageId) { console.warn('[SOS-WS] garageId nahi mila token se'); return; }
 
-  // getWsBase() config.js mein hai — localhost/LAN/ngrok sab handle karta hai
   const base = (typeof getWsBase === 'function') ? getWsBase() : `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
   const url = `${base}/ws/mechanic/${garageId}`;
 
@@ -104,7 +95,6 @@ function connectMechanicSosWS() {
   _mechanicWs.onopen = () => {
     console.log(`[SOS-WS] Connected ✅ garage_id=${garageId}`);
     if (_mechanicWsReconnectTimer) { clearTimeout(_mechanicWsReconnectTimer); _mechanicWsReconnectTimer = null; }
-    // Keepalive — connection zinda rakho
     if (_mechanicWsPingTimer) clearInterval(_mechanicWsPingTimer);
     _mechanicWsPingTimer = setInterval(() => {
       if (_mechanicWs && _mechanicWs.readyState === WebSocket.OPEN) _mechanicWs.send('ping');
@@ -117,20 +107,14 @@ function connectMechanicSosWS() {
       const data = JSON.parse(e.data);
       if (data.type === 'sos_alert') {
         console.log('[SOS-WS] sos_alert mila:', data);
-
-        // Hamesha overlay dikhao — chahe koi bhi page ho
         if (typeof showIncomingCall === 'function') {
           showIncomingCall(data.title || 'SOS Emergency!', data.body || 'Koi breakdown mein hai!', data);
         }
-        // Sos-alerts page pe hain — list bhi refresh karo
         if (typeof loadSOSAlerts === 'function') {
           loadSOSAlerts(true);
         }
       } else if (data.type === 'sos_cancelled') {
         console.log('[SOS-WS] sos_cancelled mila:', data);
-        if (typeof stopSOSNotificationLoop === 'function') {
-          stopSOSNotificationLoop(data.sos_id);
-        }
         if (typeof loadSOSAlerts === 'function') {
           loadSOSAlerts(true);
         }
@@ -148,35 +132,28 @@ function connectMechanicSosWS() {
 
 // Automatically check session on page load for protected pages
 window.addEventListener('DOMContentLoaded', async function () {
-  // Only check on protected mechanic pages (not on index.html)
   const currentPage = window.location.pathname.split('/').pop() || '';
 
-  // Skip session check on login/index pages
   if (currentPage === 'index' || currentPage === '') {
     return;
   }
 
-  // For all other mechanic pages, enforce session check
   if (!MECHANIC_AUTH.isLoggedIn()) {
     window.location.href = '/mechanic/';
     return;
   }
 
-  // Verify token is still valid with backend
   const isValid = await MECHANIC_AUTH.verifyToken();
   if (!isValid) {
     MECHANIC_AUTH.logout();
     return;
   }
 
-  // Real-time SOS notification ke liye WebSocket connect karo
   connectMechanicSosWS();
-
-  // Capacitor Push Notifications register karo
   initCapacitorPushNotifications();
 });
 
-// ── Capacitor Push Notifications ──────────────────────────────────────────
+// ── Capacitor Push Notifications (native — app kill state mein bhi kaam karta hai) ──
 async function initCapacitorPushNotifications() {
   if (typeof window.Capacitor === 'undefined' || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) {
     console.log('[Push] Not running on a native Capacitor platform, skipping push setup.');
@@ -200,11 +177,28 @@ async function initCapacitorPushNotifications() {
       return;
     }
 
+    // High-priority Android notification channel — background/kill state mein
+    // sound + heads-up popup guarantee karne ke liye.
+    try {
+      await PushNotifications.createChannel({
+        id: 'sos_alerts',
+        name: 'SOS Emergency Alerts',
+        description: 'High priority emergency breakdown alerts',
+        importance: 5,       // IMPORTANCE_HIGH
+        visibility: 1,       // VISIBILITY_PUBLIC
+        sound: 'default',
+        vibration: true,
+        lights: true
+      });
+      console.log('[Push] SOS notification channel created ✅');
+    } catch (chErr) {
+      console.warn('[Push] Channel creation skipped/failed:', chErr);
+    }
+
     await PushNotifications.register();
 
     PushNotifications.addListener('registration', async (token) => {
       console.log('[Push] FCM Token: ' + token.value);
-      // Send FCM token to backend
       const authToken = MECHANIC_AUTH.getToken();
       if (authToken) {
         try {
