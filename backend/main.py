@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, Response
 from database import engine, Base, ensure_schema_updates, backfill_completed_bookings_and_bills, backfill_slugs
 from routers import auth, garage, booking, vehicles, addresses, garage_requests, garage_auth, sos, admin_auth
 from routers import default_services, commission, payout
@@ -205,7 +205,13 @@ def serve_favicon():
 
 @app.get("/service-worker.js", include_in_schema=False)
 def serve_sw():
-    return FileResponse(os.path.join(FRONTEND_DIR, "service-worker.js"), media_type="application/javascript")
+    # service-worker.js hata diya gaya hai (ab native Capacitor push use ho raha hai,
+    # PWA/web-FCM ki zaroorat nahi). File na milne par crash na ho isliye graceful
+    # empty response de rahe hain — koi bhi purana browser tab isko safely ignore kar dega.
+    sw_path = os.path.join(FRONTEND_DIR, "service-worker.js")
+    if os.path.isfile(sw_path):
+        return FileResponse(sw_path, media_type="application/javascript")
+    return Response(content="", media_type="application/javascript", status_code=200)
 
 @app.get("/", include_in_schema=False)
 def read_root():
