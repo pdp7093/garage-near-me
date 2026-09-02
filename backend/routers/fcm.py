@@ -32,27 +32,42 @@ def send_notification(token: str, title: str, body: str, data: Optional[dict] = 
             **{str(k): str(v) for k, v in (data or {}).items()}
         }
         is_sos = (data or {}).get("type") in ("sos", "sos_alert")
+
+        android_notification_kwargs = {
+            "title": title,
+            "body": body,
+            "icon": "@mipmap/ic_launcher",
+        }
+        if is_sos:
+            android_notification_kwargs["channel_id"] = "sos_alerts"
+
         msg = messaging.Message(
+            # Top-level "notification" — YE ZAROORI HAI taaki Android OS
+            # khud notification tray mein dikhaye, chahe app killed ho.
+            # Data-only messages background/kill state mein silently drop
+            # ho sakti hain kyunki Capacitor ka JS listener tabhi chalta hai
+            # jab app process zinda ho.
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
             data=full_data,
             token=token,
             android=messaging.AndroidConfig(
                 priority="high",
-                notification=messaging.AndroidNotification(
-                    title=title,
-                    body=body,
-                    icon="@mipmap/ic_launcher",
-                    channel_id="sos_alerts" if is_sos else None
-                )
+                notification=messaging.AndroidNotification(**android_notification_kwargs)
             ),
             webpush=messaging.WebpushConfig(
                 headers={"Urgency": "high"}
             )
         )
-        messaging.send(msg)
-        logger.info(f"Notification sent ✅ — {title}")
+        response = messaging.send(msg)
+        logger.info(f"Notification sent ✅ — {title} — response: {response}")
+        print(f"✅ FCM sent — {title} — message_id: {response}")
         return True
     except Exception as e:
         logger.error(f"Send failed: {e}")
+        print(f"⚠️ FCM send failed: {e}")
         return False
 
 

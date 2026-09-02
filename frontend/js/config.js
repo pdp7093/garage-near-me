@@ -1,3 +1,17 @@
+// One-time cleanup: purana PWA Service Worker unregister karo
+// (Web-FCM/PWA se native Capacitor push par migrate ho chuke hain, isliye
+// purane devices par pehle se registered service worker hata rahe hain)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for (let registration of registrations) {
+      registration.unregister();
+      console.log('[Cleanup] Old service worker unregistered:', registration.scope);
+    }
+  }).catch(function(err) {
+    console.warn('[Cleanup] Service worker cleanup failed:', err);
+  });
+}
+
 function getApiBase() {
     // Capacitor native app check
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
