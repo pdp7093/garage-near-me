@@ -223,6 +223,9 @@ async function initCapacitorPushNotifications() {
 
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
       console.log('[Push] Received: ', notification);
+      if (typeof showIncomingCall === 'function') {
+        showIncomingCall(notification.title || 'SOS Emergency!', notification.body || 'Koi breakdown mein hai!', notification.data || {});
+      }
       if (typeof loadSOSAlerts === 'function') {
         loadSOSAlerts(true);
       }
@@ -230,7 +233,13 @@ async function initCapacitorPushNotifications() {
 
     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
       console.log('[Push] Action performed: ', notification);
-      window.location.href = '/mechanic/dashboard.html';
+      const data = notification.notification?.data || notification.data || {};
+      
+      if (data.screen === 'sos-alerts' || data.type === 'sos_alert') {
+        window.location.href = '/mechanic/sos-alerts.html';
+      } else {
+        window.location.href = '/mechanic/dashboard.html';
+      }
     });
 
   } catch (error) {

@@ -59,8 +59,9 @@ class SOSNotificationService:
                     "notification": {
                         "title": f"🆘 SOS Alert - {sos_data['vehicle_type']}",
                         "body": f"{sos_data['customer_name']} - {sos_data['distance_km']}km away",
-                        "click_action": "FLUTTER_NOTIFICATION_CLICK",
-                        "sound": "default"
+                        "click_action": "FCM_PLUGIN_ACTIVITY",
+                        "sound": "default",
+                        "android_channel_id": "sos_alerts"
                     },
                     "data": {
                         "sos_id": str(sos_data["sos_id"]),
@@ -193,8 +194,10 @@ class SOSNotificationService:
             garage = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
             
             if garage:
-                # Collect FCM tokens (if stored in DB - need to add this)
-                # For now, we'll assume tokens are stored separately
+                # Collect FCM tokens
+                if garage.fcm_token:
+                    garage_fcm_tokens.append(garage.fcm_token)
+
                 garage_sms_data.append({
                     "phone": garage.phone,
                     "distance_km": garage_info["distance_km"],

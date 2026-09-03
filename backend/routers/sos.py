@@ -44,7 +44,15 @@ async def send_fcm_multicast(tokens: list, title: str, body: str, data: dict = N
             notification=fcm_messaging.Notification(title=title, body=body),
             data={k: str(v) for k, v in (data or {}).items()},
             tokens=tokens,
-            android=fcm_messaging.AndroidConfig(priority="high"),
+            android=fcm_messaging.AndroidConfig(
+                priority="high",
+                notification=fcm_messaging.AndroidNotification(
+                    channel_id="sos_alerts",
+                    click_action="FCM_PLUGIN_ACTIVITY",
+                    sound="default",
+                    icon="@mipmap/ic_launcher"
+                )
+            ),
         )
         resp = fcm_messaging.send_each_for_multicast(msg)
         print(f"✅ FCM: {resp.success_count}/{len(tokens)} delivered")
@@ -809,6 +817,21 @@ async def rebroadcast_sos(
         "body":   "A vehicle needs immediate assistance nearby. Open the app to respond.",
         "screen": "sos-alerts",
     })
+
+    nearby_garage_objs = [g for g in garages if g.id in nearby_ids]
+    fcm_tokens = [g.fcm_token for g in nearby_garage_objs if g.fcm_token]
+    if fcm_tokens:
+        await send_fcm_multicast(
+            tokens=fcm_tokens,
+            title=f"🆘 Emergency SOS — {vt_label} Breakdown",
+            body="A vehicle needs immediate assistance nearby. Open the app to respond.",
+            data={
+                "type":   "sos_alert",
+                "sos_id": str(sos_request.id),
+                "slug":   sos_request.slug or "",
+                "screen": "sos-alerts",
+            }
+        )
 
     return {"rebroadcast": True, "garages_notified": len(nearby_ids)}
 
