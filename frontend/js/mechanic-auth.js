@@ -174,7 +174,19 @@ async function initCapacitorPushNotifications() {
 
     if (permStatus.receive !== 'granted') {
       console.warn('[Push] Permission denied');
-      return;
+    }
+
+    // Request Location Permission explicitly
+    try {
+      const { Geolocation } = window.Capacitor.Plugins;
+      if (Geolocation) {
+        let geoPerm = await Geolocation.checkPermissions();
+        if (geoPerm.location === 'prompt' || geoPerm.location === 'prompt-with-rationale') {
+          await Geolocation.requestPermissions();
+        }
+      }
+    } catch (err) {
+      console.warn('[Location] Failed to request location permission', err);
     }
 
     // High-priority Android notification channel — background/kill state mein
