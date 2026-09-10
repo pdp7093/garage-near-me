@@ -1,13 +1,4 @@
-function _resolveApiBase() {
-  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-    return 'https://garagenearme.net';
-  }
-  const h = window.location.hostname;
-  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:8000';
-  if (/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h)) return `http://${h}:8000`;
-  return window.location.origin;
-}
-const API_BASE = window.API_BASE || _resolveApiBase();
+const API_BASE = (typeof getApiBase === 'function') ? getApiBase().replace(/\/api$/, '') : (window.API_BASE || 'https://garagenearme.net');
 
 async function loadComponent(elementId, componentPath, callback = null) {
   const container = document.getElementById(elementId);
@@ -366,7 +357,7 @@ async function updateMechanicChrome() {
 async function mechanicCheckLocationSet() {
   const token = localStorage.getItem('garage_token');
   if (!token) {
-    window.location.href = 'index';
+    window.location.href = '/mechanic/index.html';
     return;
   }
 
@@ -375,7 +366,7 @@ async function mechanicCheckLocationSet() {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) {
-      window.location.href = 'index';
+      window.location.href = '/mechanic/index.html';
       return;
     }
 

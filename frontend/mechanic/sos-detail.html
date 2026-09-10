@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta name="google-site-verification" content="oo-PKXYE2tMvJTEH0tq6-_hivJePvxok7u9f9tqAp28" />
   <meta charset="UTF-8" />
@@ -10,283 +11,391 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
+    rel="stylesheet" />
   <style>
-    body { background-color: #FEF2F2; }
-    .sos-border { border: 1px solid #EF4444 !important; }
-    .timeline { position:relative; padding-left:1.5rem; margin-top:1.5rem; }
-    .timeline::before { content:''; position:absolute; top:0; left:0; width:2px; height:100%; background:#e9ecef; z-index:1; }
-    .timeline-item { position:relative; margin-bottom:1.5rem; }
-    .timeline-item:last-child { margin-bottom:0; }
-    .timeline-item::before { content:''; position:absolute; top:4px; left:-1.5rem; width:14px; height:14px; border-radius:50%; background:#e9ecef; border:3px solid white; transform:translateX(-6px); z-index:2; }
-    .timeline-item.active::before   { background:#EF4444; box-shadow:0 0 0 3px rgba(239,68,68,0.2); }
-    .timeline-item.completed::before { background:#10B981; }
-    .timeline-item.completed::after  { content:''; position:absolute; top:4px; left:-1.5rem; width:2px; height:calc(100% + 1.5rem); background:#10B981; transform:translateX(-0.5px); z-index:1; }
-    .timeline-item:last-child::after { display:none; }
-    .otp-input { letter-spacing:6px; font-size:22px; font-weight:700; text-align:center; font-family:monospace; }
-    .estimate-item-row { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
-    .skeleton { background: linear-gradient(90deg,#fde8e8 25%,#fbd5d5 50%,#fde8e8 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
-    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    body {
+      background-color: #FEF2F2;
+    }
+
+    .sos-border {
+      border: 1px solid #EF4444 !important;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 2px;
+      height: 100%;
+      background: #e9ecef;
+      z-index: 1;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: -1.5rem;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #e9ecef;
+      border: 3px solid white;
+      transform: translateX(-6px);
+      z-index: 2;
+    }
+
+    .timeline-item.active::before {
+      background: #EF4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+    }
+
+    .timeline-item.completed::before {
+      background: #10B981;
+    }
+
+    .timeline-item.completed::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: -1.5rem;
+      width: 2px;
+      height: calc(100% + 1.5rem);
+      background: #10B981;
+      transform: translateX(-0.5px);
+      z-index: 1;
+    }
+
+    .timeline-item:last-child::after {
+      display: none;
+    }
+
+    .otp-input {
+      letter-spacing: 6px;
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      font-family: monospace;
+    }
+
+    .estimate-item-row {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #fde8e8 25%, #fbd5d5 50%, #fde8e8 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
   </style>
 </head>
+
 <body>
-<div class="mechanic-layout">
-  <div id="sidebar-container"></div>
-  <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay" style="z-index:1030;"></div>
+  <div class="mechanic-layout">
+    <div id="sidebar-container"></div>
+    <div class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none z-3" id="sidebarOverlay"
+      style="z-index:1030;"></div>
 
-  <main class="mechanic-main">
-    <div id="topbar-container"></div>
-    <div class="mechanic-content pb-5">
+    <main class="mechanic-main">
+      <div id="topbar-container"></div>
+      <div class="mechanic-content pb-5">
 
-      <!-- Skeleton -->
-      <div id="page-skeleton">
-        <div class="row g-4">
-          <div class="col-lg-7">
-            <div class="skeleton mb-4" style="height:250px;border-radius:16px;"></div>
-            <div class="skeleton" style="height:200px;border-radius:16px;"></div>
-          </div>
-          <div class="col-lg-5">
-            <div class="skeleton" style="height:450px;border-radius:16px;"></div>
+        <!-- Skeleton -->
+        <div id="page-skeleton">
+          <div class="row g-4">
+            <div class="col-lg-7">
+              <div class="skeleton mb-4" style="height:250px;border-radius:16px;"></div>
+              <div class="skeleton" style="height:200px;border-radius:16px;"></div>
+            </div>
+            <div class="col-lg-5">
+              <div class="skeleton" style="height:450px;border-radius:16px;"></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Main content -->
-      <div id="page-content" style="display:none;">
-        <div class="row g-4 justify-content-center">
+        <!-- Main content -->
+        <div id="page-content" style="display:none;">
+          <div class="row g-4 justify-content-center">
 
-          <!-- LEFT: Map + Customer -->
-          <div class="col-12 col-lg-7">
+            <!-- LEFT: Map + Customer -->
+            <div class="col-12 col-lg-7">
 
-            <!-- Map Card -->
-            <div class="bg-white rounded-4 shadow-sm overflow-hidden mb-4 sos-border">
-              <div class="bg-light" style="height:220px;display:flex;align-items:center;justify-content:center;">
-                <div id="map-placeholder" class="text-center text-muted">
-                  <svg viewBox="0 0 24 24" fill="#EF4444" width="48" height="48" class="mb-2">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                  </svg>
-                  <div style="font-size:13px;">Breakdown Location</div>
+              <!-- Map Card -->
+              <div class="bg-white rounded-4 shadow-sm overflow-hidden mb-4 sos-border">
+                <div class="bg-light" style="height:220px;display:flex;align-items:center;justify-content:center;">
+                  <div id="map-placeholder" class="text-center text-muted">
+                    <svg viewBox="0 0 24 24" fill="#EF4444" width="48" height="48" class="mb-2">
+                      <path
+                        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                    </svg>
+                    <div style="font-size:13px;">Breakdown Location</div>
+                  </div>
+                </div>
+                <div class="p-4">
+                  <div class="d-flex justify-content-between align-items-start gap-3">
+                    <div>
+                      <h6 class="fw-bold mb-1">Breakdown Location</h6>
+                      <p class="text-muted mb-0" id="booking-address" style="font-size:14px;">—</p>
+                      <p class="text-danger fw-semibold mb-0 mt-1" id="booking-distance" style="font-size:13px;"></p>
+                    </div>
+                    <a href="#" id="navigate-btn" target="_blank"
+                      class="btn text-white rounded-pill d-flex align-items-center gap-2 flex-shrink-0 shadow-sm"
+                      style="background:#EF4444;display:none!important;">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
+                      </svg>
+                      Navigate
+                    </a>
+                  </div>
                 </div>
               </div>
-              <div class="p-4">
-                <div class="d-flex justify-content-between align-items-start gap-3">
-                  <div>
-                    <h6 class="fw-bold mb-1">Breakdown Location</h6>
-                    <p class="text-muted mb-0" id="booking-address" style="font-size:14px;">—</p>
-                    <p class="text-danger fw-semibold mb-0 mt-1" id="booking-distance" style="font-size:13px;"></p>
+
+              <!-- Customer Details -->
+              <div class="bg-white rounded-4 shadow-sm p-4 mb-4 sos-border">
+                <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size:12px;letter-spacing:1px;">Vehicle
+                  Details</h6>
+                <div class="row g-3">
+                  <div class="col-sm-4">
+                    <div class="bg-light rounded-3 p-3 text-center">
+                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Type</div>
+                      <div class="fw-bold text-dark" id="vehicle-type" style="font-size:13px;">—</div>
+                    </div>
                   </div>
-                  <a href="#" id="navigate-btn" target="_blank"
-                     class="btn text-white rounded-pill d-flex align-items-center gap-2 flex-shrink-0 shadow-sm"
-                     style="background:#EF4444;display:none!important;">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-                    Navigate
-                  </a>
+                  <div class="col-sm-4">
+                    <div class="bg-light rounded-3 p-3 text-center">
+                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Model</div>
+                      <div class="fw-bold text-dark" id="vehicle-model" style="font-size:13px;">—</div>
+                    </div>
+                  </div>
+                  <div class="col-sm-4">
+                    <div class="bg-light rounded-3 p-3 text-center">
+                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Reg. No.</div>
+                      <div class="fw-bold text-dark" id="vehicle-number" style="font-size:13px;">—</div>
+                    </div>
+                  </div>
                 </div>
+                <div class="mt-3" id="desc-section" style="display:none;">
+                  <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25 mt-3">
+                    <span class="text-danger fw-bold d-block mb-1">Emergency Issue:</span>
+                    <span id="booking-desc" class="text-dark"></span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT: Flow -->
+            <div class="col-12 col-lg-5">
+              <div class="bg-white rounded-4 shadow-sm p-4 sticky-top sos-border" style="top:80px;">
+                <h5 class="fw-bold mb-1 text-danger" style="font-family:var(--font-head);">SOS #<span
+                    id="booking-id"></span></h5>
+                <div class="text-muted mb-4 pb-3 border-bottom" style="font-size:13px;" id="booking-time"></div>
+                <div id="flow-section"></div>
               </div>
             </div>
 
-            <!-- Customer Details -->
-            <div class="bg-white rounded-4 shadow-sm p-4 mb-4 sos-border">
-              <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size:12px;letter-spacing:1px;">Vehicle Details</h6>
-              <div class="row g-3">
-                <div class="col-sm-4">
-                  <div class="bg-light rounded-3 p-3 text-center">
-                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Type</div>
-                    <div class="fw-bold text-dark" id="vehicle-type" style="font-size:13px;">—</div>
-                  </div>
-                </div>
-                <div class="col-sm-4">
-                  <div class="bg-light rounded-3 p-3 text-center">
-                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Model</div>
-                    <div class="fw-bold text-dark" id="vehicle-model" style="font-size:13px;">—</div>
-                  </div>
-                </div>
-                <div class="col-sm-4">
-                  <div class="bg-light rounded-3 p-3 text-center">
-                    <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Reg. No.</div>
-                    <div class="fw-bold text-dark" id="vehicle-number" style="font-size:13px;">—</div>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-3" id="desc-section" style="display:none;">
-                <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25 mt-3">
-                  <span class="text-danger fw-bold d-block mb-1">Emergency Issue:</span>
-                  <span id="booking-desc" class="text-dark"></span>
-                </div>
-              </div>
-            </div>
-
           </div>
-
-          <!-- RIGHT: Flow -->
-          <div class="col-12 col-lg-5">
-            <div class="bg-white rounded-4 shadow-sm p-4 sticky-top sos-border" style="top:80px;">
-              <h5 class="fw-bold mb-1 text-danger" style="font-family:var(--font-head);">SOS #<span id="booking-id"></span></h5>
-              <div class="text-muted mb-4 pb-3 border-bottom" style="font-size:13px;" id="booking-time"></div>
-              <div id="flow-section"></div>
-            </div>
-          </div>
-
         </div>
       </div>
-    </div>
-  </main>
-</div>
+    </main>
+  </div>
 
-<!-- Garage Services Modal -->
-<div class="modal fade" id="garageServicesModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-0 pb-0">
-        <h6 class="modal-title fw-bold">Select Predefined Services</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body px-4">
-        <div id="garage-services-list">
-          <div class="text-center py-4 text-muted small">Loading services...</div>
+  <!-- Garage Services Modal -->
+  <div class="modal fade" id="garageServicesModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-0 pb-0">
+          <h6 class="modal-title fw-bold">Select Predefined Services</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;" onclick="confirmGarageServices()">Confirm</button>
+        <div class="modal-body px-4">
+          <div id="garage-services-list">
+            <div class="text-center py-4 text-muted small">Loading services...</div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-3"
+            data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;"
+            onclick="confirmGarageServices()">Confirm</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- OTP Modal -->
-<div class="modal fade" id="otpModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-sm">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-0 pb-0">
-        <h6 class="modal-title fw-bold">Customer OTP Verify Karo</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body px-4">
-        <p class="text-muted mb-3" style="font-size:13px;">Customer se OTP lo aur yahan enter karo — kaam shuru hoga:</p>
-        <input type="text" id="otp-input" class="form-control otp-input rounded-3 border-2" maxlength="6" placeholder="------">
-        <div id="otp-error" class="text-danger mt-2 d-none" style="font-size:13px;"></div>
-      </div>
-      <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;" id="otp-confirm-btn" onclick="confirmOTP()">Verify</button>
+  <!-- OTP Modal -->
+  <div class="modal fade" id="otpModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-0 pb-0">
+          <h6 class="modal-title fw-bold">Customer OTP Verify Karo</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body px-4">
+          <p class="text-muted mb-3" style="font-size:13px;">Customer se OTP lo aur yahan enter karo — kaam shuru hoga:
+          </p>
+          <input type="text" id="otp-input" class="form-control otp-input rounded-3 border-2" maxlength="6"
+            placeholder="------">
+          <div id="otp-error" class="text-danger mt-2 d-none" style="font-size:13px;"></div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-3"
+            data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;"
+            id="otp-confirm-btn" onclick="confirmOTP()">Verify</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
-  <script src="/js/config.js"></script><script src="/js/mechanic-auth.js"></script>
-<script src="/js/components.js"></script>
-<script src="/js/bootstrap.js"></script>
-<script>
-  const urlParams  = new URLSearchParams(window.location.search);
-  // Try query param first, then try slug from path: /mechanic/sos-detail/<id>
-  let queryId    = urlParams.get('id');
-  if (queryId) queryId = String(queryId).trim(); // Ensure it's a string and trimmed
-  const _slug      = window.location.pathname.split('/').filter(p => p && p !== 'mechanic' && p !== 'sos-detail' && p !== 'sos-detail.html' && !p.endsWith('.html')).pop();
-  const bookingId  = queryId || _slug;
-  console.log('[SOS-DETAIL] Full Debug:', { 
-    href: window.location.href,
-    search: window.location.search,
-    pathname: window.location.pathname,
-    queryId: queryId,
-    queryIdType: typeof queryId,
-    _slug: _slug,
-    bookingId: bookingId,
-    bookingIdType: typeof bookingId,
-    bookingIdTruthy: !!bookingId
-  });
-  initMechanicChrome(`SOS #${bookingId}`, null, 'sos-alerts.html');
-  const API = () => getApiBase();
-  let booking = null;
-  let detailRefreshInterval = null;
-  let _lastRenderedStatus   = null;
-  let _lastEstimateStatus   = null;
-  let _lastArrivedAt        = null;  // arrived_at track karo
-  let _loadLock             = false;  // race condition guard
-  let estimateItems = [];
-  let myGarageServices = [];
-  let selectedGarageServices = new Set();
+  <script src="/js/config.js"></script>
+  <script src="/js/mechanic-auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    // Try query param first, then try slug from path: /mechanic/sos-detail/<id>
+    let queryId = urlParams.get('id');
+    if (queryId) queryId = String(queryId).trim(); // Ensure it's a string and trimmed
+    const _slug = window.location.pathname.split('/').filter(p => p && p !== 'mechanic' && p !== 'sos-detail' && p !== 'sos-detail.html' && !p.endsWith('.html')).pop();
+    const bookingId = queryId || _slug;
+    console.log('[SOS-DETAIL] Full Debug:', {
+      href: window.location.href,
+      search: window.location.search,
+      pathname: window.location.pathname,
+      queryId: queryId,
+      queryIdType: typeof queryId,
+      _slug: _slug,
+      bookingId: bookingId,
+      bookingIdType: typeof bookingId,
+      bookingIdTruthy: !!bookingId
+    });
+    initMechanicChrome(`SOS #${bookingId}`, null, 'sos-alerts.html');
+    const API = () => getApiBase();
+    let booking = null;
+    let detailRefreshInterval = null;
+    let _lastRenderedStatus = null;
+    let _lastEstimateStatus = null;
+    let _lastArrivedAt = null;  // arrived_at track karo
+    let _loadLock = false;  // race condition guard
+    let estimateItems = [];
+    let myGarageServices = [];
+    let selectedGarageServices = new Set();
 
-  async function loadDetail() {
-    console.log('[SOS-DETAIL] loadDetail() called, bookingId:', bookingId);
-    if (!bookingId) { 
-      console.error('[SOS-DETAIL] REDIRECT: bookingId is falsy!', bookingId);
-      window.location.replace('sos-alerts.html'); 
-      return; 
-    }
-    if (_loadLock) return;  // concurrent call aa gayi — skip karo
-    _loadLock = true;
-    try {
-      const res = await fetch(`${API()}/sos/${bookingId}`, {
-        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error('[SOS-DETAIL] API error:', res.status, errText);
-        throw new Error(`API Error: ${res.status}`);
+    async function loadDetail() {
+      console.log('[SOS-DETAIL] loadDetail() called, bookingId:', bookingId);
+      if (!bookingId) {
+        console.error('[SOS-DETAIL] REDIRECT: bookingId is falsy!', bookingId);
+        window.location.replace('sos-alerts.html');
+        return;
       }
-      booking = await res.json();
-      console.log('[SOS-DETAIL] Booking loaded:', booking);
-
-      // Backend 'estimated_charge' field ko frontend ke saath align karo
-      if (booking.estimated_charge !== undefined) {
-        booking.estimated_amount = booking.estimated_charge;
-      }
-      if (booking.estimate_details) {
-        estimateItems = booking.estimate_details;
-      }
-
+      if (_loadLock) return;  // concurrent call aa gayi — skip karo
+      _loadLock = true;
       try {
-        const sRes = await fetch(`${API()}/garage/me/services`, {
+        const res = await fetch(`${API()}/sos/${bookingId}`, {
           headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
         });
-        if (sRes.ok) myGarageServices = await sRes.json();
-      } catch (e) { console.error('Failed to load garage services'); }
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error('[SOS-DETAIL] API error:', res.status, errText);
+          throw new Error(`API Error: ${res.status}`);
+        }
+        booking = await res.json();
+        console.log('[SOS-DETAIL] Booking loaded:', booking);
 
-      // Cancelled/completed — stop karo sab
-      if (booking.status === 'cancelled' || booking.status === 'completed') {
-        clearInterval(detailRefreshInterval);
-        detailRefreshInterval = null;
-        document.getElementById('page-skeleton').style.display = '';
-        document.getElementById('page-content').style.display  = 'none';
-        document.getElementById('page-skeleton').innerHTML = `
+        // Backend 'estimated_charge' field ko frontend ke saath align karo
+        if (booking.estimated_charge !== undefined) {
+          booking.estimated_amount = booking.estimated_charge;
+        }
+        if (booking.estimate_details) {
+          estimateItems = booking.estimate_details;
+        }
+
+        try {
+          const sRes = await fetch(`${API()}/garage/me/services`, {
+            headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+          });
+          if (sRes.ok) myGarageServices = await sRes.json();
+        } catch (e) { console.error('Failed to load garage services'); }
+
+        // Cancelled/completed — stop karo sab
+        if (booking.status === 'cancelled' || booking.status === 'completed') {
+          clearInterval(detailRefreshInterval);
+          detailRefreshInterval = null;
+          document.getElementById('page-skeleton').style.display = '';
+          document.getElementById('page-content').style.display = 'none';
+          document.getElementById('page-skeleton').innerHTML = `
           <div class="text-center py-5 text-muted">
             <h5>⚠️ Yeh SOS ab valid nahi hai</h5>
             <p class="mb-3">${booking.status === 'cancelled' ? 'Customer ne cancel kar diya' : 'Yeh kaam pura ho gaya'}</p>
             <a href="sos-alerts.html" class="btn btn-sm rounded-pill px-4 text-white" style="background:#EF4444;">← Wapas Jao</a>
           </div>`;
-        return;
-      }
+          return;
+        }
 
-      // Sirf tab re-render karo jab status, estimate_status, ya arrived_at badla ho
-      const needsRender = _lastRenderedStatus !== booking.status
-                       || _lastEstimateStatus !== booking.estimate_status
-                       || _lastArrivedAt      !== booking.arrived_at;
-      if (needsRender) {
-        _lastRenderedStatus = booking.status;
-        _lastEstimateStatus = booking.estimate_status;
-        _lastArrivedAt      = booking.arrived_at;
-        renderPage();
-      } else {
-        // Form wipe nahi karo — sirf time/distance silently update karo
-        const timeEl = document.getElementById('booking-time');
-        const distEl = document.getElementById('booking-distance');
-        if (timeEl) timeEl.textContent = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
-        if (distEl && booking.distance_km) distEl.textContent = `📍 ${booking.distance_km} km away`;
-      }
+        // Sirf tab re-render karo jab status, estimate_status, ya arrived_at badla ho
+        const needsRender = _lastRenderedStatus !== booking.status
+          || _lastEstimateStatus !== booking.estimate_status
+          || _lastArrivedAt !== booking.arrived_at;
+        if (needsRender) {
+          _lastRenderedStatus = booking.status;
+          _lastEstimateStatus = booking.estimate_status;
+          _lastArrivedAt = booking.arrived_at;
+          renderPage();
+        } else {
+          // Form wipe nahi karo — sirf time/distance silently update karo
+          const timeEl = document.getElementById('booking-time');
+          const distEl = document.getElementById('booking-distance');
+          if (timeEl) timeEl.textContent = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
+          if (distEl && booking.distance_km) distEl.textContent = `📍 ${booking.distance_km} km away`;
+        }
 
-      // Interval ek baar set karo
-      if (!detailRefreshInterval) {
-        detailRefreshInterval = setInterval(loadDetail, 10000);
-      }
-    } catch (err) {
-      _loadLock = false;  // Reset the lock on error so retry can work
-      console.error('[SOS-DETAIL] Error loading detail:', err);
-      clearInterval(detailRefreshInterval);
-      detailRefreshInterval = null;
-      document.getElementById('page-skeleton').style.display = '';
-      document.getElementById('page-content').style.display  = 'none';
-      document.getElementById('page-skeleton').innerHTML = `
+        // Interval ek baar set karo
+        if (!detailRefreshInterval) {
+          detailRefreshInterval = setInterval(loadDetail, 10000);
+        }
+      } catch (err) {
+        _loadLock = false;  // Reset the lock on error so retry can work
+        console.error('[SOS-DETAIL] Error loading detail:', err);
+        clearInterval(detailRefreshInterval);
+        detailRefreshInterval = null;
+        document.getElementById('page-skeleton').style.display = '';
+        document.getElementById('page-content').style.display = 'none';
+        document.getElementById('page-skeleton').innerHTML = `
         <div class="text-center py-5 text-muted">
           <h5>SOS load nahi hua</h5>
           <p class="text-muted small">Network check karo ya page reload karo</p>
@@ -295,66 +404,66 @@
             <a href="sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill px-4">← Wapas Jao</a>
           </div>
         </div>`;
-    } finally {
-      _loadLock = false;
-    }
-  }
-
-  function renderPage() {
-    document.getElementById('page-skeleton').style.display = 'none';
-    document.getElementById('page-content').style.display  = '';
-
-    document.getElementById('booking-id').textContent   = booking.id;
-    document.getElementById('booking-time').textContent  = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
-
-    // Location
-    const addr = booking.address || 'Location available on map';
-    document.getElementById('booking-address').textContent = addr;
-    if (booking.distance_km) {
-      document.getElementById('booking-distance').textContent = `📍 ${booking.distance_km} km away`;
-    }
-    if (booking.latitude && booking.longitude) {
-      const nb = document.getElementById('navigate-btn');
-      nb.href = `https://maps.google.com/?q=${booking.latitude},${booking.longitude}`;
-      nb.style.display = 'flex';
+      } finally {
+        _loadLock = false;
+      }
     }
 
-    // Vehicle
-    const vt = booking.vehicle_type === 'two_wheeler' ? '2 Wheeler' : booking.vehicle_type === 'four_wheeler' ? '4 Wheeler' : booking.vehicle_type || '—';
-    document.getElementById('vehicle-type').textContent   = vt;
-    document.getElementById('vehicle-model').textContent  = booking.vehicle_model  || '—';
-    document.getElementById('vehicle-number').textContent = booking.vehicle_number || '—';
+    function renderPage() {
+      document.getElementById('page-skeleton').style.display = 'none';
+      document.getElementById('page-content').style.display = '';
 
-    if (booking.description) {
-      document.getElementById('desc-section').style.display = '';
-      document.getElementById('booking-desc').textContent   = booking.description;
+      document.getElementById('booking-id').textContent = booking.id;
+      document.getElementById('booking-time').textContent = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
+
+      // Location
+      const addr = booking.address || 'Location available on map';
+      document.getElementById('booking-address').textContent = addr;
+      if (booking.distance_km) {
+        document.getElementById('booking-distance').textContent = `📍 ${booking.distance_km} km away`;
+      }
+      if (booking.latitude && booking.longitude) {
+        const nb = document.getElementById('navigate-btn');
+        nb.href = `https://maps.google.com/?q=${booking.latitude},${booking.longitude}`;
+        nb.style.display = 'flex';
+      }
+
+      // Vehicle
+      const vt = booking.vehicle_type === 'two_wheeler' ? '2 Wheeler' : booking.vehicle_type === 'four_wheeler' ? '4 Wheeler' : booking.vehicle_type || '—';
+      document.getElementById('vehicle-type').textContent = vt;
+      document.getElementById('vehicle-model').textContent = booking.vehicle_model || '—';
+      document.getElementById('vehicle-number').textContent = booking.vehicle_number || '—';
+
+      if (booking.description) {
+        document.getElementById('desc-section').style.display = '';
+        document.getElementById('booking-desc').textContent = booking.description;
+      }
+
+      renderFlow();
     }
 
-    renderFlow();
-  }
+    function renderFlow() {
+      const el = document.getElementById('flow-section');
+      const s = booking.status;
 
-  function renderFlow() {
-    const el = document.getElementById('flow-section');
-    const s  = booking.status;
-
-    if (s === 'accepted') {
-      el.innerHTML = renderEstimateFlow();
-    } else if (s === 'in_progress' || s === 'ongoing') {
-      el.innerHTML = renderOngoingFlow();
-    } else if (s === 'completed') {
-      el.innerHTML = renderCompletedFlow();
-    } else {
-      el.innerHTML = `<div class="text-center text-muted py-4"><p>Status: ${s}</p><a href="sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill">← Back</a></div>`;
+      if (s === 'accepted') {
+        el.innerHTML = renderEstimateFlow();
+      } else if (s === 'in_progress' || s === 'ongoing') {
+        el.innerHTML = renderOngoingFlow();
+      } else if (s === 'completed') {
+        el.innerHTML = renderCompletedFlow();
+      } else {
+        el.innerHTML = `<div class="text-center text-muted py-4"><p>Status: ${s}</p><a href="sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill">← Back</a></div>`;
+      }
     }
-  }
 
-  function renderEstimateFlow() {
-    const estSent   = booking.estimate_status === 'pending';
-    const arrived   = booking.arrived_at; // mechanic pahunch gaya
+    function renderEstimateFlow() {
+      const estSent = booking.estimate_status === 'pending';
+      const arrived = booking.arrived_at; // mechanic pahunch gaya
 
-    // Step 1: Agar arrived nahi — "Mark Arrived" dikhao
-    if (!arrived) {
-      return `
+      // Step 1: Agar arrived nahi — "Mark Arrived" dikhao
+      if (!arrived) {
+        return `
         <div class="timeline">
           <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
           <div class="timeline-item active">
@@ -370,11 +479,11 @@
           <div class="timeline-item"><div class="text-muted">Estimate Bhejo</div></div>
           <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
         </div>`;
-    }
+      }
 
-    // Step 2: Arrived — estimate form
-    if (estSent) {
-      return `
+      // Step 2: Arrived — estimate form
+      if (estSent) {
+        return `
         <div class="timeline">
           <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
           <div class="timeline-item completed"><div class="fw-bold text-success">Arrived ✓</div></div>
@@ -400,9 +509,9 @@
           </div>
           <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
         </div>`;
-    }
+      }
 
-    return `
+      return `
       <div class="timeline">
         <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
         <div class="timeline-item completed"><div class="fw-bold text-success">Arrived ✓</div></div>
@@ -451,10 +560,10 @@
         <div class="timeline-item"><div class="text-muted">Customer Approval</div></div>
         <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
       </div>`;
-  }
+    }
 
-  function renderOngoingFlow() {
-    return `
+    function renderOngoingFlow() {
+      return `
       <div class="timeline">
         <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
         <div class="timeline-item completed">
@@ -476,10 +585,10 @@
           </button>
         </div>
       </div>`;
-  }
+    }
 
-  function renderCompletedFlow() {
-    return `
+    function renderCompletedFlow() {
+      return `
       <div class="timeline">
         <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
         <div class="timeline-item completed"><div class="fw-bold text-success">Estimate Approved ✓</div></div>
@@ -495,31 +604,31 @@
       <a href="/mechanic/invoice-sos/${booking.slug || booking.id}" class="btn btn-outline-secondary rounded-pill w-100 mt-3 fw-medium">
         📄 Invoice Dekho
       </a>`;
-  }
-
-  async function markArrived() {
-    const btn = document.getElementById('arrived-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Marking...'; }
-    try {
-      const res = await fetch(`${API()}/sos/${bookingId}/mark-arrived`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
-      });
-      if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
-      showToast('Customer ko notify kar diya — ab estimate bhejo! 📍', 'success');
-      _lastRenderedStatus = null; // Force re-render
-      await loadDetail();
-    } catch(e) {
-      showToast(e.message || 'Mark nahi hua. Try again.', 'danger');
-      if (btn) { btn.disabled = false; btn.textContent = '📍 Main Pahunch Gaya — Mark Arrived'; }
     }
-  }
 
-  function renderEstimateItems(items, editable) {
-    if (!items || items.length === 0) {
-      return `<div class="text-muted small text-center py-2">Koi item nahi</div>`;
+    async function markArrived() {
+      const btn = document.getElementById('arrived-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Marking...'; }
+      try {
+        const res = await fetch(`${API()}/sos/${bookingId}/mark-arrived`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+        showToast('Customer ko notify kar diya — ab estimate bhejo! 📍', 'success');
+        _lastRenderedStatus = null; // Force re-render
+        await loadDetail();
+      } catch (e) {
+        showToast(e.message || 'Mark nahi hua. Try again.', 'danger');
+        if (btn) { btn.disabled = false; btn.textContent = '📍 Main Pahunch Gaya — Mark Arrived'; }
+      }
     }
-    return items.map((item, i) => `
+
+    function renderEstimateItems(items, editable) {
+      if (!items || items.length === 0) {
+        return `<div class="text-muted small text-center py-2">Koi item nahi</div>`;
+      }
+      return items.map((item, i) => `
     <div class="estimate-item-row">
       <span style="font-size:13px;font-weight:500;">${item.item_name}</span>
       <div class="d-flex align-items-center gap-2">
@@ -527,57 +636,57 @@
         ${editable ? `<button type="button" onclick="removeItem(${i})" class="btn btn-sm text-danger p-0 px-1" style="font-size:16px;line-height:1;">×</button>` : ''}
       </div>
     </div>`).join('');
-  }
+    }
 
-  function updateEstTotal() {
-    const issuesTotal = estimateItems.reduce((s, i) => s + (i.price || 0), 0);
-    const totalEl = document.getElementById('est-total');
-    const issuesTotalEl = document.getElementById('est-issues-total');
-    
-    if (totalEl) totalEl.textContent = `₹${issuesTotal + 100}`;
-    if (issuesTotalEl) issuesTotalEl.textContent = `₹${issuesTotal}`;
-  }
+    function updateEstTotal() {
+      const issuesTotal = estimateItems.reduce((s, i) => s + (i.price || 0), 0);
+      const totalEl = document.getElementById('est-total');
+      const issuesTotalEl = document.getElementById('est-issues-total');
 
-  function addEstItem() {
-    const name = document.getElementById('est-item-name').value.trim();
-    const price = parseFloat(document.getElementById('est-item-price').value);
-    const errEl = document.getElementById('est-error');
-    errEl.classList.add('d-none');
-    if (!name || isNaN(price) || price < 0) { errEl.textContent='Enter valid name and price.'; errEl.classList.remove('d-none'); return; }
-    estimateItems.push({ item_name: name, price });
-    document.getElementById('est-item-name').value = '';
-    document.getElementById('est-item-price').value = '';
-    document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
-    updateEstTotal();
-  }
+      if (totalEl) totalEl.textContent = `₹${issuesTotal + 100}`;
+      if (issuesTotalEl) issuesTotalEl.textContent = `₹${issuesTotal}`;
+    }
 
-  function removeItem(idx) {
-    estimateItems.splice(idx, 1);
-    document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
-    updateEstTotal();
-  }
+    function addEstItem() {
+      const name = document.getElementById('est-item-name').value.trim();
+      const price = parseFloat(document.getElementById('est-item-price').value);
+      const errEl = document.getElementById('est-error');
+      errEl.classList.add('d-none');
+      if (!name || isNaN(price) || price < 0) { errEl.textContent = 'Enter valid name and price.'; errEl.classList.remove('d-none'); return; }
+      estimateItems.push({ item_name: name, price });
+      document.getElementById('est-item-name').value = '';
+      document.getElementById('est-item-price').value = '';
+      document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
+      updateEstTotal();
+    }
 
-  function openGarageServices() {
-    selectedGarageServices.clear();
-    const container = document.getElementById('garage-services-list');
-    
-    if (myGarageServices.length === 0) {
+    function removeItem(idx) {
+      estimateItems.splice(idx, 1);
+      document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
+      updateEstTotal();
+    }
+
+    function openGarageServices() {
+      selectedGarageServices.clear();
+      const container = document.getElementById('garage-services-list');
+
+      if (myGarageServices.length === 0) {
         container.innerHTML = '<div class="text-center py-4 text-muted small">Aapne koi predefined service add nahi ki . Pehle Dashboard > Services me jake service add karein.</div>';
-    } else {
+      } else {
         const grouped = {};
         myGarageServices.forEach(s => {
-            if (!s.is_available) return;
-            const cat = s.category || 'Other';
-            if (!grouped[cat]) grouped[cat] = [];
-            grouped[cat].push(s);
+          if (!s.is_available) return;
+          const cat = s.category || 'Other';
+          if (!grouped[cat]) grouped[cat] = [];
+          grouped[cat].push(s);
         });
-        
+
         let html = '';
         for (const cat in grouped) {
-            html += `<div class="fw-bold mt-3 mb-2" style="font-size:13px;color:#EF4444;text-transform:uppercase;">${cat}</div>`;
-            grouped[cat].forEach(s => {
-                const priceStr = s.price ? `₹${s.price}` : 'Price not set';
-                html += `
+          html += `<div class="fw-bold mt-3 mb-2" style="font-size:13px;color:#EF4444;text-transform:uppercase;">${cat}</div>`;
+          grouped[cat].forEach(s => {
+            const priceStr = s.price ? `₹${s.price}` : 'Price not set';
+            html += `
                 <div class="form-check d-flex align-items-center mb-2 p-2 rounded-3 border" style="background:#f8f9fa;">
                     <input class="form-check-input ms-0 me-2 mt-0" type="checkbox" id="gs-${s.id}" value="${s.id}" onchange="toggleServiceSelection(${s.id}, this.checked)">
                     <label class="form-check-label w-100 d-flex justify-content-between align-items-center" for="gs-${s.id}" style="font-size:14px;cursor:pointer;">
@@ -585,277 +694,320 @@
                         <span class="fw-bold text-dark">${priceStr}</span>
                     </label>
                 </div>`;
-            });
+          });
         }
         if (html === '') html = '<div class="text-center py-4 text-muted small">No active predefined services found.</div>';
         container.innerHTML = html;
-    }
-    
-    new bootstrap.Modal(document.getElementById('garageServicesModal')).show();
-  }
+      }
 
-  function toggleServiceSelection(id, isChecked) {
+      new bootstrap.Modal(document.getElementById('garageServicesModal')).show();
+    }
+
+    function toggleServiceSelection(id, isChecked) {
       if (isChecked) selectedGarageServices.add(id);
       else selectedGarageServices.delete(id);
-  }
+    }
 
-  function confirmGarageServices() {
+    function confirmGarageServices() {
       if (selectedGarageServices.size > 0) {
-          myGarageServices.forEach(s => {
-              if (selectedGarageServices.has(s.id)) {
-                  estimateItems.push({ item_name: s.service_name, price: s.price || 0 });
-              }
-          });
-          document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
-          updateEstTotal();
+        myGarageServices.forEach(s => {
+          if (selectedGarageServices.has(s.id)) {
+            estimateItems.push({ item_name: s.service_name, price: s.price || 0 });
+          }
+        });
+        document.getElementById('est-items-list').innerHTML = renderEstimateItems(estimateItems, true);
+        updateEstTotal();
       }
       bootstrap.Modal.getInstance(document.getElementById('garageServicesModal')).hide();
-  }
+    }
 
-  async function sendEstimate() {
-    const desc   = document.getElementById('est-desc').value.trim();
-    const btn    = document.getElementById('send-est-btn');
-    const errEl  = document.getElementById('est-error');
-    errEl.classList.add('d-none');
+    async function sendEstimate() {
+      const desc = document.getElementById('est-desc').value.trim();
+      const btn = document.getElementById('send-est-btn');
+      const errEl = document.getElementById('est-error');
+      errEl.classList.add('d-none');
 
-    if (estimateItems.length === 0) { errEl.textContent='Kam se kam ek item add karo.'; errEl.classList.remove('d-none'); return; }
-    const amount = estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100; // Total including visiting charge
+      if (estimateItems.length === 0) { errEl.textContent = 'Kam se kam ek item add karo.'; errEl.classList.remove('d-none'); return; }
+      const amount = estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100; // Total including visiting charge
 
-    btn.disabled=true; btn.textContent='Bhej raha hai...';
-    try {
-      const res = await fetch(`${API()}/sos/${bookingId}/estimate`, {
-        method: 'PATCH',
-        headers: { 'Authorization':`Bearer ${MECHANIC_AUTH.getToken()}`, 'Content-Type':'application/json' },
-        body: JSON.stringify({ estimated_amount: amount, description: desc, visiting_charge: 100, estimate_details: estimateItems })
-      });
-      if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
-      const data = await res.json();
-      showToast(`Estimate bheja! OTP: ${data.otp}`, 'success');
-      setTimeout(() => location.reload(), 1500);
-    } catch(e) { errEl.textContent = e.message; errEl.classList.remove('d-none'); }
-    finally { btn.disabled=false; btn.textContent='Estimate Bhejo & OTP Maango'; }
-  }
+      btn.disabled = true; btn.textContent = 'Bhej raha hai...';
+      try {
+        const res = await fetch(`${API()}/sos/${bookingId}/estimate`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estimated_amount: amount, description: desc, visiting_charge: 100, estimate_details: estimateItems })
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+        const data = await res.json();
+        showToast(`Estimate bheja! OTP: ${data.otp}`, 'success');
+        setTimeout(() => location.reload(), 1500);
+      } catch (e) { errEl.textContent = e.message; errEl.classList.remove('d-none'); }
+      finally { btn.disabled = false; btn.textContent = 'Estimate Bhejo & OTP Maango'; }
+    }
 
-  function openOTP() {
-    document.getElementById('otp-input').value = '';
-    document.getElementById('otp-error').classList.add('d-none');
-    new bootstrap.Modal(document.getElementById('otpModal')).show();
-  }
+    function openOTP() {
+      document.getElementById('otp-input').value = '';
+      document.getElementById('otp-error').classList.add('d-none');
+      new bootstrap.Modal(document.getElementById('otpModal')).show();
+    }
 
-  async function confirmOTP() {
-    const otp = document.getElementById('otp-input').value.trim();
-    if (otp.length !== 6) { document.getElementById('otp-error').textContent='6 digit OTP dalo.'; document.getElementById('otp-error').classList.remove('d-none'); return; }
-    const btn = document.getElementById('otp-confirm-btn');
-    btn.disabled=true; btn.textContent='Verify ho raha hai...';
-    try {
-      const res = await fetch(`${API()}/sos/${bookingId}/verify-otp?otp=${otp}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
-      });
-      if (!res.ok) throw new Error((await res.json()).detail || 'Invalid OTP');
-      bootstrap.Modal.getInstance(document.getElementById('otpModal')).hide();
-      showToast('OTP verified! Kaam shuru karo 🔧', 'success');
-      setTimeout(() => location.reload(), 1000);
-    } catch(e) { document.getElementById('otp-error').textContent = e.message; document.getElementById('otp-error').classList.remove('d-none'); }
-    finally { btn.disabled=false; btn.textContent='Verify'; }
-  }
+    async function confirmOTP() {
+      const otp = document.getElementById('otp-input').value.trim();
+      if (otp.length !== 6) { document.getElementById('otp-error').textContent = '6 digit OTP dalo.'; document.getElementById('otp-error').classList.remove('d-none'); return; }
+      const btn = document.getElementById('otp-confirm-btn');
+      btn.disabled = true; btn.textContent = 'Verify ho raha hai...';
+      try {
+        const res = await fetch(`${API()}/sos/${bookingId}/verify-otp?otp=${otp}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || 'Invalid OTP');
+        bootstrap.Modal.getInstance(document.getElementById('otpModal')).hide();
+        showToast('OTP verified! Kaam shuru karo 🔧', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (e) { document.getElementById('otp-error').textContent = e.message; document.getElementById('otp-error').classList.remove('d-none'); }
+      finally { btn.disabled = false; btn.textContent = 'Verify'; }
+    }
 
-  async function completeJob() {
-    const finalAmount = parseFloat(document.getElementById('final-amount').value || 0);
-    const btn = document.getElementById('complete-btn');
-    btn.disabled=true; btn.textContent='Complete ho raha hai...';
-    try {
-      const res = await fetch(`${API()}/sos/${bookingId}/complete?final_amount=${finalAmount}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
-      });
-      if (!res.ok) throw new Error();
-      showToast('SOS complete! 🎉', 'success');
-      setTimeout(() => {
-        window.location.href = `/mechanic/invoice-sos/${bookingId}`;
-      }, 1000);
-    } catch { document.getElementById('complete-error').textContent='Complete nahi hua.'; document.getElementById('complete-error').classList.remove('d-none'); }
-    finally { btn.disabled=false; btn.textContent='Job Complete Karo ✓'; }
-  }
+    async function completeJob() {
+      const finalAmount = parseFloat(document.getElementById('final-amount').value || 0);
+      const btn = document.getElementById('complete-btn');
+      btn.disabled = true; btn.textContent = 'Complete ho raha hai...';
+      try {
+        const res = await fetch(`${API()}/sos/${bookingId}/complete?final_amount=${finalAmount}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
+        });
+        if (!res.ok) throw new Error();
+        showToast('SOS complete! 🎉', 'success');
+        setTimeout(() => {
+          window.location.href = `/mechanic/invoice-sos/${bookingId}`;
+        }, 1000);
+      } catch { document.getElementById('complete-error').textContent = 'Complete nahi hua.'; document.getElementById('complete-error').classList.remove('d-none'); }
+      finally { btn.disabled = false; btn.textContent = 'Job Complete Karo ✓'; }
+    }
 
-  function showToast(msg, type='success') {
-    const t = document.createElement('div');
-    t.className=`alert alert-${type} position-fixed shadow rounded-3`;
-    t.style.cssText='top:80px;right:20px;z-index:9999;font-size:14px;min-width:220px;';
-    t.textContent=msg;
-    document.body.appendChild(t);
-    setTimeout(()=>t.remove(), 3000);
-  }
+    function showToast(msg, type = 'success') {
+      const t = document.createElement('div');
+      t.className = `alert alert-${type} position-fixed shadow rounded-3`;
+      t.style.cssText = 'top:80px;right:20px;z-index:9999;font-size:14px;min-width:220px;';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
 
-  document.addEventListener('DOMContentLoaded', loadDetail);
-</script>
+    document.addEventListener('DOMContentLoaded', loadDetail);
+  </script>
 
-<!-- WebRTC Incoming Call Overlay (mechanic) -->
-<div id="gnm-mechanic-call" style="display:none;position:fixed;inset:0;z-index:99999;background:#0a0a0a;flex-direction:column;align-items:center;justify-content:space-between;padding:64px 24px 80px;">
+  <!-- WebRTC Incoming Call Overlay (mechanic) -->
+  <div id="gnm-mechanic-call"
+    style="display:none;position:fixed;inset:0;z-index:99999;background:#0a0a0a;flex-direction:column;align-items:center;justify-content:space-between;padding:64px 24px 80px;">
     <style>
-        @keyframes mCallPulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.7);opacity:0}}
-        #gnm-mechanic-call .mp{position:absolute;inset:0;border-radius:50%;border:2px solid #FF6B35;animation:mCallPulse 1.6s ease-out infinite}
-        #gnm-mechanic-call .mp:nth-child(2){animation-delay:.5s}
-        #gnm-mechanic-call .mp:nth-child(3){animation-delay:1s}
+      @keyframes mCallPulse {
+        0% {
+          transform: scale(1);
+          opacity: .7
+        }
+
+        100% {
+          transform: scale(1.7);
+          opacity: 0
+        }
+      }
+
+      #gnm-mechanic-call .mp {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 2px solid #FF6B35;
+        animation: mCallPulse 1.6s ease-out infinite
+      }
+
+      #gnm-mechanic-call .mp:nth-child(2) {
+        animation-delay: .5s
+      }
+
+      #gnm-mechanic-call .mp:nth-child(3) {
+        animation-delay: 1s
+      }
     </style>
     <div style="text-align:center;">
-        <div style="color:#FF6B35;font-size:13px;letter-spacing:2px;font-family:'DM Sans',sans-serif;text-transform:uppercase;margin-bottom:12px;">📞 Incoming Call</div>
-        <div style="color:#fff;font-size:22px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:6px;">Customer</div>
-        <div id="mechanic-call-status" style="color:#9CA3AF;font-size:14px;font-family:'DM Sans',sans-serif;">In-App Call</div>
+      <div
+        style="color:#FF6B35;font-size:13px;letter-spacing:2px;font-family:'DM Sans',sans-serif;text-transform:uppercase;margin-bottom:12px;">
+        📞 Incoming Call</div>
+      <div style="color:#fff;font-size:22px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:6px;">Customer
+      </div>
+      <div id="mechanic-call-status" style="color:#9CA3AF;font-size:14px;font-family:'DM Sans',sans-serif;">In-App Call
+      </div>
     </div>
     <div style="position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center;">
-        <div class="mp"></div><div class="mp"></div><div class="mp"></div>
-        <div style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#e85d2a);display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;z-index:1;">👤</div>
+      <div class="mp"></div>
+      <div class="mp"></div>
+      <div class="mp"></div>
+      <div
+        style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#e85d2a);display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;z-index:1;">
+        👤</div>
     </div>
     <div style="display:flex;gap:48px;align-items:flex-start;">
-        <div style="text-align:center;">
-            <button onclick="rejectIncomingCall()" style="width:68px;height:68px;border-radius:50%;background:#E53E3E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(229,62,62,0.15);">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-            </button>
-            <span style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">Decline</span>
-        </div>
-        <div style="text-align:center;">
-            <button onclick="acceptIncomingCall()" style="width:68px;height:68px;border-radius:50%;background:#22C55E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(34,197,94,0.15);">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-            </button>
-            <span style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">Accept</span>
-        </div>
+      <div style="text-align:center;">
+        <button onclick="rejectIncomingCall()"
+          style="width:68px;height:68px;border-radius:50%;background:#E53E3E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(229,62,62,0.15);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+            <path
+              d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z" />
+          </svg>
+        </button>
+        <span
+          style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">Decline</span>
+      </div>
+      <div style="text-align:center;">
+        <button onclick="acceptIncomingCall()"
+          style="width:68px;height:68px;border-radius:50%;background:#22C55E;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(34,197,94,0.15);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+            <path
+              d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z" />
+          </svg>
+        </button>
+        <span
+          style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">Accept</span>
+      </div>
     </div>
-</div>
+  </div>
 
-<script>
-// ── WebRTC — Mechanic (Callee) side ───────────────────────────────────────
-let _mPc           = null;
-let _mLocalStream  = null;
-let _mOffer        = null;
-let _mCustomerId   = null;
-let _mCallTimer    = null;
-let _mCallSeconds  = 0;
+  <script>
+    // ── WebRTC — Mechanic (Callee) side ───────────────────────────────────────
+    let _mPc = null;
+    let _mLocalStream = null;
+    let _mOffer = null;
+    let _mCustomerId = null;
+    let _mCallTimer = null;
+    let _mCallSeconds = 0;
 
-// Mechanic WS se WebRTC signal aane pe (config.js dispatch karta hai)
-window.addEventListener('gnm_webrtc', async (e) => {
-    const data = e.detail;
-    if (data.type === 'webrtc_offer') {
-        _mOffer      = data.offer;
+    // Mechanic WS se WebRTC signal aane pe (config.js dispatch karta hai)
+    window.addEventListener('gnm_webrtc', async (e) => {
+      const data = e.detail;
+      if (data.type === 'webrtc_offer') {
+        _mOffer = data.offer;
         _mCustomerId = data.customer_id;
         // Incoming call UI dikhao + ring sound
         startRingtone();
         document.getElementById('gnm-mechanic-call').style.display = 'flex';
-    } else if (data.type === 'webrtc_ice' && _mPc) {
-        try { await _mPc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {}
-    } else if (data.type === 'webrtc_end') {
+      } else if (data.type === 'webrtc_ice' && _mPc) {
+        try { await _mPc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch (e) { }
+      } else if (data.type === 'webrtc_end') {
         endMechanicCall();
-    }
-});
-
-async function acceptIncomingCall() {
-    stopRingtone();
-    document.getElementById('gnm-mechanic-call').style.display = 'none';
-
-    try {
-        _mLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    } catch(e) { return; }
-
-    _mPc = new RTCPeerConnection({
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-        ]
+      }
     });
 
-    _mLocalStream.getTracks().forEach(t => _mPc.addTrack(t, _mLocalStream));
+    async function acceptIncomingCall() {
+      stopRingtone();
+      document.getElementById('gnm-mechanic-call').style.display = 'none';
 
-    _mPc.ontrack = (e) => {
+      try {
+        _mLocalStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      } catch (e) { return; }
+
+      _mPc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ]
+      });
+
+      _mLocalStream.getTracks().forEach(t => _mPc.addTrack(t, _mLocalStream));
+
+      _mPc.ontrack = (e) => {
         let audio = document.getElementById('gnm-m-remote-audio');
         if (!audio) {
-            audio = document.createElement('audio');
-            audio.id = 'gnm-m-remote-audio';
-            audio.autoplay = true;
-            document.body.appendChild(audio);
+          audio = document.createElement('audio');
+          audio.id = 'gnm-m-remote-audio';
+          audio.autoplay = true;
+          document.body.appendChild(audio);
         }
         audio.srcObject = e.streams[0];
-    };
+      };
 
-    _mPc.onicecandidate = (e) => {
+      _mPc.onicecandidate = (e) => {
         if (e.candidate && typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN) {
-            _ws.send(JSON.stringify({
-                type: 'webrtc_ice',
-                target_customer_id: _mCustomerId,
-                candidate: e.candidate
-            }));
-        }
-    };
-
-    _mPc.onconnectionstatechange = () => {
-        if (_mPc?.connectionState === 'disconnected' || _mPc?.connectionState === 'failed') {
-            endMechanicCall();
-        }
-    };
-
-    await _mPc.setRemoteDescription(new RTCSessionDescription(_mOffer));
-    const answer = await _mPc.createAnswer();
-    await _mPc.setLocalDescription(answer);
-
-    if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN) {
-        _ws.send(JSON.stringify({
-            type: 'webrtc_answer',
+          _ws.send(JSON.stringify({
+            type: 'webrtc_ice',
             target_customer_id: _mCustomerId,
-            answer: answer
+            candidate: e.candidate
+          }));
+        }
+      };
+
+      _mPc.onconnectionstatechange = () => {
+        if (_mPc?.connectionState === 'disconnected' || _mPc?.connectionState === 'failed') {
+          endMechanicCall();
+        }
+      };
+
+      await _mPc.setRemoteDescription(new RTCSessionDescription(_mOffer));
+      const answer = await _mPc.createAnswer();
+      await _mPc.setLocalDescription(answer);
+
+      if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN) {
+        _ws.send(JSON.stringify({
+          type: 'webrtc_answer',
+          target_customer_id: _mCustomerId,
+          answer: answer
         }));
+      }
+
+      // In-call UI dikhao
+      showMechanicInCall();
     }
 
-    // In-call UI dikhao
-    showMechanicInCall();
-}
-
-function rejectIncomingCall() {
-    stopRingtone();
-    document.getElementById('gnm-mechanic-call').style.display = 'none';
-    if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN && _mCustomerId) {
+    function rejectIncomingCall() {
+      stopRingtone();
+      document.getElementById('gnm-mechanic-call').style.display = 'none';
+      if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN && _mCustomerId) {
         _ws.send(JSON.stringify({ type: 'webrtc_end', target_customer_id: _mCustomerId }));
+      }
     }
-}
 
-function endMechanicCall() {
-    if (_mPc) { _mPc.close(); _mPc = null; }
-    if (_mLocalStream) { _mLocalStream.getTracks().forEach(t => t.stop()); _mLocalStream = null; }
-    if (_mCallTimer) { clearInterval(_mCallTimer); _mCallTimer = null; }
-    const audio = document.getElementById('gnm-m-remote-audio');
-    if (audio) audio.remove();
-    const inCall = document.getElementById('gnm-mechanic-incall');
-    if (inCall) inCall.remove();
-    if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN && _mCustomerId) {
+    function endMechanicCall() {
+      if (_mPc) { _mPc.close(); _mPc = null; }
+      if (_mLocalStream) { _mLocalStream.getTracks().forEach(t => t.stop()); _mLocalStream = null; }
+      if (_mCallTimer) { clearInterval(_mCallTimer); _mCallTimer = null; }
+      const audio = document.getElementById('gnm-m-remote-audio');
+      if (audio) audio.remove();
+      const inCall = document.getElementById('gnm-mechanic-incall');
+      if (inCall) inCall.remove();
+      if (typeof _ws !== 'undefined' && _ws?.readyState === WebSocket.OPEN && _mCustomerId) {
         _ws.send(JSON.stringify({ type: 'webrtc_end', target_customer_id: _mCustomerId }));
+      }
     }
-}
 
-function showMechanicInCall() {
-    const existing = document.getElementById('gnm-mechanic-incall');
-    if (existing) existing.remove();
+    function showMechanicInCall() {
+      const existing = document.getElementById('gnm-mechanic-incall');
+      if (existing) existing.remove();
 
-    const bar = document.createElement('div');
-    bar.id = 'gnm-mechanic-incall';
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1B1F2E;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.3);border-radius:16px 16px 0 0;';
-    bar.innerHTML = `
+      const bar = document.createElement('div');
+      bar.id = 'gnm-mechanic-incall';
+      bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1B1F2E;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.3);border-radius:16px 16px 0 0;';
+      bar.innerHTML = `
         <div>
             <div style="font-weight:700;font-size:14px;font-family:Syne,sans-serif;">📞 Call Active</div>
             <div id="mechanic-call-timer" style="color:#22C55E;font-size:13px;font-family:'DM Sans',sans-serif;">00:00</div>
         </div>
         <button onclick="endMechanicCall()" style="background:#E53E3E;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-weight:600;font-size:13px;cursor:pointer;">End Call</button>
     `;
-    document.body.appendChild(bar);
+      document.body.appendChild(bar);
 
-    _mCallSeconds = 0;
-    _mCallTimer = setInterval(() => {
+      _mCallSeconds = 0;
+      _mCallTimer = setInterval(() => {
         _mCallSeconds++;
-        const m = String(Math.floor(_mCallSeconds/60)).padStart(2,'0');
-        const s = String(_mCallSeconds%60).padStart(2,'0');
+        const m = String(Math.floor(_mCallSeconds / 60)).padStart(2, '0');
+        const s = String(_mCallSeconds % 60).padStart(2, '0');
         const el = document.getElementById('mechanic-call-timer');
         if (el) el.textContent = `${m}:${s}`;
-    }, 1000);
-}
-</script>
+      }, 1000);
+    }
+  </script>
 
 
 </body>
+
 </html>

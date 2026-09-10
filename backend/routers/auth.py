@@ -405,34 +405,6 @@ def get_me(
     return customer
 
 
-# ──────────────────────────────────────────
-# SAVE FCM TOKEN — /api/auth/fcm-token
-# POST /api/auth/fcm-token
-# ──────────────────────────────────────────
-
-@router.post("/fcm-token")
-def save_fcm_token(
-    token_data: schemas.FCMTokenUpdate,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
-):
-    """
-    Customer ka FCM token save karo — push notifications ke liye.
-    POST /api/auth/fcm-token
-    """
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("user_id")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    customer = db.query(models.Customer).filter(models.Customer.id == user_id).first()
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
-
-    customer.fcm_token = token_data.fcm_token
-    db.commit()
-    return {"message": "FCM token saved"}
 
 
 # ──────────────────────────────────────────

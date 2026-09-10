@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, RedirectResponse
 from database import engine, Base, ensure_schema_updates, backfill_completed_bookings_and_bills, backfill_slugs
 from routers import auth, garage, booking, vehicles, addresses, garage_requests, garage_auth, sos, admin_auth
 from routers import default_services, commission, payout
@@ -72,14 +72,6 @@ async def automated_sos_cleanup_task():
                     sos.status = models.SOSStatus.cancelled
                     sos.cancelled_at = now
                     
-                    # Notify mechanics to stop the loop
-                    online_garage_ids = list(ws_manager.mechanic_connections.keys())
-                    if online_garage_ids:
-                        asyncio.create_task(ws_manager.broadcast_to_garages(online_garage_ids, {
-                            "type": "sos_cancelled",
-                            "sos_id": sos.id
-                        }))
-                    
                     # Notify customer
                     if sos.customer_id:
                         asyncio.create_task(ws_manager.send_to_customer(sos.customer_id, {
@@ -101,15 +93,106 @@ async def automated_sos_cleanup_task():
         # Check every 1 minute
         await asyncio.sleep(60)
 
+
+async def automated_sos_retry_task():
+    """
+    Har 20 second check karo — broadcasting SOS ke liye jo garages abhi
+    accept/reject/excluded nahi hui, unhe dobara notify karo. Aur jo
+    garage 2 min se react nahi kiya, use exclude kar do (timeout).
+    """
+    while True:
+        try:
+            from database import SessionLocal
+            import models
+            from fcm import send_notification
+            from sqlalchemy.sql import func, text
+
+            db = SessionLocal()
+            try:
+                from sqlalchemy.sql import func
+                from datetime import datetime, timedelta, timezone
+                
+                now = datetime.now(timezone.utc)
+                timeout_cutoff = now - timedelta(minutes=2)
+                renotify_cutoff = now - timedelta(seconds=20)
+
+                # 1. 2-min timeout — jo garages react nahi kiye, unhe exclude karo
+                timed_out = db.query(models.SOSGarageAttempt).join(
+                    models.SOS, models.SOSGarageAttempt.sos_id == models.SOS.id
+                ).filter(
+                    models.SOS.status == models.SOSStatus.broadcasting,
+                    models.SOSGarageAttempt.is_excluded == False,
+                    models.SOSGarageAttempt.created_at <= timeout_cutoff
+                ).all()
+
+                for attempt in timed_out:
+                    attempt.is_excluded = True
+                    logging.info(f"SOS #{attempt.sos_id} — Garage #{attempt.garage_id} timed out (2 min), excluded")
+
+                if timed_out:
+                    db.commit()
+
+                # 2. Repeat notify — jo abhi tak active hain aur last notify ko 20 sec ho gaye
+                active_attempts = db.query(models.SOSGarageAttempt).join(
+                    models.SOS, models.SOSGarageAttempt.sos_id == models.SOS.id
+                ).filter(
+                    models.SOS.status == models.SOSStatus.broadcasting,
+                    models.SOSGarageAttempt.is_excluded == False,
+                    models.SOSGarageAttempt.last_notified_at <= renotify_cutoff
+                ).all()
+
+                for attempt in active_attempts:
+                    garage = db.query(models.Garage).filter(models.Garage.id == attempt.garage_id).first()
+                    sos_request = db.query(models.SOS).filter(models.SOS.id == attempt.sos_id).first()
+                    if not garage or not garage.fcm_token or not sos_request:
+                        continue
+
+                    vt_label = {"two_wheeler": "2 Wheeler", "four_wheeler": "4 Wheeler"}.get(sos_request.vehicle_type, sos_request.vehicle_type)
+                    
+                    dist_text = ""
+                    if garage.location and garage.location.latitude and sos_request.latitude:
+                        from routers.sos import haversine
+                        dist = haversine(garage.location.latitude, garage.location.longitude, sos_request.latitude, sos_request.longitude)
+                        dist_text = f" — {round(dist, 2)} km door"
+                        
+                    send_notification(
+                        token=garage.fcm_token,
+                        title="🚨 SOS Emergency Alert!",
+                        body=f"{vt_label} breakdown{dist_text}. Pehle accept karo!",
+                        data={
+                            "type":   "sos_alert",
+                            "sos_id": str(sos_request.id),
+                            "slug":   sos_request.slug or "",
+                            "screen": "sos-alerts",
+                        }
+                    )
+                    attempt.last_notified_at = func.now()
+
+                if active_attempts:
+                    db.commit()
+
+            except Exception as e:
+                logging.error(f"Error in SOS retry task execution: {e}")
+            finally:
+                db.close()
+
+        except Exception as e:
+            logging.error(f"Error in automated SOS retry loop: {e}")
+
+        await asyncio.sleep(5)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Start the background task
     task = asyncio.create_task(automated_billing_cycle_task())
     task_sos = asyncio.create_task(automated_sos_cleanup_task())
+    task_sos_retry = asyncio.create_task(automated_sos_retry_task())
     yield
     # Shutdown: Cancel the task
     task.cancel()
     task_sos.cancel()
+    task_sos_retry.cancel()
 
 app = FastAPI(title="GarageNearMe API", lifespan=lifespan)
 
@@ -144,7 +227,6 @@ app.include_router(commission.router,       prefix="/api/commissions",      tags
 app.include_router(admin_auth.router,       prefix="/api/admin-auth",       tags=["Admin Auth"])
 from routers import analytics
 app.include_router(analytics.router,        prefix="/api/analytics",        tags=["Analytics"])
-
 
 # ── WebSocket — Mechanic ───────────────────────────────────────────────────
 @app.websocket("/ws/mechanic/{garage_id}")
@@ -202,16 +284,6 @@ def serve_manifest():
 @app.get("/favicon.ico", include_in_schema=False)
 def serve_favicon():
     return FileResponse(os.path.join(FRONTEND_DIR, "assets", "favicon.ico"))
-
-@app.get("/service-worker.js", include_in_schema=False)
-def serve_sw():
-    # service-worker.js hata diya gaya hai (ab native Capacitor push use ho raha hai,
-    # PWA/web-FCM ki zaroorat nahi). File na milne par crash na ho isliye graceful
-    # empty response de rahe hain — koi bhi purana browser tab isko safely ignore kar dega.
-    sw_path = os.path.join(FRONTEND_DIR, "service-worker.js")
-    if os.path.isfile(sw_path):
-        return FileResponse(sw_path, media_type="application/javascript")
-    return Response(content="", media_type="application/javascript", status_code=200)
 
 @app.get("/", include_in_schema=False)
 def read_root():

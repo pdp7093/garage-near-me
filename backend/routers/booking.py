@@ -12,7 +12,7 @@ import unicodedata
 
 import models, schemas
 from database import get_db
-from routers.fcm import GarageNotifications, CustomerNotifications
+
 from routers.auth import send_whatsapp_otp
 
 router = APIRouter()
@@ -205,12 +205,14 @@ def create_booking(
     db.commit()
     db.refresh(booking)
 
+    # Garage ko naya booking notification bhejo
     if garage.fcm_token:
+        from fcm import GarageNotifications
         GarageNotifications.new_booking(
             token=garage.fcm_token,
             booking_id=booking.id,
             customer_name=current_customer.name,
-            service=booking.service_type or "General Service"
+            service=booking.service_type or "Service"
         )
 
     return booking
@@ -445,8 +447,7 @@ def cancel_booking_post(
     db.commit()
     db.refresh(booking)
 
-    if booking.garage and booking.garage.fcm_token:
-        GarageNotifications.booking_cancelled(token=booking.garage.fcm_token, booking_id=booking_id)
+
 
     return {"message": "Booking successfully cancelled", "booking_id": booking_id, "status": "cancelled"}
 
@@ -840,13 +841,6 @@ async def send_estimate_otp(
             await send_whatsapp_otp(customer.phone, otp)
         except Exception as e:
             print(f"[OTP] WhatsApp send error: {e}")
-
-    if booking.customer and booking.customer.fcm_token and booking.estimated_amount:
-        CustomerNotifications.estimate_ready(
-            token=booking.customer.fcm_token,
-            booking_id=booking_id,
-            amount=float(booking.estimated_amount)
-        )
 
     return {"message": "OTP sent to customer", "otp": otp}
 

@@ -1,4 +1,4 @@
-﻿annotated-doc==0.0.4
+annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.13.0
 asgiref==3.11.1
@@ -19,7 +19,6 @@ ecdsa==0.19.2
 EditorConfig==0.17.1
 email-validator==2.3.0
 fastapi==0.136.1
-firebase_admin==7.4.0
 google-api-core==2.30.3
 google-auth==2.53.0
 google-cloud-core==2.6.0

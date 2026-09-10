@@ -29,12 +29,12 @@ const MECHANIC_AUTH = {
   logout() {
     localStorage.removeItem('garage_token');
     localStorage.removeItem('mechanic_info');
-    window.location.href = '/mechanic/';
+    window.location.href = '/mechanic/index.html';
   },
 
   checkSession() {
     if (!this.isLoggedIn()) {
-      window.location.href = '/mechanic/';
+      window.location.href = '/mechanic/index.html';
       return false;
     }
     return true;
@@ -71,65 +71,6 @@ const MECHANIC_AUTH = {
   }
 };
 
-// ── WebSocket — real-time SOS notifications (app open hone par) ───────────
-let _mechanicWs = null;
-let _mechanicWsReconnectTimer = null;
-let _mechanicWsPingTimer = null;
-
-function _getGarageIdFromToken() {
-  const token = localStorage.getItem('garage_token');
-  if (!token) return null;
-  try { return JSON.parse(atob(token.split('.')[1])).user_id || null; } catch (e) { return null; }
-}
-
-function connectMechanicSosWS() {
-  const garageId = _getGarageIdFromToken();
-  if (!garageId) { console.warn('[SOS-WS] garageId nahi mila token se'); return; }
-
-  const base = (typeof getWsBase === 'function') ? getWsBase() : `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
-  const url = `${base}/ws/mechanic/${garageId}`;
-
-  console.log(`[SOS-WS] Connecting → ${url}`);
-  _mechanicWs = new WebSocket(url);
-
-  _mechanicWs.onopen = () => {
-    console.log(`[SOS-WS] Connected ✅ garage_id=${garageId}`);
-    if (_mechanicWsReconnectTimer) { clearTimeout(_mechanicWsReconnectTimer); _mechanicWsReconnectTimer = null; }
-    if (_mechanicWsPingTimer) clearInterval(_mechanicWsPingTimer);
-    _mechanicWsPingTimer = setInterval(() => {
-      if (_mechanicWs && _mechanicWs.readyState === WebSocket.OPEN) _mechanicWs.send('ping');
-    }, 25000);
-  };
-
-  _mechanicWs.onmessage = (e) => {
-    if (e.data === 'pong') return;
-    try {
-      const data = JSON.parse(e.data);
-      if (data.type === 'sos_alert') {
-        console.log('[SOS-WS] sos_alert mila:', data);
-        if (typeof showIncomingCall === 'function') {
-          showIncomingCall(data.title || 'SOS Emergency!', data.body || 'Koi breakdown mein hai!', data);
-        }
-        if (typeof loadSOSAlerts === 'function') {
-          loadSOSAlerts(true);
-        }
-      } else if (data.type === 'sos_cancelled') {
-        console.log('[SOS-WS] sos_cancelled mila:', data);
-        if (typeof loadSOSAlerts === 'function') {
-          loadSOSAlerts(true);
-        }
-      }
-    } catch (err) { console.error('[SOS-WS] parse error:', err); }
-  };
-
-  _mechanicWs.onclose = (e) => {
-    console.log(`[SOS-WS] Disconnected (code=${e.code}) — 7s mein reconnect`);
-    if (_mechanicWsPingTimer) { clearInterval(_mechanicWsPingTimer); _mechanicWsPingTimer = null; }
-    _mechanicWsReconnectTimer = setTimeout(connectMechanicSosWS, 7000);
-  };
-  _mechanicWs.onerror = (e) => { console.error('[SOS-WS] Error:', e); _mechanicWs.close(); };
-}
-
 // Automatically check session on page load for protected pages
 window.addEventListener('DOMContentLoaded', async function () {
   const currentPage = window.location.pathname.split('/').pop() || '';
@@ -149,112 +90,214 @@ window.addEventListener('DOMContentLoaded', async function () {
     return;
   }
 
-  connectMechanicSosWS();
-  initCapacitorPushNotifications();
+  // Sequential order zaroori hai — ek dialog complete hone ke baad hi
+  // agla dialog trigger karna hai, warna Android kuch dialogs silently
+  // skip kar deta hai jab multiple permission requests overlap hoti hain.
+  await requestCapacitorLocationPermission();
+  await requestCapacitorPushPermission();
+  await requestBatteryOptimizationExemption();
 });
 
-// ── Capacitor Push Notifications (native — app kill state mein bhi kaam karta hai) ──
-async function initCapacitorPushNotifications() {
+// ── Capacitor Location Permission Request ──
+async function requestCapacitorLocationPermission() {
   if (typeof window.Capacitor === 'undefined' || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) {
-    console.log('[Push] Not running on a native Capacitor platform, skipping push setup.');
     return;
   }
-
   try {
-    const { PushNotifications } = window.Capacitor.Plugins;
-    if (!PushNotifications) {
-      console.warn('[Push] PushNotifications plugin not found on Capacitor.Plugins');
+    const { Geolocation } = window.Capacitor.Plugins;
+    if (Geolocation) {
+      let geoPerm = await Geolocation.checkPermissions();
+      if (geoPerm.location === 'prompt' || geoPerm.location === 'prompt-with-rationale') {
+        await Geolocation.requestPermissions();
+      }
+    }
+  } catch (err) {
+    console.warn('[Location] Failed to request location permission', err);
+  }
+}
+
+// ── Battery Optimization Exemption (WhatsApp jaisa background reliability) ──
+async function requestBatteryOptimizationExemption() {
+  if (typeof window.Capacitor === 'undefined' || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) {
+    return;
+  }
+  try {
+    const { BatteryOptimization } = window.Capacitor.Plugins;
+    if (!BatteryOptimization) {
+      console.warn('[Battery] BatteryOptimization plugin not found');
       return;
     }
 
-    let permStatus = await PushNotifications.checkPermissions();
-    if (permStatus.receive === 'prompt') {
-      permStatus = await PushNotifications.requestPermissions();
+    const { enabled } = await BatteryOptimization.isBatteryOptimizationEnabled();
+    if (enabled) {
+      console.log('[Battery] Optimization is ON — requesting exemption...');
+      await BatteryOptimization.requestIgnoreBatteryOptimization();
+    } else {
+      console.log('[Battery] Already exempted ✅');
+    }
+  } catch (err) {
+    console.warn('[Battery] Exemption request failed:', err);
+  }
+}
+
+// ── Helper: Notification data se sahi page pe navigate karo ──
+function navigateFromNotificationData(data) {
+  if (!data) {
+    window.location.href = '/mechanic/dashboard.html';
+    return;
+  }
+  if (data.type === 'sos_alert' && data.sos_id) {
+    window.location.href = `/mechanic/sos-alerts.html`;
+  } else if (data.screen) {
+    window.location.href = `/mechanic/${data.screen}.html`;
+  } else {
+    window.location.href = '/mechanic/dashboard.html';
+  }
+}
+
+// ── Capacitor Push Notification Permission Request ──
+async function requestCapacitorPushPermission() {
+  if (typeof window.Capacitor === 'undefined' || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) {
+    return;
+  }
+  try {
+    const { PushNotifications, LocalNotifications } = window.Capacitor.Plugins;
+    if (!PushNotifications) return;
+
+    let pushPerm = await PushNotifications.checkPermissions();
+    if (pushPerm.receive === 'prompt' || pushPerm.receive === 'prompt-with-rationale') {
+      pushPerm = await PushNotifications.requestPermissions();
     }
 
-    if (permStatus.receive !== 'granted') {
-      console.warn('[Push] Permission denied');
+    if (pushPerm.receive !== 'granted') {
+      console.warn('[Push] Permission not granted:', pushPerm.receive);
+      return;
     }
 
-    // Request Location Permission explicitly
-    try {
-      const { Geolocation } = window.Capacitor.Plugins;
-      if (Geolocation) {
-        let geoPerm = await Geolocation.checkPermissions();
-        if (geoPerm.location === 'prompt' || geoPerm.location === 'prompt-with-rationale') {
-          await Geolocation.requestPermissions();
-        }
-      }
-    } catch (err) {
-      console.warn('[Location] Failed to request location permission', err);
-    }
-
-    // High-priority Android notification channel — background/kill state mein
-    // sound + heads-up popup guarantee karne ke liye.
+    // ── PHASE 2: High-priority notification channel (native FCM push ke liye — background/kill) ──
+    // SOS wala channel — ISKO TOUCH NAHI KARNA, already tested aur working hai
     try {
       await PushNotifications.createChannel({
-        id: 'sos_alerts',
-        name: 'SOS Emergency Alerts',
+        id: 'sos_alerts_loud',
+        name: 'SOS Emergency Alerts LOUD',
         description: 'High priority emergency breakdown alerts',
-        importance: 5,       // IMPORTANCE_HIGH
-        visibility: 1,       // VISIBILITY_PUBLIC
+        importance: 5,       // IMPORTANCE_HIGH (heads-up + sound)
+        visibility: 1,       // VISIBILITY_PUBLIC (lock screen pe bhi dikhe)
+        sound: 'notification.mp3',
+        vibration: true,
+        lights: true
+      });
+      console.log('[Push] Notification channel "sos_alerts" created ✅');
+    } catch (chErr) {
+      console.warn('[Push] Channel creation failed:', chErr);
+    }
+
+    // ── NAYA: Booking alerts channel — SOS se alag, normal booking updates ke liye ──
+    try {
+      await PushNotifications.createChannel({
+        id: 'booking_alerts',
+        name: 'Booking Updates',
+        description: 'New booking, accept, estimate, and status alerts',
+        importance: 4,       // IMPORTANCE_HIGH (heads-up milega, SOS se thoda kam)
+        visibility: 1,
         sound: 'default',
         vibration: true,
         lights: true
       });
-      console.log('[Push] SOS notification channel created ✅');
+      console.log('[Push] Notification channel "booking_alerts" created ✅');
     } catch (chErr) {
-      console.warn('[Push] Channel creation skipped/failed:', chErr);
+      console.warn('[Push] Booking channel creation failed:', chErr);
+    }
+
+    // ── PHASE 4: Local Notifications — ALAG channel ID, taaki PushNotifications
+    // wale channel se conflict na ho ──
+    if (LocalNotifications) {
+      try {
+        let localPerm = await LocalNotifications.checkPermissions();
+        if (localPerm.display === 'prompt' || localPerm.display === 'prompt-with-rationale') {
+          localPerm = await LocalNotifications.requestPermissions();
+        }
+        await LocalNotifications.createChannel({
+          id: 'sos_alerts_local',
+          name: 'SOS Emergency Alerts (Foreground)',
+          description: 'High priority emergency breakdown alerts',
+          importance: 5,
+          visibility: 1,
+          sound: 'default',
+          vibration: true,
+          lights: true
+        });
+        console.log('[LocalNotif] Channel "sos_alerts_local" created ✅');
+      } catch (lnErr) {
+        console.warn('[LocalNotif] Setup failed:', lnErr);
+      }
     }
 
     await PushNotifications.register();
 
     PushNotifications.addListener('registration', async (token) => {
-      console.log('[Push] FCM Token: ' + token.value);
+      console.log('[Push] Token received: ' + token.value);
       const authToken = MECHANIC_AUTH.getToken();
-      if (authToken) {
-        try {
-          await fetch(getApiBase() + '/garage-auth/fcm-token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authToken}`
-            },
-            body: JSON.stringify({ fcm_token: token.value })
-          });
-          console.log('[Push] Token saved in backend!');
-        } catch (e) {
-          console.error('[Push] Failed to send token', e);
-        }
+      if (!authToken) return;
+      try {
+        await fetch(getApiBase() + '/garage-auth/fcm-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ fcm_token: token.value })
+        });
+        console.log('[Push] Token saved in backend');
+      } catch (e) {
+        console.error('[Push] Failed to save token:', e);
       }
     });
 
     PushNotifications.addListener('registrationError', (error) => {
-      console.error('[Push] Registration error: ', error);
+      console.error('[Push] Registration error:', error);
     });
 
-    PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('[Push] Received: ', notification);
-      if (typeof showIncomingCall === 'function') {
-        showIncomingCall(notification.title || 'SOS Emergency!', notification.body || 'Koi breakdown mein hai!', notification.data || {});
-      }
-      if (typeof loadSOSAlerts === 'function') {
-        loadSOSAlerts(true);
+    // ── PHASE 4: Foreground push aane par manually notification dikhao ──
+    PushNotifications.addListener('pushNotificationReceived', async (notification) => {
+      console.log('[Push] Foreground notification received:', notification);
+      if (LocalNotifications) {
+        try {
+          await LocalNotifications.schedule({
+            notifications: [
+              {
+                id: Math.floor(Math.random() * 100000),
+                title: notification.title || 'GarageNearMe',
+                body: notification.body || '',
+                channelId: 'sos_alerts_local',
+                extra: notification.data || {}
+              }
+            ]
+          });
+        } catch (lnErr) {
+          console.error('[LocalNotif] Failed to show foreground notification:', lnErr);
+        }
       }
     });
 
-    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-      console.log('[Push] Action performed: ', notification);
-      const data = notification.notification?.data || notification.data || {};
-      
-      if (data.screen === 'sos-alerts' || data.type === 'sos_alert') {
-        window.location.href = '/mechanic/sos-alerts.html';
-      } else {
-        window.location.href = '/mechanic/dashboard.html';
-      }
+    // ── Native push notification TAP hone par (background/killed state se app khulne par) ──
+    // SOS alert ho to seedha sos-alerts page pe le jao, us specific SOS ID ke saath
+    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      console.log('[Push] Action performed: ', action);
+      const data = action.notification?.data;
+      navigateFromNotificationData(data);
     });
 
-  } catch (error) {
-    console.error('[Push] setup error:', error);
+    // ── Foreground wali LocalNotification TAP hone par ──
+    if (LocalNotifications) {
+      LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+        console.log('[LocalNotif] Action performed: ', action);
+        const data = action.notification?.extra;
+        navigateFromNotificationData(data);
+      });
+    }
+
+  } catch (err) {
+    console.warn('[Push] Failed to request push permission', err);
   }
 }

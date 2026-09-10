@@ -52,7 +52,7 @@ if (gpsBtn && locationInput) {
     if (cached && Number.isFinite(cached.lat) && Number.isFinite(cached.lng)) {
       locationInput.value = 'Current location detected';
     }
-  } catch {}
+  } catch { }
 
   gpsBtn.addEventListener('click', function () {
     requestLocation(true);
@@ -75,3 +75,32 @@ if (sosBtn) {
     alert('SOS Alert Sent!\n\nNearby mechanics are being notified.\nPlease stay at your location.');
   });
 }
+
+// ── Application Open Notification (Capacitor) ────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // Check if we are running inside Capacitor (Native Android/iOS)
+  if (window?.Capacitor?.isNativePlatform?.()) {
+    try {
+      const { LocalNotifications } = window.Capacitor.Plugins;
+      if (LocalNotifications) {
+        let permStatus = await LocalNotifications.checkPermissions();
+        if (permStatus.display !== 'granted') {
+          permStatus = await LocalNotifications.requestPermissions();
+        }
+        if (permStatus.display === 'granted') {
+          await LocalNotifications.schedule({
+            notifications: [{
+              title: "Garage Near Me",
+              body: "Aapne successfully application open kar li hai!",
+              id: new Date().getTime(),
+              schedule: { at: new Date(Date.now() + 1000) },
+              smallIcon: "ic_stat_icon_config_sample" // Note: configure smallIcon in Capacitor if needed
+            }]
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Local notification error: ", e);
+    }
+  }
+});

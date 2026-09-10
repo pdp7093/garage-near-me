@@ -62,7 +62,7 @@ class Customer(Base):
     email           = Column(String(255), unique=True, nullable=False)
     hashed_password = Column(Text, nullable=False)
     profile_image   = Column(String(500), nullable=True)  # URL to profile image
-    fcm_token       = Column(Text, nullable=True)           # Firebase push notification token
+    # fcm_token       = Column(Text, nullable=True)
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
 
     bookings        = relationship("Booking", back_populates="customer", cascade="all, delete-orphan")
@@ -215,7 +215,7 @@ class Garage(Base):
     has_gst              = Column(Boolean, default=False)
     gst_number           = Column(String(50), nullable=True)
 
-    fcm_token             = Column(Text, nullable=True)    # Firebase push notification token
+    fcm_token             = Column(Text, nullable=True)
 
     # Credit lock & platform dues system
     pending_platform_dues = Column(Numeric(10, 2), default=0.0)
@@ -455,6 +455,26 @@ class SOS(Base):
     customer            = relationship("Customer")
     garage              = relationship("Garage")
 
+
+# ──────────────────────────────────────────
+# SOS GARAGE ATTEMPT (Retry/Timeout tracking)
+# Har garage ko kaunsi SOS dikhayi gayi, kitni baar reject hui, track karta hai
+# ──────────────────────────────────────────
+
+class SOSGarageAttempt(Base):
+    __tablename__ = "sos_garage_attempts"
+
+    id               = Column(Integer, primary_key=True, index=True)
+    sos_id           = Column(Integer, ForeignKey("sos_requests.id"), nullable=False)
+    garage_id        = Column(Integer, ForeignKey("garages.id"), nullable=False)
+
+    reject_count     = Column(Integer, default=0)
+    is_excluded      = Column(Boolean, default=False)   # True = 3 reject ho chuke, ya 2 min timeout ho gaya
+    last_notified_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at       = Column(DateTime(timezone=True), server_default=func.now())
+
+    sos              = relationship("SOS")
+    garage           = relationship("Garage")
 
 # ──────────────────────────────────────────
 # BILL / INVOICE (Bill storage for customers)

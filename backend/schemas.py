@@ -159,9 +159,6 @@ class GarageRequestAdminUpdate(BaseModel):
 # GARAGE OTP AUTH
 # ──────────────────────────────────────────
 
-class FCMTokenUpdate(BaseModel):
-    fcm_token: str
-
 
 class CustomerRegisterVerify(BaseModel):
     """Register + OTP verify ek saath"""
@@ -676,3 +673,11 @@ class AdminResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ──────────────────────────────────────────
+# FCM Token (Push Notifications)
+# ──────────────────────────────────────────
+
+class FCMTokenRequest(BaseModel):
+    fcm_token: str

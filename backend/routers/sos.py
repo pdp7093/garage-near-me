@@ -7,59 +7,12 @@ from fastapi.security import OAuth2PasswordBearer
 from typing import Optional
 from pydantic import BaseModel
 import os, math, random, secrets, string
-
+from fcm import send_to_multiple
 import models, schemas
 from database import get_db
-from routers.websocket_manager import ws_manager
 from routers.auth import send_whatsapp_otp
 
-# ── Firebase FCM ──────────────────────────
-import firebase_admin
-from firebase_admin import credentials, messaging as fcm_messaging
-
-_FCM_INITIALIZED = False
-def _init_fcm():
-    global _FCM_INITIALIZED
-    if _FCM_INITIALIZED:
-        return
-    try:
-        sa_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "firebase-service-account.json"))
-        if os.path.isfile(sa_path):
-            if not firebase_admin._apps:
-                firebase_admin.initialize_app(credentials.Certificate(sa_path))
-            _FCM_INITIALIZED = True
-            print("✅ Firebase FCM initialized")
-        else:
-            print(f"⚠️  firebase-service-account.json not found at: {sa_path}")
-    except Exception as e:
-        print(f"⚠️  Firebase init error: {e}")
-
-_init_fcm()
-
-async def send_fcm_multicast(tokens: list, title: str, body: str, data: dict = None):
-    if not _FCM_INITIALIZED or not tokens:
-        return 0
-    try:
-        msg = fcm_messaging.MulticastMessage(
-            notification=fcm_messaging.Notification(title=title, body=body),
-            data={k: str(v) for k, v in (data or {}).items()},
-            tokens=tokens,
-            android=fcm_messaging.AndroidConfig(
-                priority="high",
-                notification=fcm_messaging.AndroidNotification(
-                    channel_id="sos_alerts",
-                    click_action="FCM_PLUGIN_ACTIVITY",
-                    sound="default",
-                    icon="@mipmap/ic_launcher"
-                )
-            ),
-        )
-        resp = fcm_messaging.send_each_for_multicast(msg)
-        print(f"✅ FCM: {resp.success_count}/{len(tokens)} delivered")
-        return resp.success_count
-    except Exception as e:
-        print(f"⚠️  FCM multicast error: {e}")
-        return 0
+# FCM logic removed as per user request
 
 router = APIRouter()
 
@@ -285,28 +238,31 @@ async def create_sos(
     db.commit()
     db.refresh(sos_request)
 
+    print(f"\n{'='*50}")
+    print(f"SOS BROADCAST — SOS #{sos_request.id} ({sos_request.sos_number})")
+    print(f"Customer: {current_customer.name} ({current_customer.phone})")
+    print(f"Location: {data.lat}, {data.lng}")
+    print(f"{'='*50}\n")
+
+        # Nearby garages ko FCM push notification bhejo — har garage ko uska
+    # apna distance batate hue (Rapido/Ola jaisa personalized alert)
+    from fcm import send_notification
+    vt_label = {"two_wheeler": "2 Wheeler", "four_wheeler": "4 Wheeler"}.get(sos_request.vehicle_type, sos_request.vehicle_type)
+    distance_map = {g["id"]: g["distance_km"] for g in nearby_garages}
+
     nearby_garage_ids = [g["id"] for g in nearby_garages]
-    vt_label = "2 Wheeler" if data.vehicle_type == "two_wheeler" else "4 Wheeler" if data.vehicle_type == "four_wheeler" else data.vehicle_type or "Vehicle"
+    nearby_garage_objs = db.query(models.Garage).filter(models.Garage.id.in_(nearby_garage_ids)).all()
 
-    notif_title = f"🆘 Emergency SOS — {vt_label} Breakdown"
-    notif_body  = "A vehicle needs immediate assistance nearby. Open the app to respond."
-
-    await ws_manager.broadcast_to_garages(nearby_garage_ids, {
-        "type":   "sos_alert",
-        "sos_id": sos_request.id,
-        "slug":   sos_request.slug,
-        "title":  notif_title,
-        "body":   notif_body,
-        "screen": "sos-alerts",
-    })
-
-    nearby_garage_objs = [g for g in garages if g.id in nearby_garage_ids]
-    fcm_tokens = [g.fcm_token for g in nearby_garage_objs if g.fcm_token]
-    if fcm_tokens:
-        await send_fcm_multicast(
-            tokens=fcm_tokens,
-            title=notif_title,
-            body=notif_body,
+    sent_count = 0
+    for garage in nearby_garage_objs:
+        if not garage.fcm_token:
+            continue
+        dist = distance_map.get(garage.id, 0)
+        body_text = f"{vt_label} breakdown — {dist} km door. Pehle accept karo!"
+        success = send_notification(
+            token=garage.fcm_token,
+            title="🚨 SOS Emergency Alert!",
+            body=body_text,
             data={
                 "type":   "sos_alert",
                 "sos_id": str(sos_request.id),
@@ -314,21 +270,24 @@ async def create_sos(
                 "screen": "sos-alerts",
             }
         )
+        if success:
+            sent_count += 1
 
-    print(f"\n{'='*50}")
-    print(f"SOS BROADCAST — SOS #{sos_request.id} ({sos_request.sos_number})")
-    print(f"Customer: {current_customer.name} ({current_customer.phone})")
-    print(f"Location: {data.lat}, {data.lng}")
-    print(f"WS notified: {[g['name'] for g in nearby_garages]}")
-    print(f"FCM tokens: {len(fcm_tokens)}")
-    print(f"{'='*50}\n")
+        attempt = models.SOSGarageAttempt(
+            sos_id=sos_request.id,
+            garage_id=garage.id
+        )
+        db.add(attempt)
+
+    db.commit()
+    print(f"FCM tokens: {sent_count}")
 
     return {
         "success":        True,
         "sos_id":         sos_request.id,
         "sos_slug":       sos_request.slug,
         "nearby_garages": nearby_garages,
-        "message":        f"{len(nearby_garages)} garages ko alert bheja gaya!"
+        "message":        "SOS request created successfully."
     }
 
 
@@ -462,6 +421,12 @@ def accept_sos(
     sos_request.status       = models.SOSStatus.accepted
     sos_request.responded_at = datetime.utcnow()
     sos_request.accepted_at  = datetime.utcnow()
+
+    # Baaki saari garages ke attempts exclude kar do — SOS ab accept ho chuki hai
+    db.query(models.SOSGarageAttempt).filter(
+        models.SOSGarageAttempt.sos_id == sos_request.id
+    ).update({"is_excluded": True})
+
     db.commit()
     db.refresh(sos_request)
 
@@ -483,7 +448,24 @@ def reject_sos(
     sos_request = _resolve_sos(sos_id, db)
     if not sos_request or sos_request.status != models.SOSStatus.broadcasting:
         raise HTTPException(status_code=404, detail="SOS not found")
-    return { "message": "SOS rejected locally", "sos_id": sos_request.id }
+
+    attempt = db.query(models.SOSGarageAttempt).filter(
+        models.SOSGarageAttempt.sos_id == sos_request.id,
+        models.SOSGarageAttempt.garage_id == current_garage.id
+    ).first()
+
+    if attempt:
+        attempt.reject_count += 1
+        if attempt.reject_count >= 3:
+            attempt.is_excluded = True
+        db.commit()
+
+    return {
+        "message": "SOS rejected locally",
+        "sos_id": sos_request.id,
+        "reject_count": attempt.reject_count if attempt else 0,
+        "excluded": attempt.is_excluded if attempt else False
+    }
 
 
 # ──────────────────────────────────────────
@@ -716,6 +698,35 @@ def get_customer_sos_history(
 
 
 # ──────────────────────────────────────────
+# 16. CUSTOMER — GET ACTIVE SOS
+# ──────────────────────────────────────────
+
+@router.get("/customer/active")
+def get_customer_active_sos(
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)
+):
+    active_statuses = [
+        models.SOSStatus.broadcasting,
+        models.SOSStatus.accepted,
+        models.SOSStatus.on_the_way,
+        models.SOSStatus.in_progress
+    ]
+
+    active_sos = db.query(models.SOS).filter(
+        models.SOS.customer_id == current_customer.id,
+        models.SOS.status.in_(active_statuses)
+    ).order_by(models.SOS.created_at.desc()).first()
+
+    if active_sos:
+        return {
+            "has_active": True,
+            "sos_id":   active_sos.id,
+            "sos_slug": active_sos.slug if hasattr(active_sos, 'slug') else active_sos.id,
+            "status":   active_sos.status.value
+        }
+    return {"has_active": False}
+# ──────────────────────────────────────────
 # 12. CUSTOMER — GET SOS STATUS
 # ──────────────────────────────────────────
 
@@ -806,34 +817,7 @@ async def rebroadcast_sos(
     if not nearby_ids:
         return {"rebroadcast": False, "reason": "No nearby garages"}
 
-    vt = sos_request.vehicle_type or "Vehicle"
-    vt_label = "2 Wheeler" if vt == "two_wheeler" else "4 Wheeler" if vt == "four_wheeler" else vt
-
-    await ws_manager.broadcast_to_garages(nearby_ids, {
-        "type":   "sos_alert",
-        "sos_id": sos_request.id,
-        "slug":   sos_request.slug,
-        "title":  f"🆘 Emergency SOS — {vt_label} Breakdown",
-        "body":   "A vehicle needs immediate assistance nearby. Open the app to respond.",
-        "screen": "sos-alerts",
-    })
-
-    nearby_garage_objs = [g for g in garages if g.id in nearby_ids]
-    fcm_tokens = [g.fcm_token for g in nearby_garage_objs if g.fcm_token]
-    if fcm_tokens:
-        await send_fcm_multicast(
-            tokens=fcm_tokens,
-            title=f"🆘 Emergency SOS — {vt_label} Breakdown",
-            body="A vehicle needs immediate assistance nearby. Open the app to respond.",
-            data={
-                "type":   "sos_alert",
-                "sos_id": str(sos_request.id),
-                "slug":   sos_request.slug or "",
-                "screen": "sos-alerts",
-            }
-        )
-
-    return {"rebroadcast": True, "garages_notified": len(nearby_ids)}
+    return {"rebroadcast": True}
 
 
 # ──────────────────────────────────────────
@@ -925,32 +909,3 @@ def reject_sos_estimate(
     }
 
 
-# ──────────────────────────────────────────
-# 16. CUSTOMER — GET ACTIVE SOS
-# ──────────────────────────────────────────
-
-@router.get("/customer/active")
-def get_customer_active_sos(
-    db: Session = Depends(get_db),
-    current_customer: models.Customer = Depends(get_current_customer)
-):
-    active_statuses = [
-        models.SOSStatus.broadcasting,
-        models.SOSStatus.accepted,
-        models.SOSStatus.on_the_way,
-        models.SOSStatus.in_progress
-    ]
-
-    active_sos = db.query(models.SOS).filter(
-        models.SOS.customer_id == current_customer.id,
-        models.SOS.status.in_(active_statuses)
-    ).order_by(models.SOS.created_at.desc()).first()
-
-    if active_sos:
-        return {
-            "has_active": True,
-            "sos_id":   active_sos.id,
-            "sos_slug": active_sos.slug if hasattr(active_sos, 'slug') else active_sos.id,
-            "status":   active_sos.status.value
-        }
-    return {"has_active": False}

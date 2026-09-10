@@ -233,21 +233,6 @@ def get_my_profile(
     return current_garage
 
 
-# ──────────────────────────────────────────
-# 4. SAVE FCM TOKEN
-# POST /api/garage-auth/fcm-token
-# ──────────────────────────────────────────
-
-@router.post("/fcm-token")
-def save_fcm_token(
-    token_data: schemas.FCMTokenUpdate,
-    db: Session = Depends(get_db),
-    current_garage: models.Garage = Depends(get_current_garage)
-):
-    current_garage.fcm_token = token_data.fcm_token
-    db.commit()
-    return {"message": "FCM token saved"}
-
 
 # ──────────────────────────────────────────
 # 5. UPDATE MY PROFILE
@@ -266,3 +251,41 @@ def update_my_profile(
     db.commit()
     db.refresh(current_garage)
     return current_garage
+
+
+# ──────────────────────────────────────────
+# 6. SAVE FCM TOKEN (Push Notifications)
+# POST /api/garage-auth/fcm-token
+# ──────────────────────────────────────────
+
+@router.post("/fcm-token")
+def save_fcm_token(
+    payload: schemas.FCMTokenRequest,
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    current_garage.fcm_token = payload.fcm_token
+    db.commit()
+    return {"message": "FCM token saved successfully"}
+
+# ──────────────────────────────────────────
+# TEMP TEST — Simple push notification test
+# GET /api/garage-auth/test-push
+# ──────────────────────────────────────────
+
+@router.get("/test-push")
+def test_push(
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    from fcm import send_notification
+    if not current_garage.fcm_token:
+        return {"success": False, "message": "No FCM token saved for this garage"}
+
+    result = send_notification(
+        token=current_garage.fcm_token,
+        title="🔔 Test Notification",
+        body="Ye ek simple test hai — agar ye aaya to push kaam kar raha hai!",
+        data={"type": "sos", "screen": "dashboard"}
+    )
+    return {"success": result}
