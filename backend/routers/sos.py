@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from datetime import datetime
@@ -10,7 +10,7 @@ import os, math, random, secrets, string
 from fcm import send_to_multiple
 import models, schemas
 from database import get_db
-from routers.auth import send_whatsapp_otp
+from routers.auth import send_otp_via_messagecentral, verify_otp_via_messagecentral
 
 # FCM logic removed as per user request
 
@@ -21,6 +21,7 @@ ALGORITHM  = os.getenv("ALGORITHM", "HS256")
 
 customer_oauth2 = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 garage_oauth2   = OAuth2PasswordBearer(tokenUrl="/api/garage/login")
+call_oauth2     = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 SOS_VISITING_CHARGE = 100.0  # ₹100 fixed
 
@@ -51,6 +52,29 @@ def get_current_garage(token: str = Depends(garage_oauth2), db: Session = Depend
         if not garage:
             raise HTTPException(status_code=401, detail="Garage not found")
         return garage
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+def get_call_actor(
+    token: Optional[str] = Depends(call_oauth2),
+    db: Session = Depends(get_db),
+):
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        role = payload.get("role")
+        if role == "customer":
+            actor = db.query(models.Customer).filter(models.Customer.id == user_id).first()
+        elif role == "garage":
+            actor = db.query(models.Garage).filter(models.Garage.id == user_id).first()
+        else:
+            actor = None
+        if not actor:
+            raise HTTPException(status_code=401, detail="Invalid caller")
+        return role, actor
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
@@ -500,22 +524,26 @@ async def send_sos_estimate(
 
     print(f"\n📋 SOS Estimate sent — SOS #{sos_id}")
     print(f"Amount: ₹{payload.estimated_amount}")
-    print(f"Customer OTP: {otp}")
+    print(f"Customer OTP: Message Central OTP Triggered")
     print(f"{'='*40}\n")
 
     # ✅ await — async context mein properly kaam karega
     customer = db.query(models.Customer).filter(models.Customer.id == sos_request.customer_id).first()
+    verification_id = ""
     if customer and customer.phone:
         try:
-            await send_whatsapp_otp(customer.phone, otp)
+            verification_id = await send_otp_via_messagecentral(customer.phone)
+            sos_request.estimate_verification_id = verification_id
+            db.commit()
         except Exception as e:
-            print(f"[OTP] WhatsApp send error: {e}")
+            print(f"[OTP] Message Central send error: {e}")
 
     return {
         "message":          "Estimate sent! OTP generated.",
         "estimated_amount": payload.estimated_amount,
         "otp":              otp,
         "estimate_otp":     otp,
+        "verification_id":  verification_id,
     }
 
 
@@ -524,7 +552,7 @@ async def send_sos_estimate(
 # ──────────────────────────────────────────
 
 @router.post("/{sos_id}/verify-otp")
-def verify_sos_otp(
+async def verify_sos_otp(
     sos_id: str,
     otp: str,
     db: Session = Depends(get_db),
@@ -533,8 +561,11 @@ def verify_sos_otp(
     sos_request = _resolve_sos(sos_id, db)
     if not sos_request or sos_request.garage_id != current_garage.id:
         raise HTTPException(status_code=404, detail="SOS request not found")
-    if sos_request.estimate_otp != otp:
+        
+    is_valid = await verify_otp_via_messagecentral(sos_request.estimate_verification_id, otp)
+    if not is_valid:
         raise HTTPException(status_code=400, detail="Invalid OTP")
+        
     if sos_request.estimate_otp_verified:
         raise HTTPException(status_code=400, detail="OTP already used")
 
@@ -691,7 +722,7 @@ def get_customer_sos_history(
             "completed_at": sos.completed_at.isoformat() if sos.completed_at else None,
             "created_at": sos.created_at.isoformat(),
             "estimate_details": sos.estimate_details,
-            "visiting_charge_billed": getattr(sos, 'visiting_charge_billed', False),
+            "visiting_charge_billed": float(sos.final_charge) == 100.0 if sos.final_charge else False,
         })
 
     return result
@@ -754,6 +785,7 @@ def get_sos_status_customer(
         "sos_number":            sos_request.sos_number,
         "status":                sos_request.status.value,
         "garage_name":           garage.name if garage else None,
+        "garage_id":             sos_request.garage_id,
         "distance_km":           round(dist, 2) if dist else None,
         "estimated_charge":      float(sos_request.estimated_charge) if sos_request.estimated_charge else None,
         "estimate_status":       sos_request.estimate_status.value,
@@ -768,7 +800,7 @@ def get_sos_status_customer(
         "completed_at":          sos_request.completed_at.isoformat() if sos_request.completed_at else None,
         "created_at":            sos_request.created_at.isoformat(),
         "estimate_details":      sos_request.estimate_details,
-        "visiting_charge_billed": getattr(sos_request, 'visiting_charge_billed', False),
+        "visiting_charge_billed": float(sos_request.final_charge) == 100.0 if sos_request.final_charge else False,
     }
 
 
@@ -909,3 +941,180 @@ def reject_sos_estimate(
     }
 
 
+# ──────────────────────────────────────────
+# CALL NOTIFICATION — Customer call kare to mechanic ko push bhejo
+# POST /api/sos/{sos_id}/call-request
+# ──────────────────────────────────────────
+
+@router.post("/{sos_id}/call-request")
+def request_call(
+    sos_id: str,
+    entity_type: str = Query("sos", alias="type"),
+    db: Session = Depends(get_db),
+    caller = Depends(get_call_actor)
+):
+    if entity_type not in ("sos", "booking"):
+        raise HTTPException(status_code=400, detail="type must be sos or booking")
+
+    caller_role, caller_entity = caller
+    if entity_type == "booking":
+        try:
+            entity_id = int(sos_id)
+        except ValueError:
+            raise HTTPException(status_code=404, detail="Booking not found or not accepted yet")
+        booking_query = db.query(models.Booking).filter(models.Booking.id == entity_id)
+        if caller_role == "customer":
+            booking_query = booking_query.filter(models.Booking.customer_id == caller_entity.id)
+        else:
+            booking_query = booking_query.filter(models.Booking.garage_id == caller_entity.id)
+        entity = booking_query.first()
+        entity_label = "Booking"
+    else:
+        entity = _resolve_sos(sos_id, db)
+        if entity and caller_role == "customer" and entity.customer_id != caller_entity.id:
+            entity = None
+        if entity and caller_role == "garage" and entity.garage_id != caller_entity.id:
+            entity = None
+        entity_label = "SOS"
+
+    if not entity or not entity.garage_id:
+        raise HTTPException(status_code=404, detail=f"{entity_label} not found or not accepted yet")
+
+    garage = db.query(models.Garage).filter(models.Garage.id == entity.garage_id).first()
+    if not garage or not garage.fcm_token:
+        return {"success": False, "message": "Mechanic not reachable via push"}
+
+    from fcm import send_notification
+    send_notification(
+        token=garage.fcm_token,
+        title="📞 Incoming Call!",
+        body=f"{caller_entity.name} aapko call kar raha hai — turant answer karo!",
+        data={
+            "type":   "sos_alert" if entity_type == "sos" else "booking_call_request",
+            "sos_id": str(entity.id) if entity_type == "sos" else "",
+            "booking_id": str(entity.id) if entity_type == "booking" else "",
+            "slug":   getattr(entity, "slug", "") or "",
+            "screen": "sos-alerts" if entity_type == "sos" else "bookings",
+            "is_call": "true",
+        }
+    )
+    return {"success": True}
+
+
+# ──────────────────────────────────────────
+# STORE CALL OFFER — Customer ka WebRTC offer temporarily save karo
+# POST /api/sos/{sos_id}/store-offer
+# ──────────────────────────────────────────
+
+@router.post("/{sos_id}/store-offer")
+def store_call_offer(
+    sos_id: str,
+    payload: dict,
+    entity_type: str = Query("sos", alias="type"),
+    db: Session = Depends(get_db),
+    caller = Depends(get_call_actor)
+):
+    if entity_type not in ("sos", "booking"):
+        raise HTTPException(status_code=400, detail="type must be sos or booking")
+
+    caller_role, caller_entity = caller
+    if entity_type == "booking":
+        try:
+            entity_id = int(sos_id)
+        except ValueError:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        booking_query = db.query(models.Booking).filter(models.Booking.id == entity_id)
+        if caller_role == "customer":
+            booking_query = booking_query.filter(models.Booking.customer_id == caller_entity.id)
+        else:
+            booking_query = booking_query.filter(models.Booking.garage_id == caller_entity.id)
+        entity = booking_query.first()
+        not_found = "Booking not found"
+    else:
+        entity = _resolve_sos(sos_id, db)
+        not_found = "SOS not found"
+    if not entity:
+        raise HTTPException(status_code=404, detail=not_found)
+
+    call_offer = db.query(models.WebRTCCallOffer).filter(
+        models.WebRTCCallOffer.entity_type == entity_type,
+        models.WebRTCCallOffer.entity_id == entity.id,
+    ).first()
+    if call_offer:
+        call_offer.offer = payload.get("offer")
+        call_offer.customer_id = entity.customer_id
+    else:
+        db.add(models.WebRTCCallOffer(
+            entity_type=entity_type,
+            entity_id=entity.id,
+            offer=payload.get("offer"),
+            customer_id=entity.customer_id,
+        ))
+    if entity_type == "sos":
+        entity.pending_call_offer = None
+        entity.pending_call_customer_id = None
+    db.commit()
+    return {"success": True}
+
+
+# ──────────────────────────────────────────
+# CHECK PENDING CALL OFFER — Mechanic app khulte hi check kare
+# GET /api/sos/{sos_id}/pending-offer
+# ──────────────────────────────────────────
+
+@router.get("/{sos_id}/pending-offer")
+def get_pending_call_offer(
+    sos_id: str,
+    entity_type: str = Query("sos", alias="type"),
+    db: Session = Depends(get_db),
+    current_garage: models.Garage = Depends(get_current_garage)
+):
+    if entity_type not in ("sos", "booking"):
+        raise HTTPException(status_code=400, detail="type must be sos or booking")
+
+    if entity_type == "booking":
+        try:
+            entity_id = int(sos_id)
+        except ValueError:
+            return {"has_offer": False}
+        entity = db.query(models.Booking).filter(
+            models.Booking.id == entity_id,
+            models.Booking.garage_id == current_garage.id,
+        ).first()
+    else:
+        entity = _resolve_sos(sos_id, db)
+        if entity and entity.garage_id != current_garage.id:
+            entity = None
+        entity_id = entity.id if entity else None
+    if not entity:
+        return {"has_offer": False}
+
+    call_offer = db.query(models.WebRTCCallOffer).filter(
+        models.WebRTCCallOffer.entity_type == entity_type,
+        models.WebRTCCallOffer.entity_id == entity_id,
+    ).first()
+
+    # Read legacy SOS storage too, so existing offers remain deliverable.
+    if not call_offer and entity_type == "sos" and entity.pending_call_offer:
+        offer = entity.pending_call_offer
+        customer_id = entity.pending_call_customer_id
+        entity.pending_call_offer = None
+        entity.pending_call_customer_id = None
+        db.commit()
+        return {"has_offer": True, "offer": offer, "customer_id": customer_id}
+
+    if not call_offer:
+        return {"has_offer": False}
+
+    offer = call_offer.offer
+    customer_id = call_offer.customer_id
+
+    # Offer ek baar deliver hone ke baad clear kar do (taaki dobara na mile)
+    db.delete(call_offer)
+    db.commit()
+
+    return {
+        "has_offer": True,
+        "offer": offer,
+        "customer_id": customer_id
+    }

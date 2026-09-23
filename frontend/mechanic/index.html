@@ -114,8 +114,8 @@
               <p class="text-muted small mb-0" id="otpSentTo">OTP sent to your WhatsApp</p>
             </div>
             <div class="form-floating mb-3">
-              <input type="text" class="form-control text-center fw-bold" id="otpInput" placeholder="6-digit OTP" maxlength="6" inputmode="numeric" style="font-size: 1.8rem; letter-spacing: 0.4em; font-family: monospace;">
-              <label for="otpInput">6-digit OTP</label>
+              <input type="text" class="form-control text-center fw-bold" id="otpInput" placeholder="4-digit OTP" maxlength="4" inputmode="numeric" style="font-size: 1.8rem; letter-spacing: 0.4em; font-family: monospace;">
+              <label for="otpInput">4-digit OTP</label>
             </div>
             <div id="verifyAlert" class="alert d-none small mb-3" role="alert"></div>
             <div class="text-center mb-3">
@@ -281,6 +281,7 @@
   <script src="/js/config.js"></script>
   <script>
 
+    let currentVerificationId = null;
     let resendTimerInterval = null;
 
     function startResendTimer() {
@@ -400,6 +401,7 @@
         const data = await res.json();
 
         if (res.ok) {
+          currentVerificationId = data.verification_id;
           sp.classList.add('d-none');
           btn.disabled = false;
           document.getElementById('otpSentTo').textContent = `OTP sent to +91 ${phone} on WhatsApp`;
@@ -440,8 +442,8 @@
       const sp       = document.getElementById('verifySp');
       const btn      = document.getElementById('verifyOtpBtn');
 
-      if (otp.length !== 6 || !/^\d{6}$/.test(otp)) {
-        alertBox.textContent = 'Please enter the 6-digit OTP.';
+      if (otp.length !== 4 || !/^\d{4}$/.test(otp)) {
+        alertBox.textContent = 'Please enter the 4-digit OTP.';
         alertBox.className   = 'alert alert-danger small mb-3';
         alertBox.classList.remove('d-none');
         return;
@@ -455,7 +457,7 @@
         const res  = await fetch(`${getApiBase()}/garage-auth/verify-otp`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ phone, otp })
+          body:    JSON.stringify({ phone, otp, verification_id: currentVerificationId })
         });
         const data = await res.json();
 

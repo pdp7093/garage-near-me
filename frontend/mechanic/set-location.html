@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
@@ -191,10 +204,10 @@
   <div class="setup-header">
     <div class="setup-badge">
       <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-      One-time Setup
+      <span data-i18n="setloc_setup_badge">One-time Setup</span>
     </div>
-    <h4 class="fw-bold mb-1" style="font-family: 'Syne', sans-serif;">Set Your Garage Location</h4>
-    <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size: 0.88rem;">
+    <h4 class="fw-bold mb-1" style="font-family: 'Syne', sans-serif;" data-i18n="setloc_title">Set Your Garage Location</h4>
+    <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size: 0.88rem;" data-i18n="setloc_subtitle">
       Customers nearby will find you. Pin your exact garage location on the map.
     </p>
   </div>
@@ -211,20 +224,20 @@
   <!-- GPS Button -->
   <button class="btn-gps mb-3" id="gpsBtn" onclick="useMyLocation()">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="#FF6B35"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
-    <span id="gpsBtnText">Use My Current Location</span>
+    <span id="gpsBtnText" data-i18n="setloc_gps_default">Use My Current Location</span>
   </button>
 
   <!-- Map -->
   <div style="position: relative;">
     <div id="map"></div>
-    <div class="map-hint" id="mapHint">📍 Drag the pin to your exact garage location</div>
+    <div class="map-hint" id="mapHint">📍 <span data-i18n="setloc_map_hint_default">Drag the pin to your exact garage location</span></div>
   </div>
 
   <!-- Location Info -->
   <div class="location-card" id="locationCard">
     <div class="d-flex align-items-center gap-2 mb-2">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="#9CA3AF"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-      <span class="text-muted small fw-medium" id="locationLabel">No location selected yet</span>
+      <span class="text-muted small fw-medium" id="locationLabel" data-i18n="setloc_no_location">No location selected yet</span>
     </div>
     <div class="d-flex gap-2 flex-wrap" id="coordDisplay" style="display:none !important;">
       <span class="coord-pill" id="latDisplay">Lat: —</span>
@@ -234,18 +247,18 @@
 
   <!-- Address fields (auto-fill) -->
   <div class="bg-white border rounded-4 p-3 mt-3" id="addressFields" style="display:none;">
-    <div class="fw-semibold small text-muted mb-2" style="text-transform:uppercase;letter-spacing:0.06em;font-size:0.7rem;">Confirm Address Details</div>
+    <div class="fw-semibold small text-muted mb-2" style="text-transform:uppercase;letter-spacing:0.06em;font-size:0.7rem;" data-i18n="setloc_confirm_address">Confirm Address Details</div>
     <div class="row g-2">
       <div class="col-12">
-        <label class="form-label small fw-semibold">Street / Area</label>
+        <label class="form-label small fw-semibold" data-i18n="profile_label_street">Street / Area</label>
         <input type="text" class="form-control form-control-sm" id="fieldStreet" placeholder="e.g. Sindhi Market, Navrangpura">
       </div>
       <div class="col-6">
-        <label class="form-label small fw-semibold">City</label>
+        <label class="form-label small fw-semibold" data-i18n="profile_label_city">City</label>
         <input type="text" class="form-control form-control-sm" id="fieldCity" value="Ahmedabad">
       </div>
       <div class="col-6">
-        <label class="form-label small fw-semibold">Pincode</label>
+        <label class="form-label small fw-semibold" data-i18n="profile_label_pincode">Pincode</label>
         <input type="text" class="form-control form-control-sm" id="fieldPincode" placeholder="380001" maxlength="6">
       </div>
     </div>
@@ -256,10 +269,10 @@
     <button class="btn-save" id="saveBtn" disabled onclick="saveLocation()">
       <span class="spinner-border spinner-border-sm d-none" id="saveSp"></span>
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" id="saveIcon"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-      Confirm & Save Location
+      <span data-i18n="setloc_save_btn">Confirm & Save Location</span>
     </button>
     <div class="skip-link">
-      <a href="dashboard.html">Skip for now (set later from Profile)</a>
+      <a href="/mechanic/dashboard.html" data-i18n="setloc_skip_link">Skip for now (set later from Profile)</a>
     </div>
   </div>
 
@@ -271,10 +284,10 @@
     <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto mb-3" style="width:64px;height:64px;background:#DCFCE7;">
       <svg viewBox="0 0 24 24" width="32" height="32" fill="#16A34A"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
     </div>
-    <h5 class="fw-bold mb-2" style="font-family:'Syne',sans-serif;">Location Saved!</h5>
-    <p class="text-muted small mb-3">Your garage is now visible to customers nearby.</p>
+    <h5 class="fw-bold mb-2" style="font-family:'Syne',sans-serif;" data-i18n="setloc_success_title">Location Saved!</h5>
+    <p class="text-muted small mb-3" data-i18n="setloc_success_desc">Your garage is now visible to customers nearby.</p>
     <div class="fw-semibold small text-success" id="successAddr">—</div>
-    <div class="mt-3 text-muted small">Redirecting to dashboard...</div>
+    <div class="mt-3 text-muted small" data-i18n="setloc_redirecting">Redirecting to dashboard...</div>
   </div>
 </div>
 
@@ -352,13 +365,13 @@ function setPin(lat, lng) {
   }
 
   // Update UI
-  document.getElementById('latDisplay').textContent = `Lat: ${selectedLat}`;
-  document.getElementById('lngDisplay').textContent = `Lng: ${selectedLng}`;
+  document.getElementById('latDisplay').textContent = `${t('setloc_lat_label')} ${selectedLat}`;
+  document.getElementById('lngDisplay').textContent = `${t('setloc_lng_label')} ${selectedLng}`;
   document.getElementById('coordDisplay').style.display = 'flex';
   document.getElementById('saveBtn').disabled = false;
   document.getElementById('locationCard').classList.add('has-location');
   document.getElementById('addressFields').style.display = 'block';
-  document.getElementById('mapHint').textContent = '✅ Drag pin to fine-tune location';
+  document.getElementById('mapHint').textContent = `✅ ${t('setloc_map_hint_confirmed')}`;
 }
 
 // ── Reverse geocode (address from lat/lng)
@@ -383,11 +396,11 @@ async function reverseGeocode(lat, lng) {
         document.getElementById('fieldPincode').value = addr.postcode;
       }
       if (addr.city || addr.town) {
-        document.getElementById('fieldCity').value = addr.city || addr.town || 'Ahmedabad';
+        document.getElementById('fieldCity').value = addr.city || addr.town || t('profile_city_default');
       }
     }
   } catch {
-    document.getElementById('locationLabel').textContent = `Pin dropped at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    document.getElementById('locationLabel').textContent = `${t('setloc_pin_dropped_label')} ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   }
 }
 
@@ -396,10 +409,10 @@ function useMyLocation() {
   const btn = document.getElementById('gpsBtn');
   const txt = document.getElementById('gpsBtnText');
   btn.classList.add('loading');
-  txt.textContent = 'Getting location...';
+  txt.textContent = t('setloc_getting_location');
 
   if (!navigator.geolocation) {
-    txt.textContent = 'GPS not supported';
+    txt.textContent = t('setloc_gps_not_supported');
     btn.classList.remove('loading');
     return;
   }
@@ -412,12 +425,12 @@ function useMyLocation() {
       setPin(lat, lng);
       reverseGeocode(lat, lng);
       btn.classList.remove('loading');
-      txt.textContent = 'Use My Current Location';
+      txt.textContent = t('setloc_gps_default');
     },
     (err) => {
-      txt.textContent = 'Could not get location';
+      txt.textContent = t('setloc_could_not_get_location');
       btn.classList.remove('loading');
-      setTimeout(() => txt.textContent = 'Use My Current Location', 2000);
+      setTimeout(() => txt.textContent = t('setloc_gps_default'), 2000);
     },
     { timeout: 10000, enableHighAccuracy: true }
   );
@@ -493,7 +506,7 @@ async function saveLocation() {
   icon.classList.add('d-none');
 
   const street  = document.getElementById('fieldStreet').value.trim();
-  const city    = document.getElementById('fieldCity').value.trim() || 'Ahmedabad';
+  const city    = document.getElementById('fieldCity').value.trim() || t('profile_city_default');
   const pincode = document.getElementById('fieldPincode').value.trim();
 
   try {
@@ -526,13 +539,13 @@ async function saveLocation() {
       }, 2000);
     } else {
       const e = await res.json();
-      alert(e.detail || 'Could not save location. Try again.');
+      alert(e.detail || t('setloc_save_failed'));
       btn.disabled = false;
       sp.classList.add('d-none');
       icon.classList.remove('d-none');
     }
   } catch {
-    alert('Network error. Please try again.');
+    alert(t('setloc_network_error'));
     btn.disabled = false;
     sp.classList.add('d-none');
     icon.classList.remove('d-none');
@@ -557,9 +570,9 @@ async function checkExistingLocation() {
       map.setView([loc.latitude, loc.longitude], 17);
       setPin(loc.latitude, loc.longitude);
       document.getElementById('fieldStreet').value  = loc.street  || '';
-      document.getElementById('fieldCity').value    = loc.city    || 'Ahmedabad';
+      document.getElementById('fieldCity').value    = loc.city    || t('profile_city_default');
       document.getElementById('fieldPincode').value = loc.pincode || '';
-      document.getElementById('locationLabel').textContent = 'Location already set — update if needed';
+      document.getElementById('locationLabel').textContent = t('setloc_location_already_set');
     }
   } catch {
     // silent fail
@@ -567,6 +580,10 @@ async function checkExistingLocation() {
 }
 
 checkExistingLocation();
+
+document.addEventListener('i18n:ready', () => {
+  document.getElementById('gpsBtnText').textContent = t('setloc_gps_default');
+});
 </script>
 </body>
 </html>

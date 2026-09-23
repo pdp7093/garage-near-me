@@ -236,12 +236,14 @@ def ensure_schema_updates():
             "garage_note":                  "ALTER TABLE bookings ADD COLUMN garage_note TEXT NULL",
             "has_hidden_issues":            "ALTER TABLE bookings ADD COLUMN has_hidden_issues BOOLEAN NOT NULL DEFAULT FALSE",
             "estimate_otp":                 "ALTER TABLE bookings ADD COLUMN estimate_otp VARCHAR(6) NULL",
+            "estimate_verification_id":     "ALTER TABLE bookings ADD COLUMN estimate_verification_id VARCHAR NULL",
             "estimate_otp_verified":        "ALTER TABLE bookings ADD COLUMN estimate_otp_verified BOOLEAN NOT NULL DEFAULT FALSE",
             "estimate_otp_sent_at":         "ALTER TABLE bookings ADD COLUMN estimate_otp_sent_at TIMESTAMP NULL",
             "additional_estimate":          "ALTER TABLE bookings ADD COLUMN additional_estimate NUMERIC(10,2) NULL",
             "additional_estimate_note":     "ALTER TABLE bookings ADD COLUMN additional_estimate_note TEXT NULL",
             "additional_estimate_details":  "ALTER TABLE bookings ADD COLUMN additional_estimate_details JSONB NULL",
             "additional_otp":               "ALTER TABLE bookings ADD COLUMN additional_otp VARCHAR(6) NULL",
+            "additional_verification_id":   "ALTER TABLE bookings ADD COLUMN additional_verification_id VARCHAR NULL",
             "additional_otp_verified":      "ALTER TABLE bookings ADD COLUMN additional_otp_verified BOOLEAN NOT NULL DEFAULT FALSE",
             "additional_otp_sent_at":       "ALTER TABLE bookings ADD COLUMN additional_otp_sent_at TIMESTAMP NULL",
             "platform_commission":          "ALTER TABLE bookings ADD COLUMN platform_commission NUMERIC(10,2) NULL",
@@ -268,10 +270,15 @@ def ensure_schema_updates():
         new_bill_cols = {
             "platform_commission": "ALTER TABLE bills ADD COLUMN platform_commission NUMERIC(10,2) NULL",
             "garage_earnings":     "ALTER TABLE bills ADD COLUMN garage_earnings NUMERIC(10,2) NULL",
+            "sos_id":              "ALTER TABLE bills ADD COLUMN sos_id INTEGER UNIQUE NULL REFERENCES sos_requests(id)",
         }
         for col_name, sql in new_bill_cols.items():
             if col_name not in bill_columns:
                 updates.append(sql)
+                
+        booking_col = [col for col in inspector.get_columns("bills") if col["name"] == "booking_id"]
+        if booking_col and not booking_col[0].get("nullable", True):
+            updates.append("ALTER TABLE bills ALTER COLUMN booking_id DROP NOT NULL")
 
     if "sos_requests" not in table_names:
         # Create SOS table if it doesn't exist
@@ -302,6 +309,8 @@ def ensure_schema_updates():
                 estimate_otp_verified BOOLEAN DEFAULT FALSE,
                 estimate_otp_sent_at TIMESTAMP WITH TIME ZONE,
                 garage_note TEXT,
+                pending_call_offer JSONB,
+                pending_call_customer_id INTEGER,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                 accepted_at TIMESTAMP WITH TIME ZONE,
                 responded_at TIMESTAMP WITH TIME ZONE,
@@ -322,9 +331,12 @@ def ensure_schema_updates():
             "estimate_status":      "ALTER TABLE sos_requests ADD COLUMN estimate_status VARCHAR(20) DEFAULT 'not_required'",
             "estimate_details":     "ALTER TABLE sos_requests ADD COLUMN estimate_details JSONB NULL",
             "estimate_otp":         "ALTER TABLE sos_requests ADD COLUMN estimate_otp VARCHAR(6) NULL",
+            "estimate_verification_id": "ALTER TABLE sos_requests ADD COLUMN estimate_verification_id VARCHAR NULL",
             "estimate_otp_verified":"ALTER TABLE sos_requests ADD COLUMN estimate_otp_verified BOOLEAN NOT NULL DEFAULT FALSE",
             "estimate_otp_sent_at": "ALTER TABLE sos_requests ADD COLUMN estimate_otp_sent_at TIMESTAMP WITH TIME ZONE NULL",
             "garage_note":          "ALTER TABLE sos_requests ADD COLUMN garage_note TEXT NULL",
+            "pending_call_offer":       "ALTER TABLE sos_requests ADD COLUMN pending_call_offer JSONB NULL",
+            "pending_call_customer_id": "ALTER TABLE sos_requests ADD COLUMN pending_call_customer_id INTEGER NULL",
         }
         for col_name, sql in new_sos_cols.items():
             if col_name not in sos_columns:

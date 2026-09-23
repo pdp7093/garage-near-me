@@ -4,39 +4,74 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 import os
-import random
 
 import models, schemas
 from database import get_db
 import httpx
 
 
-TWILIO_ACCOUNT_SID   = os.getenv("TWILIO_ACCOUNT_SID", "")
-TWILIO_AUTH_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "")
-TWILIO_WHATSAPP_FROM = os.getenv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
+MESSAGECENTRAL_CUSTOMER_ID = os.getenv("MESSAGECENTRAL_CUSTOMER_ID", "")
+MESSAGECENTRAL_AUTH_TOKEN  = os.getenv("MESSAGECENTRAL_AUTH_TOKEN", "")  # Dashboard > Developer Guide > API Credentials se mila hua Auth Token
+MESSAGECENTRAL_BASE_URL    = "https://cpaas.messagecentral.com"
 
-async def send_whatsapp_otp(phone: str, otp: str):
-    """Twilio WhatsApp Sandbox se OTP bhejo"""
-    if not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN:
-        print(f"[OTP] Twilio not configured — OTP for {phone}: {otp}")
-        return
+async def send_otp_via_messagecentral(phone: str) -> str:
+    """
+    Message Central VerifyNow se OTP bhejta hai. Ye khud OTP generate karta hai
+    apne system mein (hum apna OTP nahi banate), aur ek verificationId return
+    karta hai jo verify karte waqt wapas bhejna hota hai.
+    """
+    if not MESSAGECENTRAL_CUSTOMER_ID or not MESSAGECENTRAL_AUTH_TOKEN:
+        print(f"[OTP] Message Central not configured — cannot send OTP to {phone}")
+        return ""
     try:
-        url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
-        to_number = phone if phone.startswith("+") else f"+{phone}"
-        data = {
-            "From": TWILIO_WHATSAPP_FROM,
-            "To": f"whatsapp:{to_number}",
-            "Body": f"Your GarageNearMe OTP is *{otp}*. Valid for 10 minutes. Do not share with anyone."
+        to_number = phone.lstrip("+")
+        if to_number.startswith("91") and len(to_number) > 10:
+            to_number = to_number[2:]
+
+        url = f"{MESSAGECENTRAL_BASE_URL}/verification/v3/send"
+        params = {
+            "countryCode": "91",
+            "flowType": "SMS",
+            "mobileNumber": to_number,
+            "customerId": MESSAGECENTRAL_CUSTOMER_ID,
+            "otpLength": "4",
         }
+        headers = {"authToken": MESSAGECENTRAL_AUTH_TOKEN}
+
         async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.post(
-                url,
-                data=data,
-                auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-            )
-            print(f"[OTP] Twilio response: {resp.status_code} {resp.text}")
+            resp = await client.post(url, params=params, headers=headers)
+            data = resp.json()
+            print(f"[OTP] Message Central send response: {resp.status_code} {data}")
+            return str(data.get("data", {}).get("verificationId", ""))
     except Exception as e:
-        print(f"[OTP] Twilio error: {e}")
+        print(f"[OTP] Message Central send error: {e}")
+        return ""
+
+
+async def verify_otp_via_messagecentral(verification_id: str, code: str) -> bool:
+    """Message Central se OTP verify karta hai. True/False return karta hai."""
+    if not MESSAGECENTRAL_CUSTOMER_ID or not MESSAGECENTRAL_AUTH_TOKEN:
+        print(f"[OTP] Message Central not configured — cannot verify OTP")
+        return False
+    if not verification_id:
+        return False
+    try:
+        url = f"{MESSAGECENTRAL_BASE_URL}/verification/v3/validateOtp"
+        params = {
+            "verificationId": verification_id,
+            "code": code,
+        }
+        headers = {"authToken": MESSAGECENTRAL_AUTH_TOKEN}
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(url, params=params, headers=headers)
+            data = resp.json()
+            print(f"[OTP] Message Central verify response: {resp.status_code} {data}")
+            status_val = data.get("data", {}).get("verificationStatus", "")
+            return status_val == "VERIFICATION_COMPLETED"
+    except Exception as e:
+        print(f"[OTP] Message Central verify error: {e}")
+        return False
 
 
 router = APIRouter()
@@ -104,26 +139,13 @@ async def send_otp(
             detail="No active garage found with this phone number. Please contact admin."
         )
 
-    db.query(models.GarageOTP).filter(
-        models.GarageOTP.phone   == request.phone,
-        models.GarageOTP.is_used == False
-    ).delete()
+    verification_id = await send_otp_via_messagecentral(request.phone)
+    if not verification_id:
+        raise HTTPException(status_code=500, detail="Failed to send OTP. Please try again.")
 
-    otp = str(random.randint(100000, 999999))
+    print(f"[OTP] Garage {request.phone} → verificationId {verification_id}")
 
-    garage_otp = models.GarageOTP(
-        phone      = request.phone,
-        otp        = otp,
-        is_used    = False,
-        expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
-    )
-    db.add(garage_otp)
-    db.commit()
-
-    await send_whatsapp_otp(request.phone, otp)
-    print(f"[OTP] {request.phone} → {otp}")
-
-    return {"message": f"OTP sent to {request.phone}"}
+    return {"message": f"OTP sent to {request.phone}", "verification_id": verification_id}
 
 
 # ──────────────────────────────────────────
@@ -132,18 +154,13 @@ async def send_otp(
 # ──────────────────────────────────────────
 
 @router.post("/verify-otp", response_model=schemas.Token)
-def verify_otp(
+async def verify_otp(
     request: schemas.OTPVerifyRequest,
     db: Session = Depends(get_db)
 ):
-    otp_record = db.query(models.GarageOTP).filter(
-        models.GarageOTP.phone   == request.phone,
-        models.GarageOTP.otp     == request.otp,
-        models.GarageOTP.is_used == False,
-        models.GarageOTP.expires_at > datetime.utcnow()
-    ).first()
+    is_valid = await verify_otp_via_messagecentral(request.verification_id, request.otp)
 
-    if not otp_record:
+    if not is_valid:
         raise HTTPException(
             status_code=401,
             detail="Invalid or expired OTP. Please request a new one."
@@ -156,9 +173,6 @@ def verify_otp(
 
     if not garage:
         raise HTTPException(status_code=404, detail="Garage not found")
-
-    otp_record.is_used = True
-    db.commit()
 
     token = create_access_token(
         data={

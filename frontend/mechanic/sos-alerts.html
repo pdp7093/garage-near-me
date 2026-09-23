@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <style>
     body { background-color: #FEF2F2; }
     .mechanic-layout { background-color: transparent; }
@@ -46,8 +59,8 @@
 
       <!-- Header -->
       <div class="text-center mb-5" id="header-section">
-        <h2 class="fw-bold text-danger mb-2" style="font-family:var(--font-head);" id="header-title">Checking for SOS alerts...</h2>
-        <p class="text-muted" id="header-sub">Please wait...</p>
+        <h2 class="fw-bold text-danger mb-2" style="font-family:var(--font-head);" id="header-title" data-i18n="sosalerts_header_checking">Checking for SOS alerts...</h2>
+        <p class="text-muted" id="header-sub" data-i18n="sosalerts_please_wait">Please wait...</p>
       </div>
 
       <!-- SOS Cards -->
@@ -70,19 +83,19 @@
       <!-- History section -->
       <div class="bg-white rounded-4 border p-4 shadow-sm mt-5 position-relative z-2" id="history-section" style="display:none;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h5 class="fw-bold mb-0 text-dark" style="font-family:var(--font-head);">Recent SOS History</h5>
-          <a href="./sos-history.html" class="btn btn-sm btn-outline-danger rounded-pill px-3">View Full History</a>
+          <h5 class="fw-bold mb-0 text-dark" style="font-family:var(--font-head);" data-i18n="sosalerts_history_title">Recent SOS History</h5>
+          <a href="/mechanic/sos-history.html" class="btn btn-sm btn-outline-danger rounded-pill px-3" data-i18n="sosalerts_view_full_history">View Full History</a>
         </div>
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="text-muted small">
               <tr>
-                <th class="fw-medium pb-3 border-bottom">Customer &amp; Vehicle</th>
-                <th class="fw-medium pb-3 border-bottom">Location</th>
-                <th class="fw-medium pb-3 border-bottom">Date &amp; Time</th>
-                <th class="fw-medium pb-3 border-bottom">Status</th>
-                <th class="fw-medium pb-3 border-bottom text-end">Earning</th>
-                <th class="fw-medium pb-3 border-bottom text-center">Action</th>
+                <th class="fw-medium pb-3 border-bottom" data-i18n="sosalerts_th_customer_vehicle">Customer &amp; Vehicle</th>
+                <th class="fw-medium pb-3 border-bottom" data-i18n="sosalerts_th_location">Location</th>
+                <th class="fw-medium pb-3 border-bottom" data-i18n="sosalerts_th_datetime">Date &amp; Time</th>
+                <th class="fw-medium pb-3 border-bottom" data-i18n="dashboard_table_status">Status</th>
+                <th class="fw-medium pb-3 border-bottom text-end" data-i18n="sosalerts_th_earning">Earning</th>
+                <th class="fw-medium pb-3 border-bottom text-center" data-i18n="dashboard_table_action">Action</th>
               </tr>
             </thead>
             <tbody id="history-tbody"></tbody>
@@ -161,20 +174,20 @@
             <div class="col-12 col-md-10 col-lg-8 mb-4">
               <div class="rounded-4 p-4 sos-card position-relative text-center" style="border-color:#10B981; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);">
                 <div class="mb-3"><span style="font-size:40px;">🔧</span></div>
-                <h4 class="fw-bold mb-2">You have an Active SOS!</h4>
-                <p class="text-muted mb-4">You have already accepted SOS #${myActive.id}. Please complete it.</p>
-                <button onclick="goToSOSDetail('${myActive.slug || myActive.id}')" class="btn btn-success fw-bold rounded-pill px-5 py-2 mb-3">Open SOS Details</button>
+                <h4 class="fw-bold mb-2">${t('sosalerts_active_sos_title')}</h4>
+                <p class="text-muted mb-4">${t('sosalerts_active_sos_desc_prefix')}${myActive.id}. ${t('sosalerts_active_sos_desc_suffix')}</p>
+                <button onclick="goToSOSDetail('${myActive.slug || myActive.id}')" class="btn btn-success fw-bold rounded-pill px-5 py-2 mb-3">${t('sosalerts_open_sos_details')}</button>
                 <div class="mt-2">
                   <button onclick="cancelActiveSOS('${myActive.slug || myActive.id}', ${myActive.id})" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-medium" style="font-size:13px;">
-                    ⚠️ Cancel This SOS
+                    ⚠️ ${t('sosalerts_cancel_this_sos')}
                   </button>
-                  <div class="text-muted mt-2" style="font-size:11px;">Customer ko ₹100 visiting charge bill hoga</div>
+                  <div class="text-muted mt-2" style="font-size:11px;">${t('sosalerts_visiting_charge_note')}</div>
                 </div>
               </div>
             </div>`;
           document.getElementById('sos-container').innerHTML = activeHtml;
-          document.getElementById('header-title').textContent = 'Active SOS Found';
-          document.getElementById('header-sub').textContent = 'Complete your current task first.';
+          document.getElementById('header-title').textContent = t('sosalerts_active_sos_found');
+          document.getElementById('header-sub').textContent = t('sosalerts_complete_current_task');
           return;
       }
 
@@ -192,7 +205,7 @@
       renderAlerts(alerts);
       loadHistory();
     } catch(err) {
-      document.getElementById('header-title').textContent = 'SOS load nahi hua';
+      document.getElementById('header-title').textContent = t('sosalerts_load_failed');
       document.getElementById('header-sub').textContent = err.message;
     }
   }
@@ -203,34 +216,34 @@
     const sub       = document.getElementById('header-sub');
 
     if (alerts.length === 0) {
-      title.textContent = 'No Active SOS Nearby';
-      sub.textContent   = 'Refresh this page to check for new SOS requests.';
+      title.textContent = t('sosalerts_no_active_nearby');
+      sub.textContent   = t('sosalerts_refresh_hint');
       container.innerHTML = `
         <div class="col-12 col-md-10 col-lg-8">
           <div class="rounded-4 p-5 text-center bg-white border">
             <div style="font-size:60px;" class="mb-3">📡</div>
-            <h5 class="fw-bold text-muted">Radar is Active</h5>
-            <p class="text-muted small">Waiting for nearby SOS requests...</p>
+            <h5 class="fw-bold text-muted">${t('sosalerts_radar_active')}</h5>
+            <p class="text-muted small">${t('sosalerts_waiting_requests')}</p>
           </div>
         </div>`;
       return;
     }
 
-    title.textContent = `${alerts.length} Emergency Request${alerts.length > 1 ? 's' : ''} Nearby`;
-    sub.textContent   = 'Accept fast! First mechanic to accept gets the job.';
+    title.textContent = `${alerts.length} ${alerts.length > 1 ? t('sosalerts_emergency_request_plural') : t('sosalerts_emergency_request_singular')} ${t('sosalerts_nearby_suffix')}`;
+    sub.textContent   = t('sosalerts_accept_fast_hint');
 
     container.innerHTML = alerts.map(a => buildSOSCard(a)).join('');
   }
 
   function buildSOSCard(a) {
-    const vt = a.vehicle_type === 'two_wheeler' ? '🏍️ 2 Wheeler' : a.vehicle_type === 'four_wheeler' ? '🚗 4 Wheeler' : a.vehicle_type || 'Vehicle';
+    const vt = a.vehicle_type === 'two_wheeler' ? `🏍️ ${t('vehicle_two_wheeler')}` : a.vehicle_type === 'four_wheeler' ? `🚗 ${t('vehicle_four_wheeler')}` : a.vehicle_type || t('earnings_vehicle_fallback');
     return `
       <div class="col-12 col-md-10 col-lg-8 mb-4">
         <div class="rounded-4 p-4 sos-card position-relative">
           <div class="d-flex justify-content-between align-items-start mb-3">
             <div class="d-flex align-items-center gap-2">
               <div class="rounded-circle bg-danger pulse-dot" style="width:12px;height:12px;"></div>
-              <span class="text-danger fw-bold text-uppercase">Breakdown Alert</span>
+              <span class="text-danger fw-bold text-uppercase">${t('sosalerts_breakdown_alert')}</span>
             </div>
             <span class="badge bg-danger">${a.time_ago}</span>
           </div>
@@ -244,14 +257,14 @@
               </div>
               <div class="d-flex align-items-center gap-2 text-dark fw-bold" style="font-size:15px;">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="#EF4444"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                ${a.customer_address || a.address || 'Location available'}
+                ${a.customer_address || a.address || t('invsos_location_available')}
               </div>
             </div>
             <div class="col-sm-4 text-sm-end text-start">
               ${a.distance_km ? `
               <div class="bg-danger bg-opacity-10 d-inline-block rounded-4 p-3 text-center border border-danger border-opacity-25">
                 <div class="fw-bold" style="font-size:1.8rem;color:#EF4444;line-height:1;">${a.distance_km}</div>
-                <div class="text-danger fw-medium" style="font-size:12px;text-transform:uppercase;">km away</div>
+                <div class="text-danger fw-medium" style="font-size:12px;text-transform:uppercase;">${t('sosalerts_km_away')}</div>
               </div>` : ''}
             </div>
           </div>
@@ -264,10 +277,10 @@
 
           <div class="d-flex flex-column flex-sm-row gap-3">
             <button onclick="acceptSOS('${a.slug || a.id}')" class="btn btn-danger flex-grow-1 fw-bold rounded-pill py-3 shadow fs-5">
-              ACCEPT SOS
+              ${t('sosalerts_accept_sos_btn')}
             </button>
             <button onclick="rejectSOS(${a.id}, this)" class="btn btn-outline-secondary rounded-pill px-4 py-3 fw-bold">
-              Decline
+              ${t('sosalerts_decline_btn')}
             </button>
           </div>
         </div>
@@ -280,10 +293,10 @@
         method: 'POST',
         headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
       });
-      if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+      if (!res.ok) throw new Error((await res.json()).detail || t('job_generic_failed'));
       window.location.href = `/mechanic/sos-detail.html?id=${id}`;
     } catch(e) {
-      showToast(e.message || 'Accept nahi hua. Try again.', 'danger');
+      showToast(e.message || t('sosalerts_accept_failed'), 'danger');
     }
   }
 
@@ -295,12 +308,12 @@
         <div style="background:#fff;border-radius:20px;padding:28px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
           <div style="text-align:center;margin-bottom:20px;">
             <div style="font-size:40px;">⚠️</div>
-            <h6 style="font-weight:700;margin:12px 0 8px;">SOS Cancel Karna Hai?</h6>
-            <p style="color:#6B7280;font-size:13px;margin:0;">Customer ko ₹100 visiting charge bill hoga. Yeh action undo nahi ho sakta.</p>
+            <h6 style="font-weight:700;margin:12px 0 8px;">${t('sosalerts_cancel_confirm_title')}</h6>
+            <p style="color:#6B7280;font-size:13px;margin:0;">${t('sosalerts_cancel_confirm_desc')}</p>
           </div>
           <div style="display:flex;gap:10px;">
-            <button id="cancelNo" style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">Nahi, Wapas</button>
-            <button id="cancelYes" style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Haan, Cancel Karo</button>
+            <button id="cancelNo" style="flex:1;padding:12px;border:1px solid #E5E7EB;border-radius:12px;background:#fff;font-weight:600;font-size:14px;cursor:pointer;color:#6B7280;">${t('sosalerts_cancel_no')}</button>
+            <button id="cancelYes" style="flex:1;padding:12px;border:none;border-radius:12px;background:#EF4444;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">${t('sosalerts_cancel_yes')}</button>
           </div>
         </div>`;
       document.body.appendChild(box);
@@ -323,17 +336,17 @@
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res2.ok) throw new Error('Cancel nahi hua');
+        if (!res2.ok) throw new Error(t('sosalerts_cancel_failed_inner'));
       }
-      showToast('SOS cancel ho gaya', 'success');
+      showToast(t('sosalerts_cancel_success'), 'success');
       setTimeout(() => loadSOSAlerts(true), 1000);
     } catch(e) {
-      showToast(e.message || 'Cancel nahi hua. Try again.', 'danger');
+      showToast(e.message || t('sosalerts_cancel_failed'), 'danger');
     }
   }
 
   async function rejectSOS(id, btn) {
-    btn.disabled = true; btn.textContent = 'Declining...';
+    btn.disabled = true; btn.textContent = t('sosalerts_declining');
     addDeclinedSOS(id); // ✅ Integer store hoga
     _lastAlertIds = null;
     await loadSOSAlerts(true);
@@ -361,9 +374,9 @@
 
       tbody.innerHTML = history.slice(0, 5).map(h => {
         const sc = {
-          completed: `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1">Completed</span>`,
-          rejected:  `<span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1">Missed</span>`,
-          cancelled: `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1">Cancelled</span>`,
+          completed: `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1">${t('status_completed')}</span>`,
+          rejected:  `<span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1">${t('sosalerts_status_missed')}</span>`,
+          cancelled: `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1">${t('status_cancelled')}</span>`,
         }[h.status] || `<span class="badge bg-secondary rounded-pill px-2 py-1">${h.status}</span>`;
 
         const date = new Date(h.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
@@ -371,8 +384,8 @@
 
         return `<tr>
           <td>
-            <div class="fw-bold text-dark">Customer #${h.id}</div>
-            <div class="text-muted small">${h.vehicle_model || h.vehicle_type || 'Vehicle'}${h.vehicle_number ? ' • ' + h.vehicle_number : ''}</div>
+            <div class="fw-bold text-dark">${t('bookings_customer_prefix')} #${h.id}</div>
+            <div class="text-muted small">${h.vehicle_model || h.vehicle_type || t('earnings_vehicle_fallback')}${h.vehicle_number ? ' • ' + h.vehicle_number : ''}</div>
           </td>
           <td><div class="text-dark">${h.customer_address || '—'}</div></td>
           <td><div class="text-dark small">${date}, ${time}</div></td>
@@ -381,7 +394,7 @@
             ${h.final_charge ? '₹' + h.final_charge : '--'}
           </td>
           <td class="text-center">
-            <a href="/mechanic/sos-detail.html?id=${h.slug || h.id}" class="btn btn-sm btn-outline-danger rounded-pill px-3">View</a>
+            <a href="/mechanic/sos-detail.html?id=${h.slug || h.id}" class="btn btn-sm btn-outline-danger rounded-pill px-3">${t('sosalerts_view_btn')}</a>
           </td>
         </tr>`;
       }).join('');
@@ -401,6 +414,8 @@
     loadSOSAlerts(true);
     refreshInterval = setInterval(() => loadSOSAlerts(), 5000);
   });
+
+  document.addEventListener('i18n:ready', () => loadSOSAlerts(true));
 </script>
 </body>
 </html>

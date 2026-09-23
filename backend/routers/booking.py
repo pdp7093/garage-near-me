@@ -13,7 +13,7 @@ import unicodedata
 import models, schemas
 from database import get_db
 
-from routers.auth import send_whatsapp_otp
+from routers.auth import send_otp_via_messagecentral, verify_otp_via_messagecentral
 
 router = APIRouter()
 
@@ -831,18 +831,21 @@ async def send_estimate_otp(
     db.commit()
 
     print(f"\n{'='*40}")
-    print(f"ESTIMATE OTP for Booking #{booking_id}: {otp}")
+    print(f"ESTIMATE OTP for Booking #{booking_id}: Message Central OTP Triggered")
     print(f"Customer phone: {booking.customer.phone}")
     print(f"{'='*40}\n")
 
     customer = db.query(models.Customer).filter(models.Customer.id == booking.customer_id).first()
+    verification_id = ""
     if customer and customer.phone:
         try:
-            await send_whatsapp_otp(customer.phone, otp)
+            verification_id = await send_otp_via_messagecentral(customer.phone)
+            booking.estimate_verification_id = verification_id
+            db.commit()
         except Exception as e:
-            print(f"[OTP] WhatsApp send error: {e}")
+            print(f"[OTP] Message Central send error: {e}")
 
-    return {"message": "OTP sent to customer", "otp": otp}
+    return {"message": "OTP sent to customer", "otp": otp, "verification_id": verification_id}
 
 
 # ──────────────────────────────────────────
@@ -850,7 +853,7 @@ async def send_estimate_otp(
 # ──────────────────────────────────────────
 
 @router.post("/{booking_id}/verify-estimate-otp", response_model=schemas.BookingResponse)
-def verify_estimate_otp(
+async def verify_estimate_otp(
     booking_id: int,
     otp: str,
     db: Session = Depends(get_db),
@@ -862,8 +865,10 @@ def verify_estimate_otp(
     ).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-    if booking.estimate_otp != otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
+    
+    is_valid = await verify_otp_via_messagecentral(booking.estimate_verification_id, otp)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
     if booking.estimate_otp_verified:
         raise HTTPException(status_code=400, detail="OTP already used")
 
@@ -919,17 +924,20 @@ async def send_additional_estimate(
     db.refresh(booking)
 
     print(f"\n{'='*40}")
-    print(f"ADDITIONAL OTP for Booking #{booking_id}: {otp}")
+    print(f"ADDITIONAL OTP for Booking #{booking_id}: Message Central OTP Triggered")
     print(f"{'='*40}\n")
 
     customer = db.query(models.Customer).filter(models.Customer.id == booking.customer_id).first()
+    verification_id = ""
     if customer and customer.phone:
         try:
-            await send_whatsapp_otp(customer.phone, otp)
+            verification_id = await send_otp_via_messagecentral(customer.phone)
+            booking.additional_verification_id = verification_id
+            db.commit()
         except Exception as e:
-            print(f"[OTP] WhatsApp send error: {e}")
+            print(f"[OTP] Message Central send error: {e}")
 
-    return {"message": "Additional estimate sent, OTP generated", "additional_estimate": total, "otp": otp}
+    return {"message": "Additional estimate sent, OTP generated", "additional_estimate": total, "otp": otp, "verification_id": verification_id}
 
 
 # ──────────────────────────────────────────
@@ -937,7 +945,7 @@ async def send_additional_estimate(
 # ──────────────────────────────────────────
 
 @router.post("/{booking_id}/verify-additional-otp", response_model=schemas.BookingResponse)
-def verify_additional_otp(
+async def verify_additional_otp(
     booking_id: int,
     otp: str,
     db: Session = Depends(get_db),
@@ -949,10 +957,12 @@ def verify_additional_otp(
     ).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-    if not booking.additional_otp:
+    if not booking.additional_verification_id and not booking.additional_otp:
         raise HTTPException(status_code=400, detail="No additional estimate sent")
-    if booking.additional_otp != otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
+        
+    is_valid = await verify_otp_via_messagecentral(booking.additional_verification_id, otp)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
     if booking.additional_otp_verified:
         raise HTTPException(status_code=400, detail="OTP already used")
 
@@ -967,7 +977,7 @@ def verify_additional_otp(
 # ──────────────────────────────────────────
 
 @router.post("/{booking_id}/customer-verify-additional-otp", response_model=schemas.BookingResponse)
-def customer_verify_additional_otp(
+async def customer_verify_additional_otp(
     booking_id: int,
     otp: str,
     db: Session = Depends(get_db),
@@ -979,9 +989,11 @@ def customer_verify_additional_otp(
     ).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-    if not booking.additional_otp:
+    if not booking.additional_verification_id and not booking.additional_otp:
         raise HTTPException(status_code=400, detail="No additional estimate sent yet")
-    if booking.additional_otp != otp:
+        
+    is_valid = await verify_otp_via_messagecentral(booking.additional_verification_id, otp)
+    if not is_valid:
         raise HTTPException(status_code=400, detail="Invalid OTP. Please check your WhatsApp.")
     if booking.additional_otp_verified:
         raise HTTPException(status_code=400, detail="OTP already used")

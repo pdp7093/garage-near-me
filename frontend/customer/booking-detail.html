@@ -140,7 +140,7 @@
       <div class="mb-3">
         <div class="fw-bold mb-2" style="font-size:14px;color:#1B1F2E;">WhatsApp pe aaya OTP enter karo approve karne ke liye:</div>
         <input type="tel" id="additional-otp-input" class="form-control otp-input-field w-100"
-          maxlength="6" inputmode="numeric" placeholder="——————"
+          maxlength="4" inputmode="numeric" placeholder="————"
           oninput="this.value=this.value.replace(/\D/g,'')">
         <div id="additional-otp-error" class="text-danger mt-2 d-none" style="font-size:13px;"></div>
       </div>
@@ -258,6 +258,11 @@
 
   let bookingData = null;
   let pollInterval = null;
+  let _bookingCustomerWs = null;
+  let _bookingCustomerPc = null;
+  let _bookingCustomerStream = null;
+  let _bookingIncomingOffer = null;
+  let _bookingPendingIce = [];
 
   const STATUSES = [
     { key: 'pending',   label: 'Booking Request Bheja',  icon: '📋' },
@@ -284,6 +289,7 @@
       if (!res.ok) throw new Error();
       const b = await res.json();
       bookingData = b;
+      connectBookingCustomerWS(b);
       renderBooking(b);
     } catch (e) {
       document.getElementById('skeleton').style.display = 'none';
@@ -460,8 +466,8 @@
 
     errorEl.classList.add('d-none');
 
-    if (otp.length !== 6) {
-      errorEl.textContent = '6 digit OTP enter karo.';
+    if (otp.length !== 4) {
+      errorEl.textContent = '4 digit OTP enter karo.';
       errorEl.classList.remove('d-none');
       return;
     }
@@ -563,6 +569,88 @@
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3500);
+  }
+
+  function getBookingCustomerId() {
+    try { return JSON.parse(atob(token.split('.')[1])).user_id || null; } catch { return null; }
+  }
+
+  function connectBookingCustomerWS(booking) {
+    const customerId = getBookingCustomerId();
+    if (!customerId || !booking?.garage_id || _bookingCustomerWs) return;
+    const base = typeof getWsBase === 'function' ? getWsBase() : `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
+    _bookingCustomerWs = new WebSocket(`${base}/ws/customer/${customerId}`);
+    _bookingCustomerWs.onmessage = event => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'webrtc_offer') {
+          _bookingIncomingOffer = data.offer;
+          showBookingIncomingCall();
+        } else if (data.type === 'webrtc_answer' && _bookingCustomerPc) {
+          _bookingCustomerPc.setRemoteDescription(new RTCSessionDescription(data.answer));
+        } else if (data.type === 'webrtc_ice') {
+          if (_bookingCustomerPc?.remoteDescription) _bookingCustomerPc.addIceCandidate(new RTCIceCandidate(data.candidate));
+          else _bookingPendingIce.push(data.candidate);
+        } else if (data.type === 'webrtc_end') {
+          endBookingCustomerCall(false);
+        }
+      } catch (error) { console.warn('[Booking Call] Signal error', error); }
+    };
+    _bookingCustomerWs.onclose = () => { _bookingCustomerWs = null; };
+  }
+
+  function showBookingIncomingCall() {
+    let overlay = document.getElementById('booking-incoming-call');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'booking-incoming-call';
+      overlay.style.cssText = 'display:flex;position:fixed;inset:0;z-index:99999;background:#0a0a0a;flex-direction:column;align-items:center;justify-content:space-between;padding:64px 24px 80px;color:#fff;';
+      overlay.innerHTML = `<div style="text-align:center;"><div style="color:#22C55E;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">📞 Incoming Call</div><div style="font-size:22px;font-weight:700;">Garage Mechanic</div><div id="booking-incoming-status" style="color:#9CA3AF;font-size:14px;margin-top:6px;">Calling...</div></div><div style="width:130px;height:130px;border-radius:50%;background:#22C55E;display:flex;align-items:center;justify-content:center;font-size:46px;">🔧</div><div style="display:flex;gap:48px;"><button onclick="rejectBookingCall()" style="width:68px;height:68px;border-radius:50%;background:#E53E3E;border:none;color:#fff;font-size:28px;cursor:pointer;">☎</button><button onclick="acceptBookingCall()" style="width:68px;height:68px;border-radius:50%;background:#22C55E;border:none;color:#fff;font-size:28px;cursor:pointer;">☎</button></div>`;
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+  }
+
+  async function acceptBookingCall() {
+    if (!_bookingIncomingOffer || !_bookingCustomerWs) return;
+    try {
+      _bookingCustomerStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      _bookingCustomerPc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] });
+      _bookingCustomerStream.getTracks().forEach(track => _bookingCustomerPc.addTrack(track, _bookingCustomerStream));
+      _bookingCustomerPc.ontrack = event => {
+        let audio = document.getElementById('booking-customer-audio');
+        if (!audio) { audio = document.createElement('audio'); audio.id = 'booking-customer-audio'; audio.autoplay = true; document.body.appendChild(audio); }
+        audio.srcObject = event.streams[0];
+      };
+      _bookingCustomerPc.onicecandidate = event => {
+        if (event.candidate && _bookingCustomerWs.readyState === WebSocket.OPEN) _bookingCustomerWs.send(JSON.stringify({ type: 'webrtc_ice', target_garage_id: bookingData.garage_id, candidate: event.candidate }));
+      };
+      _bookingCustomerPc.onconnectionstatechange = () => { if (['disconnected', 'failed', 'closed'].includes(_bookingCustomerPc?.connectionState)) endBookingCustomerCall(); };
+      await _bookingCustomerPc.setRemoteDescription(new RTCSessionDescription(_bookingIncomingOffer));
+      for (const candidate of _bookingPendingIce) await _bookingCustomerPc.addIceCandidate(new RTCIceCandidate(candidate));
+      _bookingPendingIce = [];
+      const answer = await _bookingCustomerPc.createAnswer();
+      await _bookingCustomerPc.setLocalDescription(answer);
+      _bookingCustomerWs.send(JSON.stringify({ type: 'webrtc_answer', target_garage_id: bookingData.garage_id, answer }));
+      document.getElementById('booking-incoming-status').textContent = 'Connected';
+    } catch (error) {
+      endBookingCustomerCall();
+      showToast(error.message || 'Call accept nahi hui.', 'danger');
+    }
+  }
+
+  function rejectBookingCall() { endBookingCustomerCall(); }
+
+  function endBookingCustomerCall(notify = true) {
+    if (_bookingCustomerPc) { _bookingCustomerPc.close(); _bookingCustomerPc = null; }
+    if (_bookingCustomerStream) { _bookingCustomerStream.getTracks().forEach(track => track.stop()); _bookingCustomerStream = null; }
+    const audio = document.getElementById('booking-customer-audio');
+    if (audio) audio.remove();
+    const overlay = document.getElementById('booking-incoming-call');
+    if (overlay) overlay.remove();
+    if (notify && _bookingCustomerWs?.readyState === WebSocket.OPEN && bookingData?.garage_id) _bookingCustomerWs.send(JSON.stringify({ type: 'webrtc_end', target_garage_id: bookingData.garage_id }));
+    _bookingIncomingOffer = null;
+    _bookingPendingIce = [];
   }
 
   document.addEventListener('DOMContentLoaded', () => {

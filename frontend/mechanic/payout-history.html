@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -35,18 +48,18 @@
               </svg>
             </div>
             <div>
-              <h5 class="fw-bold mb-1 text-danger" style="font-family: var(--font-head);">Account Temporarily Locked</h5>
-              <p class="mb-0 text-muted small">Aapka outstanding platform dues amount ₹500 cross ho gaya hai. Local radar pings aur new incoming bookings block kar di gayi hain. Please scan the QR code to clear your dues and reactivate your account instantly.</p>
+              <h5 class="fw-bold mb-1 text-danger" style="font-family: var(--font-head);" data-i18n="payout_locked_title">Account Temporarily Locked</h5>
+              <p class="mb-0 text-muted small" data-i18n="payout_locked_desc">Aapka outstanding platform dues amount ₹500 cross ho gaya hai. Local radar pings aur new incoming bookings block kar di gayi hain. Please scan the QR code to clear your dues and reactivate your account instantly.</p>
             </div>
           </div>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
           <div>
-            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);">Platform Payouts &amp; Ledger</h4>
-            <p class="text-muted small mb-0">Pay your outstanding commission balance directly via static UPI QR and check verification status.</p>
+            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" data-i18n="payout_title">Platform Payouts &amp; Ledger</h4>
+            <p class="text-muted small mb-0" data-i18n="payout_subtitle">Pay your outstanding commission balance directly via static UPI QR and check verification status.</p>
           </div>
-          <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#payDuesModal">
+          <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#payDuesModal" data-i18n="payout_pay_dues_btn">
             Pay Outstanding Dues
           </button>
         </div>
@@ -55,44 +68,44 @@
         <div class="row g-4 mb-4">
           <div class="col-md-4">
             <div class="stat-card border" id="outstandingCard" style="background: rgba(239, 68, 68, 0.03); border-color: rgba(239, 68, 68, 0.25) !important;">
-              <div class="text-danger fw-bold mb-2 small text-uppercase tracking-wider">Outstanding Commission</div>
+              <div class="text-danger fw-bold mb-2 small text-uppercase tracking-wider" data-i18n="payout_outstanding_commission">Outstanding Commission</div>
               <h2 class="fw-bold text-danger mb-0" id="outstandingBalance">₹0.00</h2>
-              <p class="text-muted small mt-2 mb-0" id="lockStatusSub">Active Account</p>
+              <p class="text-muted small mt-2 mb-0" id="lockStatusSub" data-i18n="payout_active_account">Active Account</p>
             </div>
           </div>
           <div class="col-md-4">
             <div class="stat-card bg-white border shadow-sm">
-              <div class="text-success fw-bold mb-2 small text-uppercase tracking-wider">Total Commission Paid</div>
+              <div class="text-success fw-bold mb-2 small text-uppercase tracking-wider" data-i18n="payout_total_commission_paid">Total Commission Paid</div>
               <h2 class="fw-bold text-success mb-0" id="totalPaidAmt">₹0.00</h2>
-              <p class="text-muted small mt-2 mb-0">Lifetime platform share settled</p>
+              <p class="text-muted small mt-2 mb-0" data-i18n="payout_lifetime_settled">Lifetime platform share settled</p>
             </div>
           </div>
           <div class="col-md-4">
             <div class="stat-card bg-white border shadow-sm">
-              <div class="text-warning fw-bold mb-2 small text-uppercase tracking-wider">Pending Approvals</div>
+              <div class="text-warning fw-bold mb-2 small text-uppercase tracking-wider" data-i18n="payout_pending_approvals">Pending Approvals</div>
               <h2 class="fw-bold text-warning mb-0" id="pendingApprovalsCount">0</h2>
-              <p class="text-muted small mt-2 mb-0">Payments currently under review</p>
+              <p class="text-muted small mt-2 mb-0" data-i18n="payout_pending_review">Payments currently under review</p>
             </div>
           </div>
         </div>
 
         <!-- Payout Requests Table -->
         <div class="bg-white rounded-4 border p-4 shadow-sm">
-          <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Payout Requests Ledger</h5>
+          <h5 class="fw-bold mb-4" style="font-family: var(--font-head);" data-i18n="payout_ledger_title">Payout Requests Ledger</h5>
           <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
               <thead class="text-muted small">
                 <tr>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Request ID</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Submitted Date</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">UTR Number</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Amount Paid</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom text-center">Status</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="payout_th_request_id">Request ID</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="payout_th_submitted_date">Submitted Date</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="payout_th_utr">UTR Number</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end" data-i18n="payout_th_amount_paid">Amount Paid</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-center" data-i18n="dashboard_table_status">Status</th>
                 </tr>
               </thead>
               <tbody class="border-top-0" id="payoutRequestsBody">
                 <tr>
-                  <td colspan="5" class="text-center text-muted py-4">Loading payout history...</td>
+                  <td colspan="5" class="text-center text-muted py-4" data-i18n="payout_loading">Loading payout history...</td>
                 </tr>
               </tbody>
             </table>
@@ -107,39 +120,39 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content rounded-4 border-0 shadow-lg">
         <div class="modal-header border-bottom-0 pb-0">
-          <h5 class="modal-title fw-bold" id="payDuesModalLabel" style="font-family: var(--font-head);">Clear Outstanding Dues</h5>
+          <h5 class="modal-title fw-bold" id="payDuesModalLabel" style="font-family: var(--font-head);" data-i18n="payout_modal_title">Clear Outstanding Dues</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body pt-3">
           <div class="text-center mb-4">
-            <p class="text-muted small mb-3">Scan this static UPI QR via GPay, PhonePe, or Paytm to pay outstanding dues.</p>
-            
+            <p class="text-muted small mb-3" data-i18n="payout_modal_scan_desc">Scan this static UPI QR via GPay, PhonePe, or Paytm to pay outstanding dues.</p>
+
             <div class="bg-white p-3 border rounded-4 d-inline-block shadow-sm mb-3">
               <img id="modalQrCode" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=adminupi@okaxis%26pn=GarageNearMeAdmin%26cu=INR" alt="UPI QR Code" style="width: 180px; height: 180px; object-fit: contain;">
             </div>
-            
+
             <div class="small">
-              <span class="text-muted">UPI ID:</span> <strong class="text-dark" id="modalUpiId">adminupi@okaxis</strong>
+              <span class="text-muted" data-i18n="payout_upi_id_label">UPI ID:</span> <strong class="text-dark" id="modalUpiId">adminupi@okaxis</strong>
             </div>
           </div>
 
           <form id="payoutSubmissionForm">
             <div class="mb-3">
-              <label class="form-label small fw-bold text-muted text-uppercase">Payment Amount (₹)</label>
+              <label class="form-label small fw-bold text-muted text-uppercase" data-i18n="payout_label_amount">Payment Amount (₹)</label>
               <input type="number" step="0.01" class="form-control rounded-3" id="paymentAmountInput" required placeholder="e.g. 500">
             </div>
 
             <div class="mb-3">
-              <label class="form-label small fw-bold text-muted text-uppercase">12-Digit UPI UTR / Transaction ID</label>
+              <label class="form-label small fw-bold text-muted text-uppercase" data-i18n="payout_label_utr">12-Digit UPI UTR / Transaction ID</label>
               <input type="text" class="form-control rounded-3" id="paymentUtrInput" maxlength="12" required placeholder="e.g. 123456789012" style="font-weight: 600; letter-spacing: 0.5px;">
-              <div id="utrModalError" class="form-text text-danger d-none">Please enter a valid 12-digit numeric UTR code.</div>
+              <div id="utrModalError" class="form-text text-danger d-none" data-i18n="payout_utr_error">Please enter a valid 12-digit numeric UTR code.</div>
             </div>
 
             <div class="alert alert-warning border-warning border-opacity-25 rounded-3 p-3 mb-4" style="background: rgba(245, 158, 11, 0.05);">
-              <div class="small text-muted"><strong>Important:</strong> Enter the exact 12-digit UTR shown in your UPI app receipt. Incorrect UTR entry will lead to automatic rejection by Admin.</div>
+              <div class="small text-muted"><strong data-i18n="payout_important_label">Important:</strong> <span data-i18n="payout_important_desc">Enter the exact 12-digit UTR shown in your UPI app receipt. Incorrect UTR entry will lead to automatic rejection by Admin.</span></div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-bold">Submit Payment Verification</button>
+            <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-3 fw-bold" data-i18n="payout_submit_btn">Submit Payment Verification</button>
           </form>
         </div>
       </div>
@@ -181,12 +194,12 @@
 
         if (garage.is_credit_locked) {
           lockBanner.classList.remove('d-none');
-          lockStatusSub.innerText = 'Suspended (Pay immediately)';
+          lockStatusSub.innerText = t('payout_suspended');
           lockStatusSub.className = 'text-danger fw-bold small mt-2 mb-0';
           outstandingCard.style.cssText = 'background: rgba(239, 68, 68, 0.08); border-color: #EF4444 !important; box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);';
         } else {
           lockBanner.classList.add('d-none');
-          lockStatusSub.innerText = 'Active Account';
+          lockStatusSub.innerText = t('payout_active_account');
           lockStatusSub.className = 'text-success fw-bold small mt-2 mb-0';
           outstandingCard.style.cssText = 'background: rgba(239, 68, 68, 0.02); border-color: rgba(239, 68, 68, 0.15) !important;';
         }
@@ -208,7 +221,7 @@
 
         const tbody = document.getElementById('payoutRequestsBody');
         if (requests.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No payout requests submitted yet.</td></tr>';
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">${t('payout_no_requests')}</td></tr>`;
         } else {
           tbody.innerHTML = requests.map(req => {
             if (req.status === 'approved') {
@@ -219,11 +232,11 @@
 
             let statusBadge = '';
             if (req.status === 'approved') {
-              statusBadge = '<span class="badge bg-success rounded-pill px-3 py-1.5 fw-semibold border border-success border-opacity-10">Approved</span>';
+              statusBadge = `<span class="badge bg-success rounded-pill px-3 py-1.5 fw-semibold border border-success border-opacity-10">${t('payout_status_approved')}</span>`;
             } else if (req.status === 'rejected') {
-              statusBadge = '<span class="badge bg-danger rounded-pill px-3 py-1.5 fw-semibold border border-danger border-opacity-10">Rejected</span>';
+              statusBadge = `<span class="badge bg-danger rounded-pill px-3 py-1.5 fw-semibold border border-danger border-opacity-10">${t('payout_status_rejected')}</span>`;
             } else {
-              statusBadge = '<span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 fw-semibold border border-warning border-opacity-10">Pending Approval</span>';
+              statusBadge = `<span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 fw-semibold border border-warning border-opacity-10">${t('payout_status_pending')}</span>`;
             }
 
             const dateStr = new Date(req.created_at).toLocaleString('en-IN', {
@@ -250,7 +263,7 @@
 
       } catch (err) {
         console.error('Error fetching payout details:', err);
-        document.getElementById('payoutRequestsBody').innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Failed to load payout data. Please refresh.</td></tr>';
+        document.getElementById('payoutRequestsBody').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">${t('payout_load_failed')}</td></tr>`;
       }
     }
 
@@ -284,27 +297,30 @@
 
         if (!response.ok) {
           const errData = await response.json();
-          throw new Error(errData.detail || 'Failed to submit payout request');
+          throw new Error(errData.detail || t('payout_submit_failed'));
         }
 
         // Close modal and refresh page
         const payModal = bootstrap.Modal.getInstance(document.getElementById('payDuesModal'));
         payModal.hide();
-        
+
         // Reset Form
         document.getElementById('payoutSubmissionForm').reset();
-        
-        alert('Thank you! Payment proof submitted successfully. Auto-verifying...');
+
+        alert(t('payout_submit_success'));
         loadPayoutPageData();
 
       } catch (err) {
         console.error(err);
-        alert(err.message || 'Payment submission failed. Please check details and try again.');
+        alert(err.message || t('payout_submit_error'));
       }
     });
 
     // Execute on load
     loadPayoutPageData();
+
+    // Language switch hote hi dynamic content (JS se aaya text) bhi refresh karo
+    document.addEventListener('i18n:ready', loadPayoutPageData);
   </script>
 </body>
 </html>

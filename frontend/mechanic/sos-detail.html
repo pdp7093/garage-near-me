@@ -14,6 +14,19 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <style>
     body {
       background-color: #FEF2F2;
@@ -163,13 +176,13 @@
                       <path
                         d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                     </svg>
-                    <div style="font-size:13px;">Breakdown Location</div>
+                    <div style="font-size:13px;" data-i18n="sosdetail_breakdown_location">Breakdown Location</div>
                   </div>
                 </div>
                 <div class="p-4">
                   <div class="d-flex justify-content-between align-items-start gap-3">
                     <div>
-                      <h6 class="fw-bold mb-1">Breakdown Location</h6>
+                      <h6 class="fw-bold mb-1" data-i18n="sosdetail_breakdown_location">Breakdown Location</h6>
                       <p class="text-muted mb-0" id="booking-address" style="font-size:14px;">—</p>
                       <p class="text-danger fw-semibold mb-0 mt-1" id="booking-distance" style="font-size:13px;"></p>
                     </div>
@@ -179,7 +192,7 @@
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                         <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
                       </svg>
-                      Navigate
+                      <span data-i18n="job_navigate">Navigate</span>
                     </a>
                   </div>
                 </div>
@@ -187,31 +200,31 @@
 
               <!-- Customer Details -->
               <div class="bg-white rounded-4 shadow-sm p-4 mb-4 sos-border">
-                <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size:12px;letter-spacing:1px;">Vehicle
+                <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size:12px;letter-spacing:1px;" data-i18n="sosdetail_vehicle_details">Vehicle
                   Details</h6>
                 <div class="row g-3">
                   <div class="col-sm-4">
                     <div class="bg-light rounded-3 p-3 text-center">
-                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Type</div>
+                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;" data-i18n="sosdetail_label_type">Type</div>
                       <div class="fw-bold text-dark" id="vehicle-type" style="font-size:13px;">—</div>
                     </div>
                   </div>
                   <div class="col-sm-4">
                     <div class="bg-light rounded-3 p-3 text-center">
-                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Model</div>
+                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;" data-i18n="job_label_model">Model</div>
                       <div class="fw-bold text-dark" id="vehicle-model" style="font-size:13px;">—</div>
                     </div>
                   </div>
                   <div class="col-sm-4">
                     <div class="bg-light rounded-3 p-3 text-center">
-                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;">Reg. No.</div>
+                      <div class="text-muted mb-1" style="font-size:11px;text-transform:uppercase;" data-i18n="job_label_regno">Reg. No.</div>
                       <div class="fw-bold text-dark" id="vehicle-number" style="font-size:13px;">—</div>
                     </div>
                   </div>
                 </div>
                 <div class="mt-3" id="desc-section" style="display:none;">
                   <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25 mt-3">
-                    <span class="text-danger fw-bold d-block mb-1">Emergency Issue:</span>
+                    <span class="text-danger fw-bold d-block mb-1" data-i18n="sosdetail_emergency_issue">Emergency Issue:</span>
                     <span id="booking-desc" class="text-dark"></span>
                   </div>
                 </div>
@@ -222,7 +235,7 @@
             <!-- RIGHT: Flow -->
             <div class="col-12 col-lg-5">
               <div class="bg-white rounded-4 shadow-sm p-4 sticky-top sos-border" style="top:80px;">
-                <h5 class="fw-bold mb-1 text-danger" style="font-family:var(--font-head);">SOS #<span
+                <h5 class="fw-bold mb-1 text-danger" style="font-family:var(--font-head);"><span data-i18n="sosdetail_sos_label">SOS #</span><span
                     id="booking-id"></span></h5>
                 <div class="text-muted mb-4 pb-3 border-bottom" style="font-size:13px;" id="booking-time"></div>
                 <div id="flow-section"></div>
@@ -240,19 +253,19 @@
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content rounded-4 border-0 shadow">
         <div class="modal-header border-0 pb-0">
-          <h6 class="modal-title fw-bold">Select Predefined Services</h6>
+          <h6 class="modal-title fw-bold" data-i18n="job_modal_select_services">Select Predefined Services</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body px-4">
           <div id="garage-services-list">
-            <div class="text-center py-4 text-muted small">Loading services...</div>
+            <div class="text-center py-4 text-muted small" data-i18n="job_loading_services">Loading services...</div>
           </div>
         </div>
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-outline-secondary rounded-pill px-3"
-            data-bs-dismiss="modal">Cancel</button>
+            data-bs-dismiss="modal" data-i18n="job_cancel">Cancel</button>
           <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;"
-            onclick="confirmGarageServices()">Confirm</button>
+            onclick="confirmGarageServices()" data-i18n="job_confirm">Confirm</button>
         </div>
       </div>
     </div>
@@ -263,21 +276,21 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content rounded-4 border-0 shadow">
         <div class="modal-header border-0 pb-0">
-          <h6 class="modal-title fw-bold">Customer OTP Verify Karo</h6>
+          <h6 class="modal-title fw-bold" data-i18n="sosdetail_otp_modal_title">Customer OTP Verify Karo</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body px-4">
-          <p class="text-muted mb-3" style="font-size:13px;">Customer se OTP lo aur yahan enter karo — kaam shuru hoga:
+          <p class="text-muted mb-3" style="font-size:13px;" data-i18n="sosdetail_otp_modal_desc">Customer se OTP lo aur yahan enter karo — kaam shuru hoga:
           </p>
-          <input type="text" id="otp-input" class="form-control otp-input rounded-3 border-2" maxlength="6"
-            placeholder="------">
+          <input type="text" id="otp-input" class="form-control otp-input rounded-3 border-2" maxlength="4"
+            placeholder="----">
           <div id="otp-error" class="text-danger mt-2 d-none" style="font-size:13px;"></div>
         </div>
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-outline-secondary rounded-pill px-3"
-            data-bs-dismiss="modal">Cancel</button>
+            data-bs-dismiss="modal" data-i18n="job_cancel">Cancel</button>
           <button type="button" class="btn text-white rounded-pill px-4 fw-bold" style="background:#EF4444;"
-            id="otp-confirm-btn" onclick="confirmOTP()">Verify</button>
+            id="otp-confirm-btn" onclick="confirmOTP()" data-i18n="sosdetail_verify_btn">Verify</button>
         </div>
       </div>
     </div>
@@ -287,7 +300,7 @@
   <script src="/js/components.js"></script>
   <script src="/js/bootstrap.js"></script>
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(window.location.search || window.location.href.split('?')[1] || '');
     // Try query param first, then try slug from path: /mechanic/sos-detail/<id>
     let queryId = urlParams.get('id');
     if (queryId) queryId = String(queryId).trim(); // Ensure it's a string and trimmed
@@ -304,7 +317,7 @@
       bookingIdType: typeof bookingId,
       bookingIdTruthy: !!bookingId
     });
-    initMechanicChrome(`SOS #${bookingId}`, null, 'sos-alerts.html');
+    initMechanicChrome(`${t('sosdetail_sos_label')}${bookingId}`, null, 'sos-alerts.html');
     const API = () => getApiBase();
     let booking = null;
     let detailRefreshInterval = null;
@@ -320,7 +333,7 @@
       console.log('[SOS-DETAIL] loadDetail() called, bookingId:', bookingId);
       if (!bookingId) {
         console.error('[SOS-DETAIL] REDIRECT: bookingId is falsy!', bookingId);
-        window.location.replace('sos-alerts.html');
+        window.location.replace('/mechanic/sos-alerts.html');
         return;
       }
       if (_loadLock) return;  // concurrent call aa gayi — skip karo
@@ -360,9 +373,9 @@
           document.getElementById('page-content').style.display = 'none';
           document.getElementById('page-skeleton').innerHTML = `
           <div class="text-center py-5 text-muted">
-            <h5>⚠️ Yeh SOS ab valid nahi hai</h5>
-            <p class="mb-3">${booking.status === 'cancelled' ? 'Customer ne cancel kar diya' : 'Yeh kaam pura ho gaya'}</p>
-            <a href="sos-alerts.html" class="btn btn-sm rounded-pill px-4 text-white" style="background:#EF4444;">← Wapas Jao</a>
+            <h5>⚠️ ${t('sosdetail_invalid_sos')}</h5>
+            <p class="mb-3">${booking.status === 'cancelled' ? t('sosdetail_cancelled_by_customer') : t('sosdetail_already_done')}</p>
+            <a href="/mechanic/sos-alerts.html" class="btn btn-sm rounded-pill px-4 text-white" style="background:#EF4444;">← ${t('sosdetail_back_wapas')}</a>
           </div>`;
           return;
         }
@@ -381,7 +394,7 @@
           const timeEl = document.getElementById('booking-time');
           const distEl = document.getElementById('booking-distance');
           if (timeEl) timeEl.textContent = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
-          if (distEl && booking.distance_km) distEl.textContent = `📍 ${booking.distance_km} km away`;
+          if (distEl && booking.distance_km) distEl.textContent = `📍 ${booking.distance_km} ${t('sosalerts_km_away')}`;
         }
 
         // Interval ek baar set karo
@@ -397,11 +410,11 @@
         document.getElementById('page-content').style.display = 'none';
         document.getElementById('page-skeleton').innerHTML = `
         <div class="text-center py-5 text-muted">
-          <h5>SOS load nahi hua</h5>
-          <p class="text-muted small">Network check karo ya page reload karo</p>
+          <h5>${t('sosalerts_load_failed')}</h5>
+          <p class="text-muted small">${t('sosdetail_network_check_hint')}</p>
           <div class="d-flex gap-2 justify-content-center mt-2">
-            <button onclick="location.reload()" class="btn btn-sm rounded-pill px-4 text-white" style="background:#EF4444;">↻ Retry</button>
-            <a href="sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill px-4">← Wapas Jao</a>
+            <button onclick="location.reload()" class="btn btn-sm rounded-pill px-4 text-white" style="background:#EF4444;">↻ ${t('sosdetail_retry_btn')}</button>
+            <a href="/mechanic/sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill px-4">← ${t('sosdetail_back_wapas')}</a>
           </div>
         </div>`;
       } finally {
@@ -417,10 +430,10 @@
       document.getElementById('booking-time').textContent = booking.time_ago + ' • ' + new Date(booking.created_at).toLocaleString('en-IN');
 
       // Location
-      const addr = booking.address || 'Location available on map';
+      const addr = booking.address || t('sosdetail_location_available_on_map');
       document.getElementById('booking-address').textContent = addr;
       if (booking.distance_km) {
-        document.getElementById('booking-distance').textContent = `📍 ${booking.distance_km} km away`;
+        document.getElementById('booking-distance').textContent = `📍 ${booking.distance_km} ${t('sosalerts_km_away')}`;
       }
       if (booking.latitude && booking.longitude) {
         const nb = document.getElementById('navigate-btn');
@@ -429,7 +442,7 @@
       }
 
       // Vehicle
-      const vt = booking.vehicle_type === 'two_wheeler' ? '2 Wheeler' : booking.vehicle_type === 'four_wheeler' ? '4 Wheeler' : booking.vehicle_type || '—';
+      const vt = booking.vehicle_type === 'two_wheeler' ? t('vehicle_two_wheeler') : booking.vehicle_type === 'four_wheeler' ? t('vehicle_four_wheeler') : booking.vehicle_type || '—';
       document.getElementById('vehicle-type').textContent = vt;
       document.getElementById('vehicle-model').textContent = booking.vehicle_model || '—';
       document.getElementById('vehicle-number').textContent = booking.vehicle_number || '—';
@@ -453,7 +466,7 @@
       } else if (s === 'completed') {
         el.innerHTML = renderCompletedFlow();
       } else {
-        el.innerHTML = `<div class="text-center text-muted py-4"><p>Status: ${s}</p><a href="sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill">← Back</a></div>`;
+        el.innerHTML = `<div class="text-center text-muted py-4"><p>${t('sosdetail_status_label')}: ${s}</p><a href="/mechanic/sos-alerts.html" class="btn btn-sm btn-outline-secondary rounded-pill">← ${t('job_back')}</a></div>`;
       }
     }
 
@@ -465,19 +478,19 @@
       if (!arrived) {
         return `
         <div class="timeline">
-          <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+          <div class="timeline-item completed"><div class="fw-bold text-success">${t('sosdetail_sos_accepted')} ✓</div></div>
           <div class="timeline-item active">
-            <div class="fw-bold text-danger mb-2">Customer Location Pe Jao</div>
-            <p class="text-muted mb-3" style="font-size:13px;">Location pe pahunchne ke baad niche button dabao — customer ko notify hoga.</p>
+            <div class="fw-bold text-danger mb-2">${t('sosdetail_go_to_location')}</div>
+            <p class="text-muted mb-3" style="font-size:13px;">${t('sosdetail_arrival_hint')}</p>
             <button onclick="markArrived()" id="arrived-btn" class="btn text-white rounded-pill w-100 fw-bold py-3 shadow" style="background:#EF4444;font-size:16px;">
-              📍 Main Pahunch Gaya — Mark Arrived
+              📍 ${t('sosdetail_mark_arrived_btn')}
             </button>
             <a href="#" id="navigate-btn2" target="_blank" class="btn btn-outline-danger rounded-pill w-100 mt-2 fw-medium py-2" style="display:none;">
-              🗺️ Navigate to Location
+              🗺️ ${t('sosdetail_navigate_to_location')}
             </a>
           </div>
-          <div class="timeline-item"><div class="text-muted">Estimate Bhejo</div></div>
-          <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
+          <div class="timeline-item"><div class="text-muted">${t('sosdetail_send_estimate_label')}</div></div>
+          <div class="timeline-item"><div class="text-muted">${t('sosdetail_work_start_label')}</div></div>
         </div>`;
       }
 
@@ -485,40 +498,40 @@
       if (estSent) {
         return `
         <div class="timeline">
-          <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
-          <div class="timeline-item completed"><div class="fw-bold text-success">Arrived ✓</div></div>
+          <div class="timeline-item completed"><div class="fw-bold text-success">${t('sosdetail_sos_accepted')} ✓</div></div>
+          <div class="timeline-item completed"><div class="fw-bold text-success">${t('sosdetail_arrived')} ✓</div></div>
           <div class="timeline-item active">
-            <div class="fw-bold text-danger mb-2">Estimate Bheja — OTP Ka Wait</div>
+            <div class="fw-bold text-danger mb-2">${t('sosdetail_estimate_sent_waiting')}</div>
             <div class="mt-3">
               <div class="d-flex justify-content-between align-items-center py-2 border-bottom mb-2" style="font-size:13px;">
-                <span class="text-muted">Emergency Visiting Charge</span>
+                <span class="text-muted">${t('sosdetail_emergency_visiting_charge')}</span>
                 <span class="fw-semibold text-danger">₹100</span>
               </div>
               <div class="mb-2">
-                <span class="text-muted" style="font-size:12px;text-transform:uppercase;">Issues &amp; Cost</span>
+                <span class="text-muted" style="font-size:12px;text-transform:uppercase;">${t('sosdetail_issues_cost')}</span>
               </div>
               ${renderEstimateItems(estimateItems, false)}
               <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top">
-                <span>Grand Total</span><span style="color:#EF4444;">₹${booking.estimated_amount || 0}</span>
+                <span>${t('sosdetail_grand_total')}</span><span style="color:#EF4444;">₹${booking.estimated_amount || 0}</span>
               </div>
             </div>
             ${booking.garage_note ? `<div class="text-muted mt-2" style="font-size:12px;">${booking.garage_note}</div>` : ''}
             <button onclick="openOTP()" class="btn text-white rounded-pill w-100 fw-bold py-2 mt-3" style="background:#EF4444;">
-              Customer OTP Enter Karo
+              ${t('sosdetail_enter_customer_otp')}
             </button>
           </div>
-          <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
+          <div class="timeline-item"><div class="text-muted">${t('sosdetail_work_start_label')}</div></div>
         </div>`;
       }
 
       return `
       <div class="timeline">
-        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
-        <div class="timeline-item completed"><div class="fw-bold text-success">Arrived ✓</div></div>
+        <div class="timeline-item completed"><div class="fw-bold text-success">${t('sosdetail_sos_accepted')} ✓</div></div>
+        <div class="timeline-item completed"><div class="fw-bold text-success">${t('sosdetail_arrived')} ✓</div></div>
         <div class="timeline-item active">
-          <div class="fw-bold text-danger mb-3">Estimate Bhejo</div>
-          
-          <label class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;">Issues &amp; Cost</label>
+          <div class="fw-bold text-danger mb-3">${t('sosdetail_send_estimate_label')}</div>
+
+          <label class="text-muted mb-2" style="font-size:12px;text-transform:uppercase;">${t('sosdetail_issues_cost')}</label>
           <div id="est-items-list" class="mb-2 d-flex flex-column gap-2">${renderEstimateItems(estimateItems, true)}</div>
 
           <!-- Add item -->
@@ -529,51 +542,51 @@
           </div>
           <button onclick="openGarageServices()" class="btn btn-sm btn-outline-secondary rounded-3 w-100 mb-3 d-flex align-items-center justify-content-center gap-2">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H6v-2h4v2zm0-4H6v-2h4v2zm0-4H6V7h4v2zm8 8h-6v-2h6v2zm0-4h-6v-2h6v2zm0-4h-6V7h6v2z"/></svg>
-            Select from Garage Services
+            ${t('job_select_garage_services')}
           </button>
 
           <!-- Total -->
           <div class="d-flex flex-column py-2 border-top border-bottom mb-3">
             <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
-              <span class="text-muted">Issues Cost</span>
+              <span class="text-muted">${t('sosdetail_issues_cost_short')}</span>
               <span class="fw-semibold" id="est-issues-total">₹${estimateItems.reduce((s, i) => s + (i.price || 0), 0)}</span>
             </div>
             <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:13px;">
-              <span class="text-muted">Emergency Visiting Charge</span>
+              <span class="text-muted">${t('sosdetail_emergency_visiting_charge')}</span>
               <span class="fw-semibold text-danger">+ ₹100</span>
             </div>
             <div class="d-flex justify-content-between fw-bold pt-2 mt-1 border-top">
-              <span>Grand Total</span>
+              <span>${t('sosdetail_grand_total')}</span>
               <span style="color:#EF4444;" id="est-total">₹${estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100}</span>
             </div>
           </div>
-          
+
           <div class="mb-3">
-            <label class="form-label fw-semibold" style="font-size:13px;">Description</label>
+            <label class="form-label fw-semibold" style="font-size:13px;">${t('editsvc_label_description')}</label>
             <textarea id="est-desc" class="form-control border-2 shadow-none" rows="2" placeholder="e.g. Jump start battery, tyre change..."></textarea>
           </div>
           <div id="est-error" class="alert alert-danger py-2 d-none rounded-3 mb-3" style="font-size:13px;"></div>
           <button onclick="sendEstimate()" id="send-est-btn" class="btn text-white rounded-pill w-100 fw-bold py-2" style="background:#EF4444;">
-            Estimate Bhejo &amp; OTP Maango
+            ${t('sosdetail_send_estimate_otp_btn')}
           </button>
         </div>
-        <div class="timeline-item"><div class="text-muted">Customer Approval</div></div>
-        <div class="timeline-item"><div class="text-muted">Kaam Shuru</div></div>
+        <div class="timeline-item"><div class="text-muted">${t('sosdetail_customer_approval_label')}</div></div>
+        <div class="timeline-item"><div class="text-muted">${t('sosdetail_work_start_label')}</div></div>
       </div>`;
     }
 
     function renderOngoingFlow() {
       return `
       <div class="timeline">
-        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
+        <div class="timeline-item completed"><div class="fw-bold text-success">${t('sosdetail_sos_accepted')} ✓</div></div>
         <div class="timeline-item completed">
-          <div class="fw-bold text-success">Estimate Approved ✓</div>
+          <div class="fw-bold text-success">${t('job_estimate_approved')} ✓</div>
           <div class="text-muted small">₹${booking.estimated_amount || 0}</div>
         </div>
         <div class="timeline-item active">
-          <div class="fw-bold text-danger mb-3">Kaam Jari Hai</div>
+          <div class="fw-bold text-danger mb-3">${t('sosdetail_work_in_progress')}</div>
           <div class="mb-3">
-            <label class="form-label fw-semibold" style="font-size:13px;">Final Amount (₹)</label>
+            <label class="form-label fw-semibold" style="font-size:13px;">${t('job_final_amount')} (₹)</label>
             <div class="input-group">
               <span class="input-group-text bg-white">₹</span>
               <input type="number" id="final-amount" class="form-control border-2 shadow-none" value="${booking.estimated_amount || ''}">
@@ -581,7 +594,7 @@
           </div>
           <div id="complete-error" class="alert alert-danger py-2 d-none rounded-3 mb-3" style="font-size:13px;"></div>
           <button onclick="completeJob()" id="complete-btn" class="btn text-white rounded-pill w-100 fw-bold py-2" style="background:#10B981;">
-            Job Complete Karo ✓
+            ${t('sosdetail_complete_job_btn')} ✓
           </button>
         </div>
       </div>`;
@@ -590,43 +603,43 @@
     function renderCompletedFlow() {
       return `
       <div class="timeline">
-        <div class="timeline-item completed"><div class="fw-bold text-success">SOS Accepted ✓</div></div>
-        <div class="timeline-item completed"><div class="fw-bold text-success">Estimate Approved ✓</div></div>
+        <div class="timeline-item completed"><div class="fw-bold text-success">${t('sosdetail_sos_accepted')} ✓</div></div>
+        <div class="timeline-item completed"><div class="fw-bold text-success">${t('job_estimate_approved')} ✓</div></div>
         <div class="timeline-item completed">
-          <div class="fw-bold text-success">Job Completed ✓</div>
+          <div class="fw-bold text-success">${t('job_job_completed')} ✓</div>
           ${booking.completed_at ? `<div class="text-muted small">${new Date(booking.completed_at).toLocaleString('en-IN')}</div>` : ''}
         </div>
       </div>
       <div class="mt-4 p-3 rounded-3" style="background:#F0FDF4;border:1px solid #BBF7D0;">
-        <div class="text-muted small mb-1">Final Amount</div>
+        <div class="text-muted small mb-1">${t('job_final_amount')}</div>
         <div class="fw-bold" style="font-size:22px;color:#15803D;">₹${booking.estimated_amount || 0}</div>
       </div>
       <a href="/mechanic/invoice-sos/${booking.slug || booking.id}" class="btn btn-outline-secondary rounded-pill w-100 mt-3 fw-medium">
-        📄 Invoice Dekho
+        📄 ${t('job_view_invoice')}
       </a>`;
     }
 
     async function markArrived() {
       const btn = document.getElementById('arrived-btn');
-      if (btn) { btn.disabled = true; btn.textContent = 'Marking...'; }
+      if (btn) { btn.disabled = true; btn.textContent = t('sosdetail_marking'); }
       try {
         const res = await fetch(`${API()}/sos/${bookingId}/mark-arrived`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
         });
-        if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
-        showToast('Customer ko notify kar diya — ab estimate bhejo! 📍', 'success');
+        if (!res.ok) throw new Error((await res.json()).detail || t('job_generic_failed'));
+        showToast(t('sosdetail_notified_toast'), 'success');
         _lastRenderedStatus = null; // Force re-render
         await loadDetail();
       } catch (e) {
-        showToast(e.message || 'Mark nahi hua. Try again.', 'danger');
-        if (btn) { btn.disabled = false; btn.textContent = '📍 Main Pahunch Gaya — Mark Arrived'; }
+        showToast(e.message || t('sosdetail_mark_failed'), 'danger');
+        if (btn) { btn.disabled = false; btn.textContent = `📍 ${t('sosdetail_mark_arrived_btn')}`; }
       }
     }
 
     function renderEstimateItems(items, editable) {
       if (!items || items.length === 0) {
-        return `<div class="text-muted small text-center py-2">Koi item nahi</div>`;
+        return `<div class="text-muted small text-center py-2">${t('job_no_items')}</div>`;
       }
       return items.map((item, i) => `
     <div class="estimate-item-row">
@@ -652,7 +665,7 @@
       const price = parseFloat(document.getElementById('est-item-price').value);
       const errEl = document.getElementById('est-error');
       errEl.classList.add('d-none');
-      if (!name || isNaN(price) || price < 0) { errEl.textContent = 'Enter valid name and price.'; errEl.classList.remove('d-none'); return; }
+      if (!name || isNaN(price) || price < 0) { errEl.textContent = t('job_enter_valid_name_price'); errEl.classList.remove('d-none'); return; }
       estimateItems.push({ item_name: name, price });
       document.getElementById('est-item-name').value = '';
       document.getElementById('est-item-price').value = '';
@@ -671,12 +684,12 @@
       const container = document.getElementById('garage-services-list');
 
       if (myGarageServices.length === 0) {
-        container.innerHTML = '<div class="text-center py-4 text-muted small">Aapne koi predefined service add nahi ki . Pehle Dashboard > Services me jake service add karein.</div>';
+        container.innerHTML = `<div class="text-center py-4 text-muted small">${t('sosdetail_no_predefined_services')}</div>`;
       } else {
         const grouped = {};
         myGarageServices.forEach(s => {
           if (!s.is_available) return;
-          const cat = s.category || 'Other';
+          const cat = s.category || t('sosdetail_cat_other');
           if (!grouped[cat]) grouped[cat] = [];
           grouped[cat].push(s);
         });
@@ -685,7 +698,7 @@
         for (const cat in grouped) {
           html += `<div class="fw-bold mt-3 mb-2" style="font-size:13px;color:#EF4444;text-transform:uppercase;">${cat}</div>`;
           grouped[cat].forEach(s => {
-            const priceStr = s.price ? `₹${s.price}` : 'Price not set';
+            const priceStr = s.price ? `₹${s.price}` : t('job_price_not_set');
             html += `
                 <div class="form-check d-flex align-items-center mb-2 p-2 rounded-3 border" style="background:#f8f9fa;">
                     <input class="form-check-input ms-0 me-2 mt-0" type="checkbox" id="gs-${s.id}" value="${s.id}" onchange="toggleServiceSelection(${s.id}, this.checked)">
@@ -696,7 +709,7 @@
                 </div>`;
           });
         }
-        if (html === '') html = '<div class="text-center py-4 text-muted small">No active predefined services found.</div>';
+        if (html === '') html = `<div class="text-center py-4 text-muted small">${t('job_no_active_services')}</div>`;
         container.innerHTML = html;
       }
 
@@ -727,22 +740,22 @@
       const errEl = document.getElementById('est-error');
       errEl.classList.add('d-none');
 
-      if (estimateItems.length === 0) { errEl.textContent = 'Kam se kam ek item add karo.'; errEl.classList.remove('d-none'); return; }
+      if (estimateItems.length === 0) { errEl.textContent = t('sosdetail_add_at_least_one_item'); errEl.classList.remove('d-none'); return; }
       const amount = estimateItems.reduce((s, i) => s + (i.price || 0), 0) + 100; // Total including visiting charge
 
-      btn.disabled = true; btn.textContent = 'Bhej raha hai...';
+      btn.disabled = true; btn.textContent = t('sosdetail_sending');
       try {
         const res = await fetch(`${API()}/sos/${bookingId}/estimate`, {
           method: 'PATCH',
           headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ estimated_amount: amount, description: desc, visiting_charge: 100, estimate_details: estimateItems })
         });
-        if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+        if (!res.ok) throw new Error((await res.json()).detail || t('job_generic_failed'));
         const data = await res.json();
-        showToast(`Estimate bheja! OTP: ${data.otp}`, 'success');
+        showToast(t('sosdetail_estimate_sent_toast'), 'success');
         setTimeout(() => location.reload(), 1500);
       } catch (e) { errEl.textContent = e.message; errEl.classList.remove('d-none'); }
-      finally { btn.disabled = false; btn.textContent = 'Estimate Bhejo & OTP Maango'; }
+      finally { btn.disabled = false; btn.textContent = t('sosdetail_send_estimate_otp_btn'); }
     }
 
     function openOTP() {
@@ -753,38 +766,38 @@
 
     async function confirmOTP() {
       const otp = document.getElementById('otp-input').value.trim();
-      if (otp.length !== 6) { document.getElementById('otp-error').textContent = '6 digit OTP dalo.'; document.getElementById('otp-error').classList.remove('d-none'); return; }
+      if (otp.length !== 4) { document.getElementById('otp-error').textContent = t('sosdetail_enter_4_digit_otp'); document.getElementById('otp-error').classList.remove('d-none'); return; }
       const btn = document.getElementById('otp-confirm-btn');
-      btn.disabled = true; btn.textContent = 'Verify ho raha hai...';
+      btn.disabled = true; btn.textContent = t('sosdetail_verifying');
       try {
         const res = await fetch(`${API()}/sos/${bookingId}/verify-otp?otp=${otp}`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
         });
-        if (!res.ok) throw new Error((await res.json()).detail || 'Invalid OTP');
+        if (!res.ok) throw new Error((await res.json()).detail || t('job_otp_invalid'));
         bootstrap.Modal.getInstance(document.getElementById('otpModal')).hide();
-        showToast('OTP verified! Kaam shuru karo 🔧', 'success');
+        showToast(t('sosdetail_otp_verified_toast'), 'success');
         setTimeout(() => location.reload(), 1000);
       } catch (e) { document.getElementById('otp-error').textContent = e.message; document.getElementById('otp-error').classList.remove('d-none'); }
-      finally { btn.disabled = false; btn.textContent = 'Verify'; }
+      finally { btn.disabled = false; btn.textContent = t('sosdetail_verify_btn'); }
     }
 
     async function completeJob() {
       const finalAmount = parseFloat(document.getElementById('final-amount').value || 0);
       const btn = document.getElementById('complete-btn');
-      btn.disabled = true; btn.textContent = 'Complete ho raha hai...';
+      btn.disabled = true; btn.textContent = t('sosdetail_completing');
       try {
         const res = await fetch(`${API()}/sos/${bookingId}/complete?final_amount=${finalAmount}`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}` }
         });
         if (!res.ok) throw new Error();
-        showToast('SOS complete! 🎉', 'success');
+        showToast(t('sosdetail_complete_toast'), 'success');
         setTimeout(() => {
           window.location.href = `/mechanic/invoice-sos/${bookingId}`;
         }, 1000);
-      } catch { document.getElementById('complete-error').textContent = 'Complete nahi hua.'; document.getElementById('complete-error').classList.remove('d-none'); }
-      finally { btn.disabled = false; btn.textContent = 'Job Complete Karo ✓'; }
+      } catch { document.getElementById('complete-error').textContent = t('sosdetail_complete_failed'); document.getElementById('complete-error').classList.remove('d-none'); }
+      finally { btn.disabled = false; btn.textContent = `${t('sosdetail_complete_job_btn')} ✓`; }
     }
 
     function showToast(msg, type = 'success') {
@@ -796,7 +809,33 @@
       setTimeout(() => t.remove(), 3000);
     }
 
-    document.addEventListener('DOMContentLoaded', loadDetail);
+    async function checkPendingCallOffer() {
+      try {
+        if (!bookingId) return;
+        const token = MECHANIC_AUTH.getToken();
+        const res = await fetch(`${API()}/sos/${bookingId}/pending-offer`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.has_offer) {
+          console.log('[Call] Pending offer found, processing...');
+          window.dispatchEvent(new CustomEvent('gnm_webrtc', {
+            detail: { type: 'webrtc_offer', offer: data.offer, customer_id: data.customer_id }
+          }));
+        }
+      } catch (e) {
+        console.warn('[Call] Pending offer check failed:', e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDetail();
+      checkPendingCallOffer();
+    });
+
+    document.addEventListener('i18n:ready', () => {
+      if (booking) renderPage();
+    });
   </script>
 
   <!-- WebRTC Incoming Call Overlay (mechanic) -->
@@ -834,10 +873,10 @@
     <div style="text-align:center;">
       <div
         style="color:#FF6B35;font-size:13px;letter-spacing:2px;font-family:'DM Sans',sans-serif;text-transform:uppercase;margin-bottom:12px;">
-        📞 Incoming Call</div>
-      <div style="color:#fff;font-size:22px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:6px;">Customer
+        📞 <span data-i18n="sosdetail_incoming_call">Incoming Call</span></div>
+      <div style="color:#fff;font-size:22px;font-weight:700;font-family:Syne,sans-serif;margin-bottom:6px;" data-i18n="job_customer_label">Customer
       </div>
-      <div id="mechanic-call-status" style="color:#9CA3AF;font-size:14px;font-family:'DM Sans',sans-serif;">In-App Call
+      <div id="mechanic-call-status" style="color:#9CA3AF;font-size:14px;font-family:'DM Sans',sans-serif;" data-i18n="sosdetail_in_app_call">In-App Call
       </div>
     </div>
     <div style="position:relative;width:130px;height:130px;display:flex;align-items:center;justify-content:center;">
@@ -858,7 +897,7 @@
           </svg>
         </button>
         <span
-          style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">Decline</span>
+          style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;" data-i18n="sosalerts_decline_btn">Decline</span>
       </div>
       <div style="text-align:center;">
         <button onclick="acceptIncomingCall()"
@@ -869,7 +908,7 @@
           </svg>
         </button>
         <span
-          style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;">Accept</span>
+          style="display:block;color:#6B7280;font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;" data-i18n="sosdetail_accept_label">Accept</span>
       </div>
     </div>
   </div>
@@ -882,6 +921,22 @@
     let _mCustomerId = null;
     let _mCallTimer = null;
     let _mCallSeconds = 0;
+
+    // Ringtone logic
+    let _ringtoneAudio = null;
+    function startRingtone() {
+      if (!_ringtoneAudio) {
+        _ringtoneAudio = new Audio('/assets/notification.mp3');
+        _ringtoneAudio.loop = true;
+      }
+      _ringtoneAudio.play().catch(e => console.warn('Ringtone autoplay blocked', e));
+    }
+    function stopRingtone() {
+      if (_ringtoneAudio) {
+        _ringtoneAudio.pause();
+        _ringtoneAudio.currentTime = 0;
+      }
+    }
 
     // Mechanic WS se WebRTC signal aane pe (config.js dispatch karta hai)
     window.addEventListener('gnm_webrtc', async (e) => {
@@ -989,10 +1044,10 @@
       bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#1B1F2E;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.3);border-radius:16px 16px 0 0;';
       bar.innerHTML = `
         <div>
-            <div style="font-weight:700;font-size:14px;font-family:Syne,sans-serif;">📞 Call Active</div>
+            <div style="font-weight:700;font-size:14px;font-family:Syne,sans-serif;">📞 ${t('sosdetail_call_active')}</div>
             <div id="mechanic-call-timer" style="color:#22C55E;font-size:13px;font-family:'DM Sans',sans-serif;">00:00</div>
         </div>
-        <button onclick="endMechanicCall()" style="background:#E53E3E;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-weight:600;font-size:13px;cursor:pointer;">End Call</button>
+        <button onclick="endMechanicCall()" style="background:#E53E3E;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-weight:600;font-size:13px;cursor:pointer;">${t('sosdetail_end_call_btn')}</button>
     `;
       document.body.appendChild(bar);
 

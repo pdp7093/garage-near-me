@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Column, Integer, String, DateTime, Float,
-    Boolean, ForeignKey, Text, Time, Numeric, Enum
+    Boolean, ForeignKey, Text, Time, Numeric, Enum, UniqueConstraint
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
@@ -153,37 +153,6 @@ class GarageRequest(Base):
     updated_at   = Column(DateTime(timezone=True), onupdate=func.now())
 
     documents    = relationship("GarageDocument", back_populates="request", cascade="all, delete-orphan")
-
-
-# ──────────────────────────────────────────
-# GARAGE OTP (Login ke liye)
-# Phone pe OTP bhejo → verify karo → JWT token milta hai
-# ──────────────────────────────────────────
-
-class GarageOTP(Base):
-    __tablename__ = "garage_otps"
-
-    id         = Column(Integer, primary_key=True, index=True)
-    phone      = Column(String(15), nullable=False, index=True)
-    otp        = Column(String(6), nullable=False)
-    is_used    = Column(Boolean, default=False)     # ek baar use hone ke baad True
-    expires_at = Column(DateTime(timezone=True), nullable=False)  # 10 min expiry
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-
-# ──────────────────────────────────────────
-# CUSTOMER OTP
-# ──────────────────────────────────────────
-
-class CustomerOTP(Base):
-    __tablename__ = "customer_otps"
-
-    id         = Column(Integer, primary_key=True, index=True)
-    phone      = Column(String(15), nullable=False, index=True)
-    otp        = Column(String(6), nullable=False)
-    is_used    = Column(Boolean, default=False)
-    expires_at = Column(DateTime(timezone=True), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # ──────────────────────────────────────────
@@ -363,6 +332,7 @@ class Booking(Base):
     # OTP 1 — Known estimate confirm karne ke liye
     has_hidden_issues      = Column(Boolean, default=False)
     estimate_otp           = Column(String(6), nullable=True)
+    estimate_verification_id = Column(String, nullable=True)
     estimate_otp_verified  = Column(Boolean, default=False)
     estimate_otp_sent_at   = Column(DateTime(timezone=True), nullable=True)
 
@@ -373,6 +343,7 @@ class Booking(Base):
 
     # OTP 2 — Additional estimate confirm karne ke liye
     additional_otp             = Column(String(6), nullable=True)
+    additional_verification_id = Column(String, nullable=True)
     additional_otp_verified    = Column(Boolean, default=False)
     additional_otp_sent_at     = Column(DateTime(timezone=True), nullable=True)
 
@@ -393,6 +364,24 @@ class Booking(Base):
     @property
     def customer_phone(self):
         return self.customer.phone if self.customer else None
+
+
+# ──────────────────────────────────────────
+# GENERIC WEBRTC CALL OFFERS
+# ──────────────────────────────────────────
+
+class WebRTCCallOffer(Base):
+    __tablename__ = "webrtc_call_offers"
+    __table_args__ = (
+        UniqueConstraint("entity_type", "entity_id", name="uq_webrtc_call_entity"),
+    )
+
+    id          = Column(Integer, primary_key=True, index=True)
+    entity_type = Column(String(20), nullable=False, index=True)
+    entity_id   = Column(Integer, nullable=False, index=True)
+    offer       = Column(JSONB, nullable=False)
+    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # ──────────────────────────────────────────
@@ -437,9 +426,14 @@ class SOS(Base):
     estimate_status     = Column(Enum(EstimateStatus), default=EstimateStatus.not_required)
     estimate_details    = Column(JSONB, nullable=True)
     estimate_otp        = Column(String(6), nullable=True)
+    estimate_verification_id = Column(String, nullable=True)
     estimate_otp_verified = Column(Boolean, default=False)
     estimate_otp_sent_at = Column(DateTime(timezone=True), nullable=True)
     garage_note         = Column(Text, nullable=True)
+
+    # WebRTC Call State
+    pending_call_offer      = Column(JSONB, nullable=True)
+    pending_call_customer_id = Column(Integer, nullable=True)
 
     # Timestamps
     created_at          = Column(DateTime(timezone=True), server_default=func.now())
@@ -485,7 +479,8 @@ class Bill(Base):
     __tablename__ = "bills"
 
     id              = Column(Integer, primary_key=True, index=True)
-    booking_id      = Column(Integer, ForeignKey("bookings.id"), nullable=False, unique=True)
+    booking_id      = Column(Integer, ForeignKey("bookings.id"), nullable=True, unique=True)
+    sos_id          = Column(Integer, ForeignKey("sos_requests.id"), nullable=True, unique=True)
     customer_id     = Column(Integer, ForeignKey("customers.id"), nullable=False)
     garage_id       = Column(Integer, ForeignKey("garages.id"), nullable=False)
     
@@ -515,6 +510,7 @@ class Bill(Base):
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
     
     booking         = relationship("Booking", foreign_keys=[booking_id])
+    sos             = relationship("SOS", foreign_keys=[sos_id])
     customer        = relationship("Customer", foreign_keys=[customer_id])
     garage          = relationship("Garage", foreign_keys=[garage_id])
 

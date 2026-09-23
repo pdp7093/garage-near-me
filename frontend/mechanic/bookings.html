@@ -11,6 +11,73 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
+    <script>
+    // GNM MULTI-LANGUAGE SYSTEM (i18n.js)
+    // Mechanic side: hinglish (default), hindi, gujarati
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+
+    // Mechanic ki saved language nikalo (localStorage se — profile API se bhi le sakte hain baad mein)
+    function getMechanicLanguage() {
+      const saved = localStorage.getItem('mechanic_lang');
+      return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE;
+    }
+
+    function setMechanicLanguage(lang) {
+      if (!SUPPORTED_LANGUAGES.includes(lang)) return;
+      localStorage.setItem('mechanic_lang', lang);
+      applyLanguage(lang);
+    }
+
+    // Language JSON file load karo
+    async function loadLanguageFile(lang) {
+      try {
+        const res = await fetch(`/lang/${lang}.json`);
+        if (!res.ok) throw new Error('Language file not found: ' + lang);
+        return await res.json();
+      } catch (err) {
+        console.error('i18n load error:', err);
+        // Fallback: hinglish load karo agar chosen language fail ho jaye
+        if (lang !== DEFAULT_LANGUAGE) {
+          const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`);
+          return await res.json();
+        }
+        return {};
+      }
+    }
+
+    // Page ke saare data-i18n elements ka text replace karo
+    function applyTranslationsToDOM() {
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.getAttribute('data-i18n');
+        if (currentTranslations[key]) {
+          el.textContent = currentTranslations[key];
+        }
+      });
+    }
+
+    // JS ke andar text ke liye helper — jaise: t('dashboard_offline')
+    function t(key) {
+      return currentTranslations[key] || key;
+    }
+
+    // Language apply karo — DOM update + JS translations dono
+    async function applyLanguage(lang) {
+      currentLang = lang;
+      currentTranslations = await loadLanguageFile(lang);
+      applyTranslationsToDOM();
+      // Dusre JS ko batao ki translations ready hain (dynamic content ke liye)
+      document.dispatchEvent(new CustomEvent('i18n:ready'));
+    }
+
+    // Page load hote hi mechanic ki language apply karo
+    document.addEventListener('DOMContentLoaded', () => {
+      applyLanguage(getMechanicLanguage());
+    });
+    </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -120,25 +187,29 @@
           <div class="d-flex flex-wrap gap-2" id="filter-btns">
             <button class="btn btn-outline-secondary filter-btn rounded-pill px-4 active"
               onclick="setFilter('all', this)">
-              All <span class="badge bg-secondary ms-1 rounded-pill" id="count-all">0</span>
+              <span data-i18n="bookings_filter_all">All</span> <span class="badge bg-secondary ms-1 rounded-pill" id="count-all">0</span>
             </button>
             <button class="btn btn-outline-secondary filter-btn rounded-pill px-4"
               onclick="setFilter('today', this)" style="border-color: #EF4444; color: #EF4444;">
-              ⚡ Today's Jobs <span class="badge bg-danger ms-1 rounded-pill" id="count-today">0</span>
+              ⚡ <span data-i18n="bookings_filter_today">Today's Jobs</span> <span class="badge bg-danger ms-1 rounded-pill" id="count-today">0</span>
             </button>
             <button class="btn btn-outline-secondary filter-btn rounded-pill px-4" onclick="setFilter('pending', this)">
-              New <span class="badge bg-primary ms-1 rounded-pill" id="count-pending">0</span>
+              <span data-i18n="bookings_filter_pending">New</span> <span class="badge bg-primary ms-1 rounded-pill" id="count-pending">0</span>
             </button>
             <button class="btn btn-outline-secondary filter-btn rounded-pill px-4"
               onclick="setFilter('accepted', this)">
-              Accepted <span class="badge bg-info ms-1 rounded-pill" id="count-accepted">0</span>
+              <span data-i18n="status_accepted">Accepted</span> <span class="badge bg-info ms-1 rounded-pill" id="count-accepted">0</span>
             </button>
             <button class="btn btn-outline-secondary filter-btn rounded-pill px-4" onclick="setFilter('ongoing', this)">
-              In Progress <span class="badge bg-warning ms-1 rounded-pill" id="count-ongoing">0</span>
+              <span data-i18n="status_ongoing">In Progress</span> <span class="badge bg-warning ms-1 rounded-pill" id="count-ongoing">0</span>
             </button>
             <button class="btn btn-outline-secondary filter-btn rounded-pill px-4"
               onclick="setFilter('completed', this)">
-              Completed <span class="badge bg-success ms-1 rounded-pill" id="count-completed">0</span>
+              <span data-i18n="status_completed">Completed</span> <span class="badge bg-success ms-1 rounded-pill" id="count-completed">0</span>
+            </button>
+            <button class="btn btn-outline-secondary filter-btn rounded-pill px-4"
+              onclick="setFilter('cancelled', this)">
+              <span data-i18n="status_cancelled">Cancelled</span> <span class="badge bg-secondary ms-1 rounded-pill" id="count-cancelled">0</span>
             </button>
           </div>
           <button class="btn btn-outline-secondary rounded-pill px-3 d-flex align-items-center gap-2"
@@ -147,7 +218,7 @@
               <path
                 d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
             </svg>
-            Refresh
+            <span data-i18n="bookings_refresh">Refresh</span>
           </button>
         </div>
 
@@ -187,8 +258,8 @@
               <svg viewBox="0 0 24 24" fill="var(--color-danger,#E53E3E)" width="48" height="48" class="mb-3">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
               </svg>
-              <h5 class="fw-bold mb-2">Bookings load nahi hue</h5>
-              <button class="btn btn-sm rounded-pill px-4 text-white mt-2" style="background:var(--color-primary);" onclick="loadBookings()">Dobara Try Karo</button>
+              <h5 class="fw-bold mb-2">${t('bookings_load_error')}</h5>
+              <button class="btn btn-sm rounded-pill px-4 text-white mt-2" style="background:var(--color-primary);" onclick="loadBookings()">${t('bookings_retry')}</button>
             </div>
           </div>`;
       }
@@ -196,7 +267,7 @@
 
     // ── Update filter counts ──
     function updateCounts() {
-      const counts = { all: allBookings.length, pending: 0, accepted: 0, ongoing: 0, completed: 0, today: 0 };
+      const counts = { all: allBookings.length, pending: 0, accepted: 0, ongoing: 0, completed: 0, cancelled: 0, today: 0 };
       const todayStr = new Date().toDateString();
       
       allBookings.forEach(b => {
@@ -253,8 +324,8 @@
               <svg viewBox="0 0 24 24" fill="var(--color-border)" width="64" height="64" class="mb-3">
                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/>
               </svg>
-              <h5 class="fw-bold mb-2">Koi booking nahi mili</h5>
-              <p style="font-size:14px;">Is category mein abhi koi booking nahi hai.</p>
+              <h5 class="fw-bold mb-2">${t('bookings_empty_title')}</h5>
+              <p style="font-size:14px;">${t('bookings_empty_desc')}</p>
             </div>
           </div>`;
         return;
@@ -266,12 +337,12 @@
     // ── Card HTML ──
     function buildCard(b) {
       const statusConfig = {
-        pending: { label: 'New Booking', cls: 'status-pending' },
-        accepted: { label: 'Accepted', cls: 'status-accepted' },
-        ongoing: { label: 'In Progress', cls: 'status-ongoing' },
-        completed: { label: 'Completed', cls: 'status-completed' },
-        rejected: { label: 'Rejected', cls: 'status-rejected' },
-        cancelled: { label: 'Cancelled', cls: 'status-cancelled' },
+        pending: { label: t('bookings_status_new'), cls: 'status-pending' },
+        accepted: { label: t('status_accepted'), cls: 'status-accepted' },
+        ongoing: { label: t('status_ongoing'), cls: 'status-ongoing' },
+        completed: { label: t('status_completed'), cls: 'status-completed' },
+        rejected: { label: t('status_rejected'), cls: 'status-rejected' },
+        cancelled: { label: t('status_cancelled'), cls: 'status-cancelled' },
       };
       const sc = statusConfig[b.status] || { label: b.status, cls: 'status-cancelled' };
 
@@ -315,11 +386,11 @@
 
               <!-- Row 2: Customer Name, Phone, and Vehicle Reg Details -->
               <div class="d-flex align-items-center gap-3 flex-wrap text-dark" style="font-size:13px;">
-                <span class="fw-bold">${b.customer_name || `Customer #${b.customer_id}`} ${b.customer_phone ? `(+91 ${b.customer_phone})` : ''}</span>
+                <span class="fw-bold">${b.customer_name || `${t('bookings_customer_prefix')} #${b.customer_id}`} ${b.customer_phone ? `(+91 ${b.customer_phone})` : ''}</span>
                 <span class="text-muted">•</span>
                 <span class="fw-medium text-secondary">
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" class="me-1"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-                  ${b.vehicle_model || (b.vehicle_type === 'two_wheeler' ? '2 Wheeler' : '4 Wheeler')}
+                  ${b.vehicle_model || (b.vehicle_type === 'two_wheeler' ? t('vehicle_two_wheeler') : t('vehicle_four_wheeler'))}
                   ${b.vehicle_number ? `(${b.vehicle_number})` : ''}
                 </span>
               </div>
@@ -327,10 +398,10 @@
               <!-- Row 3: Requested Services, Date, Scheduled -->
               <div class="d-flex align-items-center gap-2 flex-wrap text-muted mt-1" style="font-size:12px;">
                 <span class="badge bg-light text-dark border px-2 py-0.5 rounded-3 fw-normal">
-                  ${b.service_type || (b.booking_type === 'sos' ? 'SOS Assistance' : 'Inspection Required')}
+                  ${b.service_type || (b.booking_type === 'sos' ? t('bookings_service_sos') : t('bookings_service_inspection'))}
                 </span>
                 <span>•</span>
-                <span>Booking: ${date} at ${time}</span>
+                <span>${t('bookings_label_booking')}: ${date} ${t('bookings_label_at')} ${time}</span>
                 ${scheduledStr ? `<span>•</span> ${scheduledStr}` : ''}
               </div>
 
@@ -338,10 +409,10 @@
 
             <!-- Right CTA Panel -->
             <div class="d-flex align-items-center gap-2 flex-shrink-0">
-              <a href="job-detail/${b.slug || b.id}"
+              <a href="/mechanic/job-detail/${encodeURIComponent(b.slug || b.id)}"
                  class="btn text-white fw-bold rounded-pill px-4"
                  style="background:var(--color-primary); font-size:13px; min-width:140px;">
-                ${b.status === 'pending' ? 'Review &amp; Accept' : b.status === 'accepted' ? 'Send Estimate' : 'View Details'}
+                ${b.status === 'pending' ? t('bookings_cta_review') : b.status === 'accepted' ? t('bookings_cta_estimate') : t('bookings_cta_view')}
               </a>
             </div>
 
@@ -368,6 +439,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadBookings);
+
+    // Language switch hote hi dynamic content (JS se aaya text) bhi refresh karo
+    document.addEventListener('i18n:ready', () => {
+      updateCounts();
+      renderBookings();
+    });
   </script>
 </body>
 

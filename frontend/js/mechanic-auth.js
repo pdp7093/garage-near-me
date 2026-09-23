@@ -49,7 +49,10 @@ const MECHANIC_AUTH = {
 
     try {
       const response = await fetch(getApiBase() + '/garage-auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'ngrok-skip-browser-warning': '69420',
+          'Authorization': `Bearer ${token}` 
+        }
       });
 
       if (!response.ok) {
@@ -96,6 +99,7 @@ window.addEventListener('DOMContentLoaded', async function () {
   await requestCapacitorLocationPermission();
   await requestCapacitorPushPermission();
   await requestBatteryOptimizationExemption();
+  connectMechanicWS();
 });
 
 // ── Capacitor Location Permission Request ──
@@ -146,8 +150,13 @@ function navigateFromNotificationData(data) {
     window.location.href = '/mechanic/dashboard.html';
     return;
   }
-  if (data.type === 'sos_alert' && data.sos_id) {
-    window.location.href = `/mechanic/sos-alerts.html`;
+  if ((data.type === 'sos_alert' || data.type === 'call-request') && data.sos_id) {
+    const targetUrl = `/mechanic/sos-detail.html?id=${data.sos_id}`;
+    // Agar same page pe hain, to reload mat karo taaki ringing call UI gayab na ho
+    if (window.location.pathname.includes('sos-detail') && window.location.search.includes(`id=${data.sos_id}`)) {
+      return;
+    }
+    window.location.href = targetUrl;
   } else if (data.screen) {
     window.location.href = `/mechanic/${data.screen}.html`;
   } else {
@@ -300,4 +309,44 @@ async function requestCapacitorPushPermission() {
   } catch (err) {
     console.warn('[Push] Failed to request push permission', err);
   }
+}
+
+// ── WebSocket connection — WebRTC call signaling ke liye zaroori ──
+let _ws = null;
+let _wsReconnectTimer = null;
+
+function _getGarageIdFromToken() {
+  const token = localStorage.getItem('garage_token');
+  if (!token) return null;
+  try { return JSON.parse(atob(token.split('.')[1])).user_id || null; } catch (e) { return null; }
+}
+
+function connectMechanicWS() {
+  const garageId = _getGarageIdFromToken();
+  if (!garageId) return;
+
+  const base = (typeof getWsBase === 'function') ? getWsBase() : `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
+  const url = `${base}/ws/mechanic/${garageId}`;
+
+  _ws = new WebSocket(url);
+
+  _ws.onopen = () => {
+    console.log('[WS] Connected ✅');
+  };
+
+  _ws.onmessage = (e) => {
+    if (e.data === 'pong') return;
+    try {
+      const data = JSON.parse(e.data);
+      if (['webrtc_offer', 'webrtc_ice', 'webrtc_answer', 'webrtc_end'].includes(data.type)) {
+        window.dispatchEvent(new CustomEvent('gnm_webrtc', { detail: data }));
+      }
+    } catch (err) { console.error('[WS] parse error:', err); }
+  };
+
+  _ws.onclose = () => {
+    console.log('[WS] Disconnected — 5s mein reconnect');
+    _wsReconnectTimer = setTimeout(connectMechanicWS, 5000);
+  };
+  _ws.onerror = () => { _ws.close(); };
 }

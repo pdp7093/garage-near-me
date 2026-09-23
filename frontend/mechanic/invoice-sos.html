@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -35,9 +48,9 @@
       <div class="col-12 col-md-8 col-lg-6">
         
         <!-- Back Button -->
-        <a href="sos-detail.html" class="btn btn-light rounded-pill mb-4 shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
+        <a href="/mechanic/sos-detail.html" class="btn btn-light rounded-pill mb-4 shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-          Back to SOS Detail
+          <span data-i18n="invsos_back_to_sos">Back to SOS Detail</span>
         </a>
 
         <!-- Invoice Card -->
@@ -46,7 +59,7 @@
           <!-- Header -->
           <div class="d-flex justify-content-between align-items-start mb-4">
             <div>
-              <h3 class="fw-bold mb-1 text-danger" style="font-family: var(--font-head);">Emergency Invoice</h3>
+              <h3 class="fw-bold mb-1 text-danger" style="font-family: var(--font-head);" data-i18n="invsos_emergency_invoice">Emergency Invoice</h3>
               <div class="text-muted small" id="job-id">Job ID: Loading...</div>
               <div class="text-muted small" id="job-date">Date: Loading...</div>
             </div>
@@ -58,7 +71,7 @@
 
           <!-- Customer Info -->
           <div class="bg-danger bg-opacity-10 rounded-3 p-3 mb-4 border border-danger border-opacity-25">
-            <h6 class="fw-bold text-danger mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 1px;">Billed To</h6>
+            <h6 class="fw-bold text-danger mb-2 text-uppercase" style="font-size: 11px; letter-spacing: 1px;" data-i18n="invoice_billed_to">Billed To</h6>
             <h6 class="fw-bold mb-1" id="cust-name">Loading...</h6>
             <div class="text-muted small" id="cust-vehicle">Loading...</div>
             <div class="text-danger small fw-bold mt-1" id="cust-address">Location: Loading...</div>
@@ -69,9 +82,9 @@
             <table class="table table-borderless mb-0">
               <thead class="text-muted small border-bottom">
                 <tr>
-                  <th scope="col" class="ps-0 fw-medium pb-2">Description</th>
-                  <th scope="col" class="fw-medium pb-2 text-center">Qty</th>
-                  <th scope="col" class="pe-0 fw-medium pb-2 text-end">Amount</th>
+                  <th scope="col" class="ps-0 fw-medium pb-2" data-i18n="invoice_th_description">Description</th>
+                  <th scope="col" class="fw-medium pb-2 text-center" data-i18n="invoice_th_qty">Qty</th>
+                  <th scope="col" class="pe-0 fw-medium pb-2 text-end" data-i18n="invoice_th_amount">Amount</th>
                 </tr>
               </thead>
               <tbody id="items-tbody">
@@ -86,15 +99,15 @@
           <div class="row justify-content-end mb-4">
             <div class="col-8 col-sm-6">
               <div class="d-flex justify-content-between mb-2 text-muted">
-                <span>Subtotal</span>
+                <span data-i18n="invoice_subtotal">Subtotal</span>
                 <span class="fw-bold text-dark" id="subtotal">₹...</span>
               </div>
               <div class="d-flex justify-content-between mb-2 text-muted">
-                <span>Taxes (18% GST)</span>
+                <span data-i18n="invoice_taxes_gst">Taxes (18% GST)</span>
                 <span class="fw-bold text-dark" id="taxes">₹...</span>
               </div>
               <div class="d-flex justify-content-between mt-3 pt-3 border-top align-items-center">
-                <span class="fw-bold text-dark fs-5">Total Due</span>
+                <span class="fw-bold text-dark fs-5" data-i18n="invoice_total_due">Total Due</span>
                 <span class="fw-bold fs-4 text-danger" id="total-due">₹...</span>
               </div>
             </div>
@@ -104,11 +117,11 @@
           <div class="d-flex flex-column flex-sm-row gap-3">
             <a href="/mechanic/" class="btn btn-success flex-grow-1 fw-bold rounded-pill py-3 shadow-sm d-flex justify-content-center align-items-center gap-2 text-decoration-none">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              Mark as Paid
+              <span data-i18n="invsos_mark_paid">Mark as Paid</span>
             </a>
             <a href="/mechanic/" class="btn btn-outline-danger rounded-pill px-4 py-3 fw-bold d-flex justify-content-center align-items-center gap-2 text-decoration-none">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-              Send Link
+              <span data-i18n="invsos_send_link">Send Link</span>
             </a>
           </div>
 
@@ -122,15 +135,15 @@
   <script src="/js/mechanic-auth.js"></script>
   <script src="/js/bootstrap.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    async function loadSosInvoice() {
       const _slug = window.location.pathname.split('/').filter(p => p && p !== 'mechanic' && p !== 'invoice-sos' && p !== 'invoice-sos.html' && !p.endsWith('.html')).pop();
-      const urlParams = new URLSearchParams(window.location.search);
+      const urlParams = new URLSearchParams(window.location.search || window.location.href.split('?')[1] || '');
       let queryId = urlParams.get('id');
       if (queryId) queryId = String(queryId).trim();
       const bookingId = queryId || _slug;
 
       if (!bookingId) {
-        window.location.replace('sos-alerts.html');
+        window.location.replace('/mechanic/sos-alerts.html');
         return;
       }
 
@@ -147,16 +160,16 @@
         if (!res.ok) throw new Error('API Error');
         const booking = await res.json();
 
-        document.getElementById('job-id').textContent = `Job ID: #${booking.sos_number || booking.id}`;
+        document.getElementById('job-id').textContent = `${t('invsos_job_id_label')}: #${booking.sos_number || booking.id}`;
         const dateStr = new Date(booking.completed_at || booking.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        document.getElementById('job-date').textContent = `Date: ${dateStr}`;
+        document.getElementById('job-date').textContent = `${t('invoice_date_label')}: ${dateStr}`;
 
-        document.getElementById('garage-name').textContent = booking.garage_name || 'Garage';
-        document.getElementById('garage-address').textContent = booking.garage_address || 'Address Not Found';
+        document.getElementById('garage-name').textContent = booking.garage_name || t('invoice_garage_fallback');
+        document.getElementById('garage-address').textContent = booking.garage_address || t('invsos_address_not_found');
 
-        document.getElementById('cust-name').textContent = booking.customer_name || 'Customer';
-        document.getElementById('cust-vehicle').textContent = `${booking.vehicle_model || booking.vehicle_type || 'Vehicle'} ${booking.vehicle_number ? '• ' + booking.vehicle_number : ''}`;
-        document.getElementById('cust-address').textContent = `Location: ${booking.address || 'Location available'}`;
+        document.getElementById('cust-name').textContent = booking.customer_name || t('earnings_customer_fallback');
+        document.getElementById('cust-vehicle').textContent = `${booking.vehicle_model || booking.vehicle_type || t('earnings_vehicle_fallback')} ${booking.vehicle_number ? '• ' + booking.vehicle_number : ''}`;
+        document.getElementById('cust-address').textContent = `${t('invsos_location_label')}: ${booking.address || t('invsos_location_available')}`;
 
         const vCharge = booking.visiting_charge || 100;
         const items = booking.estimate_details || [];
@@ -166,7 +179,7 @@
             <td class="ps-0 py-3">
               <div class="fw-bold text-danger d-flex align-items-center gap-2">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-                Emergency Visit Charge
+                ${t('invsos_emergency_visit_charge')}
               </div>
             </td>
             <td class="py-3 text-center text-muted">1</td>
@@ -180,7 +193,7 @@
           tbody += `
             <tr>
               <td class="ps-0 py-3 border-top border-light">
-                <div class="fw-bold text-dark">${it.item_name || 'Service'}</div>
+                <div class="fw-bold text-dark">${it.item_name || t('invsos_service_fallback')}</div>
               </td>
               <td class="py-3 text-center text-muted border-top border-light">1</td>
               <td class="pe-0 py-3 text-end fw-bold border-top border-light">₹${it.price || 0}</td>
@@ -199,9 +212,12 @@
 
       } catch (err) {
         console.error(err);
-        document.getElementById('job-id').textContent = "Failed to load invoice";
+        document.getElementById('job-id').textContent = t('invsos_load_failed');
       }
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadSosInvoice);
+    document.addEventListener('i18n:ready', loadSosInvoice);
   </script>
 </body>
 

@@ -154,6 +154,9 @@
                     </div>
                 </div>
 
+                <button onclick="startCall()" class="btn btn-dark rounded-pill w-100 py-2 fw-bold mb-2">
+                  📞 Call Mechanic
+                </button>
                 <button onclick="showCancelConfirm('accepted')" class="btn btn-light text-danger w-100 rounded-pill py-2 fw-medium" style="font-size:13px;">
                     Cancel SOS (₹100 fee)
                 </button>
@@ -353,7 +356,7 @@
 <script>
     const params   = new URLSearchParams(location.search);
     const _sosPathMatch = window.location.pathname.match(/\/sos-tracking\/([^/?#]+)/);
-    let bookingId  = (_sosPathMatch && _sosPathMatch[1]) || params.get('booking_id') || params.get('sos_id');
+    let bookingId  = (_sosPathMatch && _sosPathMatch[1]) || params.get('id') || params.get('booking_id') || params.get('sos_id');
     if (bookingId === 'undefined' || bookingId === 'null') bookingId = null;
 
     let pollTimer  = null;
@@ -636,15 +639,39 @@
     }
 
     async function startCall() {
-        if (!sosData || !sosData.garage_id) return;
+        // Pehle mechanic ko push notification bhejo (agar app band/background ho)
+        try {
+            const token = localStorage.getItem("gnm_token") || localStorage.getItem("access_token");
+            fetch(`${getApiBase()}/sos/${sosData.id}/call-request`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            }).catch(e => console.warn('[Call] Notification request failed:', e));
+        } catch (e) {}
+
+        console.log('[Call Debug] startCall() triggered. sosData:', sosData);
+        if (!sosData || !sosData.garage_id) {
+            console.error('[Call Debug] BLOCKED: sosData or garage_id missing', sosData);
+            return;
+        }
         _targetGarageId = sosData.garage_id;
+        console.log('[Call Debug] targetGarageId:', _targetGarageId);
         const customerId = getCustomerIdFromToken();
-        if (!customerId) return;
+        console.log('[Call Debug] customerId:', customerId);
+        if (!customerId) {
+            console.error('[Call Debug] BLOCKED: customerId missing');
+            return;
+        }
         if (!_customerWs || _customerWs.readyState !== WebSocket.OPEN) {
+            console.log('[Call Debug] WS not open, connecting...');
             connectCustomerWS(customerId);
             await new Promise(r => setTimeout(r, 800));
         }
-        try { _localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); } catch(e) { return; }
+        console.log('[Call Debug] Requesting microphone...');
+        try { _localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); } catch(e) {
+            console.error('[Call Debug] BLOCKED: getUserMedia failed', e);
+            return;
+        }
+        console.log('[Call Debug] Microphone granted, creating peer connection...');
         _pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] });
         _localStream.getTracks().forEach(t => _pc.addTrack(t, _localStream));
         _pc.ontrack = (e) => {
@@ -661,6 +688,21 @@
         const offer = await _pc.createOffer();
         await _pc.setLocalDescription(offer);
         _customerWs.send(JSON.stringify({ type: 'webrtc_offer', target_garage_id: _targetGarageId, customer_id: customerId, offer }));
+
+        // Offer ko backend mein bhi store karo — agar mechanic ka WebSocket
+        // abhi connected nahi hai (app band/background), to app khulne par
+        // wahan se offer mil jayega
+        try {
+            const authToken = localStorage.getItem("gnm_token") || localStorage.getItem("access_token");
+            fetch(`${getApiBase()}/sos/${sosData.id}/store-offer`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${authToken}`
+                },
+                body: JSON.stringify({ offer })
+            }).catch(e => console.warn('[Call] Offer storage failed:', e));
+        } catch (e) {}
         document.getElementById('call-name').textContent   = sosData.garage_name || 'Mechanic';
         document.getElementById('call-status').textContent = 'Ringing...';
         document.getElementById('gnm-call-overlay').style.display = 'flex';

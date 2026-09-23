@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css?v=241d7e8f" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -38,17 +51,17 @@
 
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
           <div>
-            <a href="services.html" class="text-decoration-none text-muted small fw-semibold d-inline-flex align-items-center gap-2 mb-2">
+            <a href="/mechanic/services.html" class="text-decoration-none text-muted small fw-semibold d-inline-flex align-items-center gap-2 mb-2">
               <span aria-hidden="true">&larr;</span>
-              Back to services
+              <span data-i18n="editsvc_back_to_services">Back to services</span>
             </a>
-            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);">Edit Service</h4>
-            <p class="text-muted mb-0">Update service details, pricing, category, and availability.</p>
+            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" data-i18n="editsvc_title">Edit Service</h4>
+            <p class="text-muted mb-0" data-i18n="editsvc_subtitle">Update service details, pricing, category, and availability.</p>
           </div>
 
           <div class="d-flex align-items-center gap-2">
-            <span class="badge rounded-pill bg-light text-dark border px-3 py-2" id="serviceIdBadge">Service</span>
-            <span class="badge rounded-pill px-3 py-2" id="serviceStatusBadge">Loading</span>
+            <span class="badge rounded-pill bg-light text-dark border px-3 py-2" id="serviceIdBadge" data-i18n="editsvc_service_badge_default">Service</span>
+            <span class="badge rounded-pill px-3 py-2" id="serviceStatusBadge" data-i18n="editsvc_loading">Loading</span>
           </div>
         </div>
 
@@ -60,62 +73,62 @@
             <div class="bg-white rounded-4 border shadow-sm p-4 p-lg-5">
               <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                 <div>
-                  <h5 class="fw-bold mb-1" style="font-family: var(--font-head);">Service Details</h5>
-                  <p class="text-muted mb-0 small">Keep names clear so customers can understand the offer quickly.</p>
+                  <h5 class="fw-bold mb-1" style="font-family: var(--font-head);" data-i18n="editsvc_details_title">Service Details</h5>
+                  <p class="text-muted mb-0 small" data-i18n="editsvc_details_subtitle">Keep names clear so customers can understand the offer quickly.</p>
                 </div>
               </div>
 
               <form id="editServiceForm">
                 <div class="mb-4">
-                  <label class="form-label text-muted small fw-medium mb-1" for="serviceName">Service Name</label>
+                  <label class="form-label text-muted small fw-medium mb-1" for="serviceName" data-i18n="editsvc_label_name">Service Name</label>
                   <input type="text" class="form-control form-control-lg" id="serviceName"
                     placeholder="e.g. Oil Change" required>
                 </div>
 
                 <div class="row g-3 mb-4">
                   <div class="col-md-6">
-                    <label class="form-label text-muted small fw-medium mb-1" for="serviceCategory">Category</label>
+                    <label class="form-label text-muted small fw-medium mb-1" for="serviceCategory" data-i18n="editsvc_label_category">Category</label>
                     <select class="form-select form-select-lg" id="serviceCategory">
-                      <option value="">General</option>
-                      <option value="Maintenance">Maintenance</option>
-                      <option value="Repair">Repair</option>
-                      <option value="Cleaning">Cleaning</option>
-                      <option value="Emergency">Emergency</option>
-                      <option value="Denting & Painting">Denting & Painting</option>
+                      <option value="" data-i18n="editsvc_cat_general">General</option>
+                      <option value="Maintenance" data-i18n="editsvc_cat_maintenance">Maintenance</option>
+                      <option value="Repair" data-i18n="editsvc_cat_repair">Repair</option>
+                      <option value="Cleaning" data-i18n="editsvc_cat_cleaning">Cleaning</option>
+                      <option value="Emergency" data-i18n="editsvc_cat_emergency">Emergency</option>
+                      <option value="Denting & Painting" data-i18n="editsvc_cat_denting">Denting & Painting</option>
                     </select>
                   </div>
 
                   <div class="col-md-6">
-                    <label class="form-label text-muted small fw-medium mb-1" for="servicePrice">Base Price (₹)</label>
+                    <label class="form-label text-muted small fw-medium mb-1" for="servicePrice" data-i18n="editsvc_label_price">Base Price (₹)</label>
                     <input type="number" class="form-control form-control-lg" id="servicePrice"
                       placeholder="e.g. 499" min="0" step="1">
                   </div>
                 </div>
 
                 <div class="mb-4">
-                  <label class="form-label text-muted small fw-medium mb-1" for="serviceDescription">Description</label>
+                  <label class="form-label text-muted small fw-medium mb-1" for="serviceDescription" data-i18n="editsvc_label_description">Description</label>
                   <textarea class="form-control" id="serviceDescription" rows="4"
                     placeholder="Briefly describe what's included..."></textarea>
                 </div>
 
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 border rounded-4 p-3 mb-4">
                   <div>
-                    <div class="fw-bold text-dark">Service Availability</div>
-                    <div class="text-muted small">Inactive services stay saved but are hidden from new bookings.</div>
+                    <div class="fw-bold text-dark" data-i18n="editsvc_availability_title">Service Availability</div>
+                    <div class="text-muted small" data-i18n="editsvc_availability_desc">Inactive services stay saved but are hidden from new bookings.</div>
                   </div>
 
                   <div class="form-check form-switch mb-0">
                     <input class="form-check-input" type="checkbox" role="switch" id="activeStatus">
-                    <label class="form-check-label fw-semibold ms-2" for="activeStatus" id="activeStatusLabel">
+                    <label class="form-check-label fw-semibold ms-2" for="activeStatus" id="activeStatusLabel" data-i18n="editsvc_active">
                       Active
                     </label>
                   </div>
                 </div>
 
                 <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
-                  <a href="services.html" class="btn btn-light border rounded-pill px-4 fw-semibold">Cancel</a>
+                  <a href="/mechanic/services.html" class="btn btn-light border rounded-pill px-4 fw-semibold" data-i18n="editsvc_cancel">Cancel</a>
                   <button type="submit" class="btn text-white rounded-pill px-4 fw-bold shadow-sm"
-                    style="background: var(--color-primary);" id="saveServiceBtn">
+                    style="background: var(--color-primary);" id="saveServiceBtn" data-i18n="editsvc_save_changes">
                     Save Changes
                   </button>
                 </div>
@@ -125,20 +138,20 @@
 
           <div class="col-xl-4">
             <div class="bg-white rounded-4 border shadow-sm p-4">
-              <h6 class="fw-bold mb-3" style="font-family: var(--font-head);">Current Snapshot</h6>
+              <h6 class="fw-bold mb-3" style="font-family: var(--font-head);" data-i18n="editsvc_snapshot_title">Current Snapshot</h6>
 
               <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
-                <span class="text-muted small">Category</span>
+                <span class="text-muted small" data-i18n="editsvc_label_category">Category</span>
                 <span class="fw-bold" id="snapshotCategory">-</span>
               </div>
 
               <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
-                <span class="text-muted small">Base Price</span>
+                <span class="text-muted small" data-i18n="editsvc_snapshot_price_label">Base Price</span>
                 <span class="fw-bold" id="snapshotPrice">-</span>
               </div>
 
               <div class="d-flex justify-content-between align-items-center py-3">
-                <span class="text-muted small">Availability</span>
+                <span class="text-muted small" data-i18n="editsvc_snapshot_availability">Availability</span>
                 <span class="fw-bold" id="snapshotStatus">-</span>
               </div>
             </div>
@@ -160,7 +173,7 @@
   <script>
     const API = getApiBase();
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search || window.location.href.split('?')[1] || '');
     const serviceId = Number(params.get('id'));
 
     const editServiceForm = document.getElementById('editServiceForm');
@@ -197,12 +210,12 @@
     }
 
     function updateStatusUI(isAvailable) {
-      activeStatusLabel.textContent = isAvailable ? 'Active' : 'Inactive';
-      serviceStatusBadge.textContent = isAvailable ? 'Active' : 'Inactive';
+      activeStatusLabel.textContent = isAvailable ? t('editsvc_active') : t('editsvc_inactive');
+      serviceStatusBadge.textContent = isAvailable ? t('editsvc_active') : t('editsvc_inactive');
       serviceStatusBadge.className = isAvailable
         ? 'badge rounded-pill bg-success text-white px-3 py-2'
         : 'badge rounded-pill bg-secondary text-white px-3 py-2';
-      document.getElementById('snapshotStatus').textContent = isAvailable ? 'Active' : 'Inactive';
+      document.getElementById('snapshotStatus').textContent = isAvailable ? t('editsvc_active') : t('editsvc_inactive');
     }
 
     function setCategoryValue(category) {
@@ -225,8 +238,8 @@
       serviceDescriptionInput.value = service.description || '';
       activeStatusInput.checked = Boolean(service.is_available);
 
-      serviceIdBadge.textContent = `Service #${service.id}`;
-      document.getElementById('snapshotCategory').textContent = service.category || 'General';
+      serviceIdBadge.textContent = `${t('editsvc_service_badge_default')} #${service.id}`;
+      document.getElementById('snapshotCategory').textContent = service.category || t('editsvc_cat_general');
       document.getElementById('snapshotPrice').textContent =
         service.price !== null && service.price !== undefined ? `₹${service.price}` : '-';
       updateStatusUI(Boolean(service.is_available));
@@ -237,7 +250,7 @@
       if (!token) return;
 
       if (!serviceId) {
-        showAlert(errorAlert, 'Invalid service ID.');
+        showAlert(errorAlert, t('editsvc_invalid_id'));
         editServiceForm.classList.add('d-none');
         return;
       }
@@ -257,7 +270,7 @@
         const service = services.find(item => Number(item.id) === serviceId);
 
         if (!service) {
-          showAlert(errorAlert, 'Service not found.');
+          showAlert(errorAlert, t('editsvc_not_found'));
           editServiceForm.classList.add('d-none');
           return;
         }
@@ -265,7 +278,7 @@
         fillForm(service);
       } catch (err) {
         console.error(err);
-        showAlert(errorAlert, 'Failed to load service details.');
+        showAlert(errorAlert, t('editsvc_load_failed'));
       }
     }
 
@@ -280,7 +293,7 @@
       if (!token) return;
 
       saveServiceBtn.disabled = true;
-      saveServiceBtn.textContent = 'Saving...';
+      saveServiceBtn.textContent = t('editsvc_saving');
 
       try {
         const response = await fetch(`${API}/garage/me/services/${serviceId}`, {
@@ -301,18 +314,21 @@
           throw new Error();
         }
 
-        showAlert(successAlert, 'Service updated successfully.');
+        showAlert(successAlert, t('editsvc_update_success'));
         await fetchCurrentService();
       } catch (err) {
         console.error(err);
-        showAlert(errorAlert, 'Failed to update service.');
+        showAlert(errorAlert, t('editsvc_update_failed'));
       } finally {
         saveServiceBtn.disabled = false;
-        saveServiceBtn.textContent = 'Save Changes';
+        saveServiceBtn.textContent = t('editsvc_save_changes');
       }
     });
 
     fetchCurrentService();
+
+    // Language switch hote hi dynamic content (JS se aaya text) bhi refresh karo
+    document.addEventListener('i18n:ready', fetchCurrentService);
   </script>
 </body>
 

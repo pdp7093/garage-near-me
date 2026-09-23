@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <style>
     .skeleton { background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:6px; }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
@@ -27,15 +40,15 @@
 
       <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
         <div>
-          <h4 class="fw-bold text-dark mb-1" style="font-family:var(--font-head);">Emergency SOS History</h4>
-          <p class="text-muted mb-0 small">Tumhare saare SOS responses ka record.</p>
+          <h4 class="fw-bold text-dark mb-1" style="font-family:var(--font-head);" data-i18n="soshistory_title">Emergency SOS History</h4>
+          <p class="text-muted mb-0 small" data-i18n="soshistory_subtitle">Tumhare saare SOS responses ka record.</p>
         </div>
         <div class="d-flex gap-2">
           <select id="filter-status" class="form-select rounded-pill border shadow-sm w-auto" onchange="applyFilter()">
-            <option value="">All Status</option>
-            <option value="completed">Completed</option>
-            <option value="rejected">Missed</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="" data-i18n="soshistory_filter_all">All Status</option>
+            <option value="completed" data-i18n="status_completed">Completed</option>
+            <option value="rejected" data-i18n="sosalerts_status_missed">Missed</option>
+            <option value="cancelled" data-i18n="status_cancelled">Cancelled</option>
           </select>
         </div>
       </div>
@@ -45,25 +58,25 @@
         <div class="col-6 col-md-3">
           <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
             <div class="fw-bold text-success" style="font-size:22px;" id="stat-total">0</div>
-            <div class="text-muted" style="font-size:12px;">Total SOS</div>
+            <div class="text-muted" style="font-size:12px;" data-i18n="soshistory_stat_total">Total SOS</div>
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
             <div class="fw-bold text-success" style="font-size:22px;" id="stat-completed">0</div>
-            <div class="text-muted" style="font-size:12px;">Completed</div>
+            <div class="text-muted" style="font-size:12px;" data-i18n="status_completed">Completed</div>
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
             <div class="fw-bold text-muted" style="font-size:22px;" id="stat-missed">0</div>
-            <div class="text-muted" style="font-size:12px;">Missed</div>
+            <div class="text-muted" style="font-size:12px;" data-i18n="sosalerts_status_missed">Missed</div>
           </div>
         </div>
         <div class="col-6 col-md-3">
           <div class="bg-white rounded-3 p-3 border text-center shadow-sm">
             <div class="fw-bold" style="font-size:22px;color:var(--color-primary);" id="stat-earnings">₹0</div>
-            <div class="text-muted" style="font-size:12px;">Total Earned</div>
+            <div class="text-muted" style="font-size:12px;" data-i18n="soshistory_stat_earned">Total Earned</div>
           </div>
         </div>
       </div>
@@ -74,11 +87,11 @@
           <table class="table table-hover align-middle mb-0">
             <thead class="bg-light">
               <tr>
-                <th class="fw-semibold text-muted py-3 ps-4 border-bottom">Date &amp; Time</th>
-                <th class="fw-semibold text-muted py-3 border-bottom">Vehicle</th>
-                <th class="fw-semibold text-muted py-3 border-bottom">Issue / Location</th>
-                <th class="fw-semibold text-muted py-3 border-bottom text-center">Status</th>
-                <th class="fw-semibold text-muted py-3 pe-4 border-bottom text-end">Earnings</th>
+                <th class="fw-semibold text-muted py-3 ps-4 border-bottom" data-i18n="sosalerts_th_datetime">Date &amp; Time</th>
+                <th class="fw-semibold text-muted py-3 border-bottom" data-i18n="soshistory_th_vehicle">Vehicle</th>
+                <th class="fw-semibold text-muted py-3 border-bottom" data-i18n="soshistory_th_issue_location">Issue / Location</th>
+                <th class="fw-semibold text-muted py-3 border-bottom text-center" data-i18n="dashboard_table_status">Status</th>
+                <th class="fw-semibold text-muted py-3 pe-4 border-bottom text-end" data-i18n="soshistory_th_earnings">Earnings</th>
               </tr>
             </thead>
             <tbody id="history-tbody">
@@ -126,7 +139,7 @@
       applyFilter();
     } catch {
       document.getElementById('history-tbody').innerHTML = `
-        <tr><td colspan="5" class="text-center text-muted py-5">History load nahi hua. Server check karo.</td></tr>`;
+        <tr><td colspan="5" class="text-center text-muted py-5">${t('soshistory_load_failed')}</td></tr>`;
     }
   }
 
@@ -153,7 +166,7 @@
     const tbody = document.getElementById('history-tbody');
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5">Koi record nahi mila.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-5">${t('soshistory_no_records')}</td></tr>`;
       document.getElementById('pagination-info').textContent = '';
       document.getElementById('pagination').innerHTML = '';
       return;
@@ -165,14 +178,14 @@
 
     tbody.innerHTML = pageData.map(h => {
       const sc = {
-        completed: `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">Completed</span>`,
-        rejected:  `<span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-1">Missed</span>`,
-        cancelled: `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1">Cancelled</span>`,
+        completed: `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">${t('status_completed')}</span>`,
+        rejected:  `<span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-1">${t('sosalerts_status_missed')}</span>`,
+        cancelled: `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1">${t('status_cancelled')}</span>`,
       }[h.status] || `<span class="badge bg-secondary rounded-pill px-3 py-1">${h.status}</span>`;
 
       const date = new Date(h.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
       const time = new Date(h.created_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
-      const vt   = h.vehicle_type === 'two_wheeler' ? '2 Wheeler' : h.vehicle_type === 'four_wheeler' ? '4 Wheeler' : h.vehicle_type || '—';
+      const vt   = h.vehicle_type === 'two_wheeler' ? t('vehicle_two_wheeler') : h.vehicle_type === 'four_wheeler' ? t('vehicle_four_wheeler') : h.vehicle_type || '—';
 
       return `
         <tr>
@@ -185,7 +198,7 @@
             <div class="text-muted small">${h.vehicle_number || '—'}</div>
           </td>
           <td>
-            <div class="text-dark small fw-medium text-truncate" style="max-width:150px;">${h.description || 'Emergency'}</div>
+            <div class="text-dark small fw-medium text-truncate" style="max-width:150px;">${h.description || t('soshistory_emergency_fallback')}</div>
             <div class="text-muted small">${h.customer_address || '—'}</div>
           </td>
           <td class="text-center">${sc}</td>
@@ -198,14 +211,14 @@
     // Pagination
     const infoEl = document.getElementById('pagination-info');
     const pagEl  = document.getElementById('pagination');
-    infoEl.textContent = `Showing ${start+1} to ${Math.min(start+PER_PAGE, filtered.length)} of ${filtered.length} entries`;
+    infoEl.textContent = `${t('soshistory_showing')} ${start+1} ${t('soshistory_to')} ${Math.min(start+PER_PAGE, filtered.length)} ${t('soshistory_of')} ${filtered.length} ${t('soshistory_entries')}`;
 
     if (totalPages <= 1) { pagEl.innerHTML=''; return; }
-    let html = `<li class="page-item ${currentPage===1?'disabled':''}"><a class="page-link rounded-start-pill" href="#" onclick="gotoPage(event,${currentPage-1})">Previous</a></li>`;
+    let html = `<li class="page-item ${currentPage===1?'disabled':''}"><a class="page-link rounded-start-pill" href="#" onclick="gotoPage(event,${currentPage-1})">${t('soshistory_previous')}</a></li>`;
     for (let i=1; i<=totalPages; i++) {
       html += `<li class="page-item ${i===currentPage?'active':''}"><a class="page-link ${i===currentPage?'bg-primary border-primary':''}" href="#" onclick="gotoPage(event,${i})">${i}</a></li>`;
     }
-    html += `<li class="page-item ${currentPage===totalPages?'disabled':''}"><a class="page-link rounded-end-pill" href="#" onclick="gotoPage(event,${currentPage+1})">Next</a></li>`;
+    html += `<li class="page-item ${currentPage===totalPages?'disabled':''}"><a class="page-link rounded-end-pill" href="#" onclick="gotoPage(event,${currentPage+1})">${t('soshistory_next')}</a></li>`;
     pagEl.innerHTML = html;
   }
 
@@ -218,6 +231,12 @@
   }
 
   document.addEventListener('DOMContentLoaded', loadHistory);
+
+  // Language switch hote hi dynamic content (JS se aaya text) bhi refresh karo
+  document.addEventListener('i18n:ready', () => {
+    updateStats();
+    renderTable();
+  });
 </script>
 </body>
 </html>

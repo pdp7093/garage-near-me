@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -27,27 +40,27 @@
 
       <div class="mechanic-content">
         <div class="mb-4">
-          <h4 class="fw-bold mb-1" style="font-family: var(--font-head);">Earnings & Bills</h4>
-          <p class="text-muted small mb-0">Track your completed jobs, total revenue, and platform commissions transparently.</p>
+          <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" data-i18n="earnings_title">Earnings & Bills</h4>
+          <p class="text-muted small mb-0" data-i18n="earnings_subtitle">Track your completed jobs, total revenue, and platform commissions transparently.</p>
         </div>
 
         <!-- Stats Overview -->
         <div class="row g-4 mb-4">
           <div class="col-md-4">
             <div class="stat-card bg-success bg-opacity-10 border-success border-opacity-25 border">
-              <div class="text-success fw-bold mb-2 small text-uppercase tracking-wider">Net Garage Earnings</div>
+              <div class="text-success fw-bold mb-2 small text-uppercase tracking-wider" data-i18n="earnings_net_garage">Net Garage Earnings</div>
               <h2 class="fw-bold text-success mb-0" id="totalGarageEarnings">₹0</h2>
             </div>
           </div>
           <div class="col-md-4">
             <div class="stat-card bg-white border shadow-sm">
-              <div class="text-muted fw-bold mb-2 small text-uppercase tracking-wider">Total Gross Revenue</div>
+              <div class="text-muted fw-bold mb-2 small text-uppercase tracking-wider" data-i18n="earnings_gross_revenue">Total Gross Revenue</div>
               <h2 class="fw-bold text-dark mb-0" id="totalGrossRevenue">₹0</h2>
             </div>
           </div>
           <div class="col-md-4">
             <div class="stat-card bg-white border shadow-sm">
-              <div class="text-muted fw-bold mb-2 small text-uppercase tracking-wider">Platform Cut</div>
+              <div class="text-muted fw-bold mb-2 small text-uppercase tracking-wider" data-i18n="earnings_platform_cut">Platform Cut</div>
               <h2 class="fw-bold text-danger mb-0" id="totalCommission">₹0</h2>
             </div>
           </div>
@@ -55,23 +68,23 @@
 
         <!-- Paid Bills Table -->
         <div class="bg-white rounded-4 border p-4 shadow-sm">
-          <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Completed Bills</h5>
+          <h5 class="fw-bold mb-4" style="font-family: var(--font-head);" data-i18n="earnings_completed_bills">Completed Bills</h5>
           <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
               <thead class="text-muted small">
                 <tr>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Booking ID</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Customer</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Date Completed</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Gross Total</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Platform Cut</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Net Earnings</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom text-center">Status</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="earnings_th_booking_id">Booking ID</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="dashboard_table_customer">Customer</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="earnings_th_date">Date Completed</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end" data-i18n="earnings_th_gross">Gross Total</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end" data-i18n="earnings_platform_cut">Platform Cut</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end" data-i18n="earnings_th_net">Net Earnings</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-center" data-i18n="dashboard_table_status">Status</th>
                 </tr>
               </thead>
               <tbody class="border-top-0" id="billsBody">
                 <tr>
-                  <td colspan="7" class="text-center text-muted py-4">Loading data...</td>
+                  <td colspan="7" class="text-center text-muted py-4" data-i18n="earnings_loading">Loading data...</td>
                 </tr>
               </tbody>
             </table>
@@ -129,7 +142,7 @@
           .filter(s => s.status === 'completed' && s.final_charge)
           .map(s => ({
             id: `#SOS-${s.sos_number || s.id}`,
-            customer_name: 'SOS Emergency',
+            customer_name: t('earnings_sos_emergency'),
             vehicle: s.vehicle_model || s.vehicle_type,
             completed_at: s.completed_at || s.created_at,
             final_amount: parseFloat(s.final_charge) || 0,
@@ -150,7 +163,7 @@
 
         const tbody = document.getElementById('billsBody');
         if (allCompleted.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No completed bills yet.</td></tr>';
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">${t('earnings_no_bills')}</td></tr>`;
         } else {
           tbody.innerHTML = allCompleted.map(b => {
             const finalAmt = b.final_amount;
@@ -164,15 +177,15 @@
             const dateStr = b.completed_at ? new Date(b.completed_at).toLocaleDateString('en-IN') : '-';
             
             const statusBadge = b.is_paid
-              ? `<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1.5 fw-bold border border-success border-opacity-10">Paid</span>`
-              : `<a href="${b.invoice_link}" class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1.5 fw-bold text-decoration-none border border-warning border-opacity-10" title="Click to mark as Paid">Pending Payment ➔</a>`;
+              ? `<span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1.5 fw-bold border border-success border-opacity-10">${t('earnings_paid')}</span>`
+              : `<a href="${b.invoice_link}" class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2.5 py-1.5 fw-bold text-decoration-none border border-warning border-opacity-10" title="Click to mark as Paid">${t('earnings_pending_payment')} ➔</a>`;
 
             return `
               <tr>
                 <td class="fw-bold text-dark">${b.id}</td>
                 <td>
-                  <div class="fw-bold text-dark">${b.customer_name || 'Customer'}</div>
-                  <div class="text-muted small">${b.vehicle || 'Vehicle'}</div>
+                  <div class="fw-bold text-dark">${b.customer_name || t('earnings_customer_fallback')}</div>
+                  <div class="text-muted small">${b.vehicle || t('earnings_vehicle_fallback')}</div>
                 </td>
                 <td class="text-muted">${dateStr}</td>
                 <td class="text-end fw-bold">₹${finalAmt.toFixed(2)}</td>
@@ -190,11 +203,14 @@
 
       } catch (err) {
         console.error('Error fetching earnings:', err);
-        document.getElementById('billsBody').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Failed to load earnings data.</td></tr>';
+        document.getElementById('billsBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${t('earnings_load_failed')}</td></tr>`;
       }
     }
 
     loadEarningsData();
+
+    // Language switch hote hi dynamic content (JS se aaya text) bhi refresh karo
+    document.addEventListener('i18n:ready', loadEarningsData);
   </script>
 </body>
 </html>

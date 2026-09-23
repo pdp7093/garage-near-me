@@ -11,6 +11,65 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css?v=8671a53d" />
+    <script>
+    // GNM MULTI-LANGUAGE SYSTEM (i18n.js)
+    // Mechanic side: hinglish (default), hindi, gujarati
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+
+    function getMechanicLanguage() {
+      const saved = localStorage.getItem('mechanic_lang');
+      return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE;
+    }
+
+    function setMechanicLanguage(lang) {
+      if (!SUPPORTED_LANGUAGES.includes(lang)) return;
+      localStorage.setItem('mechanic_lang', lang);
+      applyLanguage(lang);
+    }
+
+    async function loadLanguageFile(lang) {
+      try {
+        const res = await fetch(`/lang/${lang}.json`);
+        if (!res.ok) throw new Error('Language file not found: ' + lang);
+        return await res.json();
+      } catch (err) {
+        console.error('i18n load error:', err);
+        if (lang !== DEFAULT_LANGUAGE) {
+          const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`);
+          return await res.json();
+        }
+        return {};
+      }
+    }
+
+    function applyTranslationsToDOM() {
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.getAttribute('data-i18n');
+        if (currentTranslations[key]) {
+          el.textContent = currentTranslations[key];
+        }
+      });
+    }
+
+    function t(key) {
+      return currentTranslations[key] || key;
+    }
+
+    async function applyLanguage(lang) {
+      currentLang = lang;
+      currentTranslations = await loadLanguageFile(lang);
+      applyTranslationsToDOM();
+      document.dispatchEvent(new CustomEvent('i18n:ready'));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      applyLanguage(getMechanicLanguage());
+    });
+    </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -40,14 +99,17 @@
         <!-- Welcome & SOS Toggle -->
         <div class="sos-toggle-wrapper mb-4">
           <div>
-            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="garageName">Welcome back</h4>
+            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="garageName"
+              data-i18n="dashboard_welcome_default">Welcome back</h4>
             <p class="text-muted mb-0 small" id="garageMetaInfo">You have 2 pending requests today.</p>
 
           </div>
           <div class="d-flex align-items-center gap-3">
             <div class="text-end d-none d-sm-block">
-              <div class="fw-bold text-success" id="sosStatusText">Available for SOS</div>
-              <div class="text-muted" style="font-size: 12px;">Turn off if you are busy</div>
+              <div class="fw-bold text-success" id="sosStatusText" data-i18n="dashboard_available_sos">Available for SOS
+              </div>
+              <div class="text-muted" style="font-size: 12px;" data-i18n="dashboard_sos_hint">Turn off if you are busy
+              </div>
             </div>
             <div class="form-check form-switch sos-switch mb-0">
               <input class="form-check-input" type="checkbox" role="switch" id="sosToggle" checked>
@@ -66,7 +128,7 @@
                       d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" />
                   </svg>
                 </div>
-                <div class="text-muted fw-medium">Today's Earnings</div>
+                <div class="text-muted fw-medium" data-i18n="dashboard_stat_earnings">Today's Earnings</div>
               </div>
               <h3 class="fw-bold mb-0" id="todaysEarningsStat">0</h3>
             </div>
@@ -81,7 +143,7 @@
                       d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                   </svg>
                 </div>
-                <div class="text-muted fw-medium">Jobs Completed</div>
+                <div class="text-muted fw-medium" data-i18n="dashboard_stat_jobs">Jobs Completed</div>
               </div>
               <h3 class="fw-bold mb-0" id="jobsCompletedStat">0</h3>
             </div>
@@ -96,7 +158,7 @@
                       d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                   </svg>
                 </div>
-                <div class="text-muted fw-medium">SOS Completed</div>
+                <div class="text-muted fw-medium" data-i18n="dashboard_stat_sos">SOS Completed</div>
               </div>
               <h3 class="fw-bold mb-0 text-danger" id="activeSOSStat">0</h3>
             </div>
@@ -111,7 +173,7 @@
                       d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                   </svg>
                 </div>
-                <div class="text-muted fw-medium">Customer Rating</div>
+                <div class="text-muted fw-medium" data-i18n="dashboard_stat_rating">Customer Rating</div>
               </div>
               <h3 class="fw-bold mb-0" id="customerRatingStat">0</h3>
             </div>
@@ -121,24 +183,31 @@
         <!-- Recent Activity Table -->
         <div class="bg-white rounded-4 border p-4 shadow-sm">
           <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="fw-bold mb-0" style="font-family: var(--font-head);">Recent Bookings</h5>
-            <a href="bookings.html" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All Bookings</a>
+            <h5 class="fw-bold mb-0" style="font-family: var(--font-head);" data-i18n="dashboard_recent_bookings">Recent
+              Bookings</h5>
+            <a href="/mechanic/bookings.html" class="btn btn-sm btn-outline-primary rounded-pill px-3"
+              data-i18n="dashboard_view_all">View All Bookings</a>
           </div>
 
           <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
               <thead class="text-muted small">
                 <tr>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Customer</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Service Type</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Location/Distance</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom">Status</th>
-                  <th scope="col" class="fw-medium pb-3 border-bottom text-end">Action</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="dashboard_table_customer">Customer
+                  </th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="dashboard_table_service">Service Type
+                  </th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="dashboard_table_location">
+                    Location/Distance</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom" data-i18n="dashboard_table_status">Status</th>
+                  <th scope="col" class="fw-medium pb-3 border-bottom text-end" data-i18n="dashboard_table_action">
+                    Action</th>
                 </tr>
               </thead>
               <tbody class="border-top-0" id="recentBookingsBody">
                 <tr>
-                  <td colspan="5" class="text-center text-muted py-4">Loading recent bookings...</td>
+                  <td colspan="5" class="text-center text-muted py-4" data-i18n="dashboard_loading_bookings">Loading
+                    recent bookings...</td>
                 </tr>
               </tbody>
             </table>
@@ -156,7 +225,7 @@
   <script>
     initMechanicChrome('Overview', mechanicCheckLocationSet);
   </script>
-  <script src="/js/bootstrap.js"></script>
+  <script src="/js/bootstrap.bundle.min.js"></script>
   <script>
 
     const API = getApiBase();
@@ -207,7 +276,7 @@
         // ─────────────────────────
 
         document.getElementById('garageName').innerText =
-          `Welcome back, ${garage.name}`;
+          `${t('dashboard_welcome_default')}, ${garage.name}`;
 
 
         // ─────────────────────────
@@ -215,7 +284,7 @@
         // ─────────────────────────
 
         const city =
-          garage.location?.city || 'Location not set';
+          garage.location?.city || t('dashboard_location_not_set');
 
         const garageType =
           garage.garage_type || 'Garage';
@@ -261,7 +330,7 @@
       if (isEnabled) {
 
         sosStatusText.textContent =
-          'Available for SOS';
+          t('dashboard_available_sos');
 
         sosStatusText.className =
           'fw-bold text-success';
@@ -269,7 +338,7 @@
       } else {
 
         sosStatusText.textContent =
-          'Offline';
+          t('dashboard_offline');
 
         sosStatusText.className =
           'fw-bold text-muted';
@@ -320,7 +389,7 @@
 
           console.error(err);
 
-          alert('Failed to update SOS status');
+          alert(t('dashboard_sos_toggle_fail'));
 
         }
 
@@ -364,6 +433,12 @@
     loadDashboardSummary();
     loadRecentBookings();
     startAutoRefresh();
+
+    // Language switch hote hi dynamic content (JS se aaya text) bhi refresh karo
+    document.addEventListener('i18n:ready', () => {
+      loadGarageDashboard();
+      loadRecentBookings();
+    });
 
 
 
@@ -450,7 +525,7 @@
         if (latestBookings.length === 0) {
           tbody.innerHTML = `
             <tr>
-              <td colspan="5" class="text-center text-muted py-4">Abhi koi booking nahi hai.</td>
+              <td colspan="5" class="text-center text-muted py-4">${t('dashboard_no_bookings')}</td>
             </tr>`;
           return;
         }
@@ -464,7 +539,7 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="5" class="text-center text-danger py-4">
-              Recent bookings load nahi hue.
+              ${t('dashboard_bookings_error')}
             </td>
           </tr>`;
 
@@ -480,13 +555,13 @@
       const vehicleInfo =
         escapeHTML([booking.vehicle_model || vehicleTypeLabel(booking.vehicle_type), booking.vehicle_number]
           .filter(Boolean)
-          .join(' • ') || 'Vehicle details pending');
+          .join(' • ') || t('dashboard_vehicle_pending'));
 
       const serviceName =
         escapeHTML(booking.service_type || (booking.booking_type === 'sos' ? 'SOS Assistance' : 'General Service'));
 
       const location =
-        escapeHTML(shortAddress(booking.pickup_address || booking.customer_address || 'Location not shared'));
+        escapeHTML(shortAddress(booking.pickup_address || booking.customer_address || t('dashboard_location_not_shared')));
 
       const timeSource =
         booking.scheduled_at || booking.created_at;
@@ -519,8 +594,8 @@
             <span class="${status.className} fw-bold small">${escapeHTML(status.label)}</span>
           </td>
           <td class="text-end">
-            <a href="job-detail.html?id=${booking.id}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
-              View Details
+            <a href="/mechanic/job-detail/${encodeURIComponent(booking.slug || booking.id)}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+              ${t('dashboard_view_details')}
             </a>
           </td>
         </tr>`;
@@ -553,7 +628,7 @@
         return;
       }
 
-      const baseMeta = garageBaseMeta || 'Garage details loading';
+      const baseMeta = garageBaseMeta || t('dashboard_garage_loading');
 
       if (pendingTodayCount === null) {
         metaEl.textContent = baseMeta;
@@ -568,12 +643,12 @@
     function statusConfig(status) {
 
       const config = {
-        pending: { label: 'Pending', className: 'text-primary' },
-        accepted: { label: 'Accepted', className: 'text-success' },
-        ongoing: { label: 'In Progress', className: 'text-warning' },
-        completed: { label: 'Completed', className: 'text-success' },
-        rejected: { label: 'Rejected', className: 'text-danger' },
-        cancelled: { label: 'Cancelled', className: 'text-muted' }
+        pending: { label: t('status_pending'), className: 'text-primary' },
+        accepted: { label: t('status_accepted'), className: 'text-success' },
+        ongoing: { label: t('status_ongoing'), className: 'text-warning' },
+        completed: { label: t('status_completed'), className: 'text-success' },
+        rejected: { label: t('status_rejected'), className: 'text-danger' },
+        cancelled: { label: t('status_cancelled'), className: 'text-muted' }
       };
 
       return config[status] || { label: status || 'Unknown', className: 'text-muted' };
@@ -583,13 +658,13 @@
     function formatDateTime(value) {
 
       if (!value) {
-        return 'Time not set';
+        return t('dashboard_time_not_set');
       }
 
       const date = new Date(value);
 
       if (Number.isNaN(date.getTime())) {
-        return 'Time not set';
+        return t('dashboard_time_not_set');
       }
 
       return date.toLocaleString('en-IN', {
@@ -604,11 +679,11 @@
     function vehicleTypeLabel(type) {
 
       if (type === 'two_wheeler') {
-        return '2 Wheeler';
+        return t('vehicle_two_wheeler');
       }
 
       if (type === 'four_wheeler') {
-        return '4 Wheeler';
+        return t('vehicle_four_wheeler');
       }
 
       return type || '';

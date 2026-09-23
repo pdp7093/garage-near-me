@@ -218,6 +218,37 @@ async function initMechanicChrome(pageTitle, callback = null, activeHref = null)
     loadComponent('topbar-container', '/mechanic/components/topbar.html?v=' + v, () => {
       const titleEl = document.getElementById('topbar-title');
       if (titleEl) titleEl.textContent = pageTitle;
+
+      // Set current language label
+      const langLabel = document.getElementById('langSwitcherLabel');
+      if (langLabel && typeof window.getMechanicLanguage === 'function') {
+        const currentLang = window.getMechanicLanguage();
+        if (currentLang === 'hindi') langLabel.textContent = 'हिंदी';
+        else if (currentLang === 'gujarati') langLabel.textContent = 'ગુજરાતી';
+        else langLabel.textContent = 'Hinglish';
+      }
+
+      // Attach click listeners to language options
+      const topbarContainer = document.getElementById('topbar-container');
+      if (topbarContainer) {
+        const langOptions = topbarContainer.querySelectorAll('.lang-option');
+        langOptions.forEach(option => {
+          option.addEventListener('click', (e) => {
+            e.preventDefault();
+            const selectedLang = option.getAttribute('data-lang');
+            
+            if (typeof window.setMechanicLanguage === 'function') {
+              window.setMechanicLanguage(selectedLang);
+            }
+
+            if (langLabel) {
+              if (selectedLang === 'hindi') langLabel.textContent = 'हिंदी';
+              else if (selectedLang === 'gujarati') langLabel.textContent = 'ગુજરાતી';
+              else langLabel.textContent = 'Hinglish';
+            }
+          });
+        });
+      }
     })
   ]);
 

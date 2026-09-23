@@ -32,6 +32,7 @@ def send_notification(token: str, title: str, body: str, data: Optional[dict] = 
             **{str(k): str(v) for k, v in (data or {}).items()}
         }
         is_sos = (data or {}).get("type") in ("sos", "sos_alert")
+        is_call = (data or {}).get("is_call") == "true"
 
         import uuid
         android_notification_kwargs = {
@@ -45,6 +46,9 @@ def send_notification(token: str, title: str, body: str, data: Optional[dict] = 
             android_notification_kwargs["channel_id"] = "sos_alerts_loud"
         elif (data or {}).get("type") in ("new_booking", "booking_accepted", "estimate_ready", "mechanic_on_way", "repair_complete", "booking_cancelled"):
             android_notification_kwargs["channel_id"] = "booking_alerts"
+
+        if is_call:
+            android_notification_kwargs["sticky"] = True
 
         msg = messaging.Message(
             # Top-level notification — Android OS khud tray mein dikhata hai,

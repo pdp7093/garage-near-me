@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css?v=c22f54a9" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -35,9 +48,9 @@
       <div class="col-12 col-md-8 col-lg-6">
         
         <!-- Back Button -->
-        <a href="job-detail.html" class="btn btn-light rounded-pill mb-4 shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
+        <a href="/mechanic/job-detail.html" class="btn btn-light rounded-pill mb-4 shadow-sm border fw-bold text-dark d-inline-flex align-items-center gap-2">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-          Back to Job Detail
+          <span data-i18n="invoice_back_to_job">Back to Job Detail</span>
         </a>
 
         <!-- Invoice Card -->
@@ -58,7 +71,7 @@
                   </div>
                   <span class="fw-bold" style="font-family: var(--font-head); color: rgba(255,255,255,0.45); font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;">GarageNearMe</span>
                 </div>
-                <h2 class="fw-bold text-white mb-2" style="font-family: var(--font-head);">Final Invoice</h2>
+                <h2 class="fw-bold text-white mb-2" style="font-family: var(--font-head);" data-i18n="invoice_final_invoice">Final Invoice</h2>
                 <span class="badge rounded-pill px-3 py-1 d-inline-block"
                   style="background: var(--color-accent); font-size: 12px;" id="invJobId">Job ID: #---</span>
                 <div class="mt-2" style="color: rgba(255,255,255,0.45); font-size: 13px;" id="invDate">Date: ---</div>
@@ -81,7 +94,7 @@
             <div class="mb-4 p-3 rounded-3"
               style="background: rgba(27,31,46,0.04); border-left: 3px solid var(--color-accent);">
               <div class="fw-bold text-uppercase mb-2"
-                style="font-size: 10px; letter-spacing: 1.5px; color: var(--color-text-muted);">Billed To</div>
+                style="font-size: 10px; letter-spacing: 1.5px; color: var(--color-text-muted);" data-i18n="invoice_billed_to">Billed To</div>
               <h6 class="fw-bold mb-1" id="invCustomerName" style="font-size: 15px;">---</h6>
               <div class="text-muted small" id="invVehicleInfo">---</div>
               <div class="text-muted small mt-1" id="invServiceType">Service: ---</div>
@@ -93,11 +106,11 @@
                 <thead>
                   <tr class="border-bottom">
                     <th scope="col" class="ps-0 fw-semibold pb-3 text-uppercase"
-                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);">Description</th>
+                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);" data-i18n="invoice_th_description">Description</th>
                     <th scope="col" class="fw-semibold pb-3 text-center text-uppercase"
-                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);">Qty</th>
+                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);" data-i18n="invoice_th_qty">Qty</th>
                     <th scope="col" class="pe-0 fw-semibold pb-3 text-end text-uppercase"
-                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);">Amount</th>
+                      style="font-size: 11px; letter-spacing: 0.8px; color: var(--color-text-muted);" data-i18n="invoice_th_amount">Amount</th>
                   </tr>
                 </thead>
                 <tbody id="invItemsBody">
@@ -118,7 +131,7 @@
               <button onclick="markAsPaid()" id="markPaidBtn"
                 class="btn btn-success flex-grow-1 fw-bold rounded-pill py-3 shadow-sm d-flex justify-content-center align-items-center gap-2">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                Mark as Paid (Cash/UPI)
+                <span data-i18n="invoice_mark_paid">Mark as Paid (Cash/UPI)</span>
               </button>
             </div>
 
@@ -128,9 +141,9 @@
         <!-- Loading State -->
         <div id="loadingState" class="text-center py-5">
           <div class="spinner-border" style="color: var(--color-primary);" role="status">
-            <span class="visually-hidden">Loading...</span>
+            <span class="visually-hidden" data-i18n="invoice_loading">Loading...</span>
           </div>
-          <p class="mt-3 fw-medium" style="color: var(--color-text-muted);">Loading invoice details...</p>
+          <p class="mt-3 fw-medium" style="color: var(--color-text-muted);" data-i18n="invoice_loading_details">Loading invoice details...</p>
         </div>
 
       </div>
@@ -142,7 +155,7 @@
   <script src="/js/bootstrap.js"></script>
   <script>
     // Get booking ID from URL
-    let bookingId = new URLSearchParams(window.location.search).get('id');
+    let bookingId = new URLSearchParams(window.location.search || window.location.href.split('?')[1] || '').get('id');
     if (!bookingId) {
         const pathParts = window.location.pathname.replace(/\/$/, '').split('/');
         const slug = pathParts[pathParts.length - 1];
@@ -156,7 +169,7 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         if (!bookingId) {
-            alert('No Booking ID provided');
+            alert(t('invoice_no_booking_id'));
             window.location.href = '/mechanic/dashboard.html';
             return;
         }
@@ -183,7 +196,7 @@
             renderInvoice();
         } catch (err) {
             console.error(err);
-            alert('Error loading invoice details');
+            alert(t('invoice_load_error'));
         }
     });
 
@@ -193,34 +206,34 @@
 
         // Header
         const bookingNoStr = currentBooking.booking_number || ('BK-' + currentBooking.id);
-        document.getElementById('invJobId').textContent = `Job Ref: ${bookingNoStr}`;
+        document.getElementById('invJobId').textContent = `${t('invoice_job_ref_label')}: ${bookingNoStr}`;
         const date = currentBooking.completed_at ? new Date(currentBooking.completed_at) : new Date();
-        document.getElementById('invDate').textContent = `Date: ${date.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})}`;
+        document.getElementById('invDate').textContent = `${t('invoice_date_label')}: ${date.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})}`;
 
         // Garage Info
         if (currentGarage) {
-            document.getElementById('invGarageName').textContent = currentGarage.name || 'Garage';
+            document.getElementById('invGarageName').textContent = currentGarage.name || t('invoice_garage_fallback');
             const loc = currentGarage.location;
             if (loc) {
                 const addrParts = [loc.shop_number, loc.street, loc.city].filter(Boolean);
-                document.getElementById('invGarageAddress').textContent = addrParts.join(', ') || 'Address not available';
+                document.getElementById('invGarageAddress').textContent = addrParts.join(', ') || t('invoice_address_not_available');
             }
             if (currentGarage.has_gst && currentGarage.gst_number) {
                 const gstEl = document.getElementById('invGarageGst');
-                gstEl.textContent = `GST: ${currentGarage.gst_number}`;
+                gstEl.textContent = `${t('invoice_gst_label')}: ${currentGarage.gst_number}`;
                 gstEl.classList.remove('d-none');
             }
         }
 
         // Customer Info
-        const custName = currentBooking.customer_name || `Customer #${currentBooking.customer_id}`;
+        const custName = currentBooking.customer_name || `${t('bookings_customer_prefix')} #${currentBooking.customer_id}`;
         const custPhone = currentBooking.customer_phone ? ` (+91 ${currentBooking.customer_phone})` : '';
         document.getElementById('invCustomerName').textContent = custName + custPhone;
-        
+
         const vInfo = [currentBooking.vehicle_model || currentBooking.vehicle_type, currentBooking.vehicle_number].filter(Boolean).join(' • ');
-        document.getElementById('invVehicleInfo').textContent = vInfo || 'Vehicle details not available';
-        
-        document.getElementById('invServiceType').textContent = `Service: ${currentBooking.service_type || (currentBooking.booking_type === 'sos' ? 'SOS Assistance' : 'General')}`;
+        document.getElementById('invVehicleInfo').textContent = vInfo || t('invoice_vehicle_not_available');
+
+        document.getElementById('invServiceType').textContent = `${t('invoice_service_label')}: ${currentBooking.service_type || (currentBooking.booking_type === 'sos' ? t('bookings_service_sos') : t('invoice_service_general'))}`;
 
         // Items Table
         let itemsHtml = '';
@@ -252,11 +265,11 @@
         }
 
         if (currentBooking.pickup_charge && currentBooking.pickup_charge > 0) {
-            addRow('Pick & Drop / Visiting Charge', currentBooking.pickup_charge);
+            addRow(t('invoice_pickup_visiting_charge'), currentBooking.pickup_charge);
         }
 
         if (itemIndex === 0) {
-            itemsHtml = '<tr><td colspan="3" class="text-center text-muted py-3">No items found</td></tr>';
+            itemsHtml = `<tr><td colspan="3" class="text-center text-muted py-3">${t('invoice_no_items_found')}</td></tr>`;
         }
 
         document.getElementById('invItemsBody').innerHTML = itemsHtml;
@@ -271,26 +284,26 @@
             const tax = finalAmount - subtotal;
             totalsHtml = `
               <div class="d-flex justify-content-between align-items-center py-2" style="font-size: 14px;">
-                <span class="text-muted">Subtotal</span>
+                <span class="text-muted">${t('invoice_subtotal')}</span>
                 <span class="fw-bold text-dark">₹${subtotal.toFixed(2)}</span>
               </div>
               <div class="d-flex justify-content-between align-items-center py-2 mb-3" style="font-size: 14px; border-bottom: 1px dashed #dee2e6;">
-                <span class="text-muted">Taxes (18% GST)</span>
+                <span class="text-muted">${t('invoice_taxes_gst')}</span>
                 <span class="fw-bold text-dark">₹${tax.toFixed(2)}</span>
               </div>
               <div class="d-flex justify-content-between align-items-center rounded-3 p-4" style="background: var(--color-primary);">
-                <span class="fw-bold text-white" style="font-size: 16px;">Total Due</span>
+                <span class="fw-bold text-white" style="font-size: 16px;">${t('invoice_total_due')}</span>
                 <span class="fw-bold text-white" style="font-size: 28px; font-family: var(--font-head);">₹${finalAmount.toLocaleString()}</span>
               </div>
             `;
         } else {
             totalsHtml = `
               <div class="d-flex justify-content-between align-items-center py-2 mb-3" style="font-size: 14px; border-bottom: 1px dashed #dee2e6;">
-                <span class="text-muted">Subtotal</span>
+                <span class="text-muted">${t('invoice_subtotal')}</span>
                 <span class="fw-bold text-dark">₹${finalAmount.toLocaleString()}</span>
               </div>
               <div class="d-flex justify-content-between align-items-center rounded-3 p-4" style="background: var(--color-primary);">
-                <span class="fw-bold text-white" style="font-size: 16px;">Total Due</span>
+                <span class="fw-bold text-white" style="font-size: 16px;">${t('invoice_total_due')}</span>
                 <span class="fw-bold text-white" style="font-size: 28px; font-family: var(--font-head);">₹${finalAmount.toLocaleString()}</span>
               </div>
             `;
@@ -302,34 +315,38 @@
             document.getElementById('markPaidBtn').outerHTML = `
                 <div class="btn btn-success flex-grow-1 fw-bold rounded-pill py-3 shadow-sm d-flex justify-content-center align-items-center gap-2" style="cursor: default; opacity: 0.85; pointer-events: none;">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                  Payment Received ✓
+                  ${t('invoice_payment_received')} ✓
                 </div>
             `;
         }
     }
 
     async function markAsPaid() {
-        if (!confirm('Are you sure you want to mark this invoice as paid?')) return;
-        
+        if (!confirm(t('invoice_confirm_mark_paid'))) return;
+
         try {
             const res = await fetch(`${getApiBase()}/bookings/garage/${bookingId}/payment`, {
                 method: 'PATCH',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${MECHANIC_AUTH.getToken()}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ payment_status: 'paid' })
             });
 
-            if (!res.ok) throw new Error('Failed to update payment status');
-            
-            alert('Payment marked successfully. Bill has been saved for customer.');
+            if (!res.ok) throw new Error(t('invoice_payment_update_failed'));
+
+            alert(t('invoice_payment_success'));
             location.reload();
         } catch (err) {
             console.error(err);
             alert(err.message);
         }
     }
+
+    document.addEventListener('i18n:ready', () => {
+      if (currentBooking) renderInvoice();
+    });
   </script>
 </body>
 

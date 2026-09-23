@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -92,6 +92,9 @@ async def automated_sos_cleanup_task():
         
         # Check every 1 minute
         await asyncio.sleep(60)
+
+
+
 
 
 async def automated_sos_retry_task():
@@ -202,6 +205,7 @@ os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"),             name="uploads")
 app.mount("/css",     StaticFiles(directory=f"{FRONTEND_DIR}/css"), name="css")
 app.mount("/js",      StaticFiles(directory=f"{FRONTEND_DIR}/js"),  name="js")
+app.mount("/lang",    StaticFiles(directory=f"{FRONTEND_DIR}/lang"), name="lang")
 
 app.add_middleware(GZipMiddleware, minimum_size=500)
 app.add_middleware(
@@ -242,7 +246,7 @@ async def mechanic_websocket(websocket: WebSocket, garage_id: int):
                 data = json.loads(msg)
                 msg_type = data.get("type", "")
                 # WebRTC signaling — mechanic → customer relay
-                if msg_type in ("webrtc_answer", "webrtc_ice", "webrtc_end"):
+                if msg_type in ("webrtc_offer", "webrtc_answer", "webrtc_ice", "webrtc_end"):
                     customer_id = data.get("target_customer_id")
                     if customer_id:
                         await ws_manager.send_to_customer(int(customer_id), data)
@@ -290,7 +294,7 @@ def read_root():
     return FileResponse(os.path.join(FRONTEND_DIR, "customer", "index.html"))
 
 @app.get("/{path:path}", include_in_schema=False)
-def serve_frontend(path: str):
+def serve_frontend(path: str, request: Request):
     has_trailing_slash = path.endswith("/")
     path = path.rstrip("/")
 
@@ -306,7 +310,10 @@ def serve_frontend(path: str):
         if target in ("admin/index", "mechanic/index"):
             section = target.split("/", 1)[0]
             return RedirectResponse(url=f"/{section}/", status_code=301)
-        return RedirectResponse(url="/" + target.lstrip("/"), status_code=301)
+        target_url = "/" + target.lstrip("/")
+        if request.url.query:
+            target_url += "?" + request.url.query
+        return RedirectResponse(url=target_url, status_code=301)
 
     if not path.startswith(("admin/", "mechanic/", "api/", "css/", "js/", "uploads/")):
         for suffix in ["", ".html"]:

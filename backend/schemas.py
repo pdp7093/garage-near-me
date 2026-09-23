@@ -166,6 +166,7 @@ class CustomerRegisterVerify(BaseModel):
     phone: str
     email: str
     otp:   str
+    verification_id: str
 
 class OTPSendRequest(BaseModel):
     """Garage owner phone number dalta hai → OTP bhejo"""
@@ -175,11 +176,11 @@ class OTPVerifyRequest(BaseModel):
     """Garage owner OTP dalta hai → JWT token milta hai"""
     phone: str
     otp:   str
+    verification_id: str
 
 class OTPSendResponse(BaseModel):
     message: str
-    # Testing ke liye OTP bhi return karenge (production mein hataana)
-    otp:     Optional[str] = None
+    verification_id: Optional[str] = None
 
 
 # ──────────────────────────────────────────

@@ -11,6 +11,19 @@
   <link rel="stylesheet" href="/css/bootstrap.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/mechanic.css?v=7baa3eb6" />
+  <script>
+    const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
+    const DEFAULT_LANGUAGE = 'hinglish';
+    let currentTranslations = {};
+    let currentLang = DEFAULT_LANGUAGE;
+    function getMechanicLanguage() { const saved = localStorage.getItem('mechanic_lang'); return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE; }
+    function setMechanicLanguage(lang) { if (!SUPPORTED_LANGUAGES.includes(lang)) return; localStorage.setItem('mechanic_lang', lang); applyLanguage(lang); }
+    async function loadLanguageFile(lang) { try { const res = await fetch(`/lang/${lang}.json`); if (!res.ok) throw new Error('Language file not found: ' + lang); return await res.json(); } catch (err) { console.error('i18n load error:', err); if (lang !== DEFAULT_LANGUAGE) { const res = await fetch(`/lang/${DEFAULT_LANGUAGE}.json`); return await res.json(); } return {}; } }
+    function applyTranslationsToDOM() { document.querySelectorAll('[data-i18n]').forEach((el) => { const key = el.getAttribute('data-i18n'); if (currentTranslations[key]) el.textContent = currentTranslations[key]; }); }
+    function t(key) { return currentTranslations[key] || key; }
+    async function applyLanguage(lang) { currentLang = lang; currentTranslations = await loadLanguageFile(lang); applyTranslationsToDOM(); document.dispatchEvent(new CustomEvent('i18n:ready')); }
+    document.addEventListener('DOMContentLoaded', () => { applyLanguage(getMechanicLanguage()); });
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap"
     rel="stylesheet" />
@@ -90,11 +103,11 @@
 
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
           <div>
-            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="profileHeading">Garage Settings</h4>
-            <p class="text-muted mb-0 small" id="profileSubheading">Loading your garage profile...</p>
+            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="profileHeading" data-i18n="profile_heading_default">Garage Settings</h4>
+            <p class="text-muted mb-0 small" id="profileSubheading" data-i18n="profile_loading_subheading">Loading your garage profile...</p>
           </div>
           <button class="btn text-white rounded-pill px-4 fw-bold shadow-sm align-self-start" id="saveProfileBtn"
-            style="background: var(--color-primary);">
+            style="background: var(--color-primary);" data-i18n="profile_save_changes">
             Save Changes
           </button>
         </div>
@@ -103,86 +116,90 @@
           <div class="col-lg-3">
             <div class="bg-white rounded-4 border shadow-sm p-3">
               <div class="d-flex flex-column gap-2" id="profileTabs">
-                <div class="profile-nav-link active" data-target="businessDetails">Business Details</div>
-                <div class="profile-nav-link" data-target="addressLocation">Address & Location</div>
-                <div class="profile-nav-link" data-target="workingHours">Working Hours</div>
-                <div class="profile-nav-link" data-target="bankingInfo">Banking & Payouts</div>
-                <div class="profile-nav-link" data-target="myDocuments">My Documents</div>
+                <div class="profile-nav-link active" data-target="businessDetails" data-i18n="profile_tab_business">Business Details</div>
+                <div class="profile-nav-link" data-target="addressLocation" data-i18n="profile_tab_address">Address & Location</div>
+                <div class="profile-nav-link" data-target="workingHours" data-i18n="profile_tab_hours">Working Hours</div>
+                <div class="profile-nav-link" data-target="bankingInfo" data-i18n="profile_tab_banking">Banking & Payouts</div>
+                <div class="profile-nav-link" data-target="myDocuments" data-i18n="profile_tab_documents">My Documents</div>
               </div>
             </div>
           </div>
 
           <div class="col-lg-9">
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section" id="businessDetails">
-              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Business Details</h5>
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);" data-i18n="profile_tab_business">Business Details</h5>
 
               <div class="d-flex align-items-center gap-4 mb-4 pb-4 border-bottom">
-                <div class="profile-photo-upload" id="profileLogoPreview">
+                <div class="profile-photo-upload position-relative" id="profileLogoPreview" style="cursor: pointer;"
+                  title="Click to change logo">
                   <div class="text-center text-muted">
                     <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" class="mb-1">
                       <path
                         d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
                     </svg>
-                    <div style="font-size: 11px;">No Logo</div>
+                    <div style="font-size: 11px;" data-i18n="profile_no_logo">No Logo</div>
                   </div>
                 </div>
+                <input type="file" id="logoFileInput" accept="image/*" style="display: none;">
                 <div>
-                  <h6 class="fw-bold mb-1" id="profileLogoTitle">Garage Logo / Photo</h6>
-                  <p class="text-muted small mb-0">Logo upload field is stored as logo_url in the garage record.</p>
+                  <h6 class="fw-bold mb-1" id="profileLogoTitle" data-i18n="profile_logo_title_default">Garage Logo / Photo</h6>
+                  <p class="text-muted small mb-0" data-i18n="profile_logo_desc">Logo upload field is stored as logo_url in the garage record.</p>
                 </div>
               </div>
 
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="garageNameInput">Garage Name</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="garageNameInput" data-i18n="profile_label_garage_name">Garage Name</label>
                   <input type="text" class="form-control" id="garageNameInput" placeholder="Garage name">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="ownerNameInput">Owner Name</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="ownerNameInput" data-i18n="profile_label_owner_name">Owner Name</label>
                   <input type="text" class="form-control" id="ownerNameInput" placeholder="Owner name">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="phoneInput">Mobile Number</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="phoneInput" data-i18n="profile_label_mobile">Mobile Number</label>
                   <div class="input-group">
                     <span class="input-group-text bg-light text-muted border-end-0">+91</span>
                     <input type="tel" class="form-control border-start-0 ps-0" id="phoneInput" readonly>
                   </div>
-                  <div class="form-text" style="font-size: 11px;">Contact support to change registered mobile.</div>
+                  <div class="form-text" style="font-size: 11px;" data-i18n="profile_hint_mobile">Contact support to change registered mobile.</div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="emailInput">Email Address</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="emailInput" data-i18n="profile_label_email">Email Address</label>
                   <input type="email" class="form-control" id="emailInput" readonly>
-                  <div class="form-text" style="font-size: 11px;">Email update is not enabled in the current API.</div>
+                  <div class="form-text" style="font-size: 11px;" data-i18n="profile_hint_email">Email update is not enabled in the current API.</div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="garageTypeInput">Garage Type</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="garageTypeInput" data-i18n="profile_label_garage_type">Garage Type</label>
                   <select class="form-select" id="garageTypeInput">
-                    <option value="">Select garage type</option>
-                    <option value="four_wheeler">Four Wheeler Specialist</option>
-                    <option value="two_wheeler">Two Wheeler Specialist</option>
-                    <option value="both">Both Cars & Bikes</option>
-                    <option value="mobile_mechanic">Mobile Mechanic</option>
+                    <option value="" data-i18n="profile_opt_select_type">Select garage type</option>
+                    <option value="four_wheeler" data-i18n="profile_opt_four_wheeler">Four Wheeler Specialist</option>
+                    <option value="two_wheeler" data-i18n="profile_opt_two_wheeler">Two Wheeler Specialist</option>
+                    <option value="both" data-i18n="profile_opt_both">Both Cars & Bikes</option>
+                    <option value="mobile_mechanic" data-i18n="profile_opt_mobile_mechanic">Mobile Mechanic</option>
                   </select>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="visitingChargeInput">Visiting Charge</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="visitingChargeInput" data-i18n="profile_label_visiting_charge">Visiting
+                    Charge</label>
                   <input type="number" class="form-control" id="visitingChargeInput" min="0" step="1" placeholder="0">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1">GST Registration</label>
+                  <label class="form-label small fw-medium text-muted mb-1" data-i18n="profile_label_gst_registration">GST Registration</label>
                   <div class="d-flex align-items-center gap-3">
                     <div class="form-check form-switch mb-0">
                       <input class="form-check-input" type="checkbox" role="switch" id="hasGstInput">
-                      <label class="form-check-label small fw-medium" for="hasGstInput">Registered</label>
+                      <label class="form-check-label small fw-medium" for="hasGstInput" data-i18n="profile_label_registered">Registered</label>
                     </div>
-                    <input type="text" class="form-control form-control-sm w-auto flex-grow-1" id="gstNumberInput" placeholder="GST Number" disabled>
+                    <input type="text" class="form-control form-control-sm w-auto flex-grow-1" id="gstNumberInput"
+                      placeholder="GST Number" disabled>
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="profile-kv h-100">
                     <div class="form-check form-switch mb-0">
                       <input class="form-check-input" type="checkbox" role="switch" id="sosAvailableInput">
-                      <label class="form-check-label fw-medium" for="sosAvailableInput">Available for SOS</label>
+                      <label class="form-check-label fw-medium" for="sosAvailableInput" data-i18n="dashboard_available_sos">Available for SOS</label>
                     </div>
                   </div>
                 </div>
@@ -190,7 +207,7 @@
                   <div class="profile-kv h-100">
                     <div class="form-check form-switch mb-0">
                       <input class="form-check-input" type="checkbox" role="switch" id="pickDropInput">
-                      <label class="form-check-label fw-medium" for="pickDropInput">Offers Pick and Drop</label>
+                      <label class="form-check-label fw-medium" for="pickDropInput" data-i18n="profile_label_pickup_drop">Offers Pick and Drop</label>
                     </div>
                   </div>
                 </div>
@@ -198,55 +215,55 @@
             </div>
 
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="addressLocation">
-              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Address & Location</h5>
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);" data-i18n="profile_tab_address">Address & Location</h5>
 
               <div class="row g-3">
                 <div class="col-12">
-                  <label class="form-label small fw-medium text-muted mb-1" for="shopNumberInput">Shop / Building
+                  <label class="form-label small fw-medium text-muted mb-1" for="shopNumberInput" data-i18n="profile_label_shop_number">Shop / Building
                     Number</label>
                   <input type="text" class="form-control" id="shopNumberInput" placeholder="Shop no, building">
                 </div>
                 <div class="col-12">
-                  <label class="form-label small fw-medium text-muted mb-1" for="streetInput">Street / Area</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="streetInput" data-i18n="profile_label_street">Street / Area</label>
                   <input type="text" class="form-control" id="streetInput" placeholder="Street, area, landmark">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="cityInput">City</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="cityInput" data-i18n="profile_label_city">City</label>
                   <input type="text" class="form-control" id="cityInput" placeholder="Ahmedabad">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="pincodeInput">Pincode</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="pincodeInput" data-i18n="profile_label_pincode">Pincode</label>
                   <input type="text" class="form-control" id="pincodeInput" placeholder="380001">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="latitudeInput">Latitude</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="latitudeInput" data-i18n="profile_label_latitude">Latitude</label>
                   <input type="number" class="form-control" id="latitudeInput" step="any" placeholder="Latitude">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="longitudeInput">Longitude</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="longitudeInput" data-i18n="profile_label_longitude">Longitude</label>
                   <input type="number" class="form-control" id="longitudeInput" step="any" placeholder="Longitude">
                 </div>
                 <div class="col-12 mt-3">
                   <div
                     class="rounded-4 border bg-light p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                     <div>
-                      <h6 class="fw-bold mb-1">GPS Location</h6>
-                      <p class="text-muted small mb-0">Accurate coordinates help customers and SOS requests find you.
+                      <h6 class="fw-bold mb-1" data-i18n="profile_gps_location">GPS Location</h6>
+                      <p class="text-muted small mb-0" data-i18n="profile_gps_desc">Accurate coordinates help customers and SOS requests find you.
                       </p>
                     </div>
-                    <a href="set-location.html" class="btn btn-dark rounded-pill px-4 fw-bold">Open Map</a>
+                    <a href="/mechanic/set-location.html" class="btn btn-dark rounded-pill px-4 fw-bold" data-i18n="profile_open_map">Open Map</a>
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="workingHours">
-              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Working Hours</h5>
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);" data-i18n="profile_tab_hours">Working Hours</h5>
               <div class="d-flex flex-column gap-3" id="workingHoursRows"></div>
             </div>
 
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="bankingInfo">
-              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">Banking & Payouts</h5>
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);" data-i18n="profile_tab_banking">Banking & Payouts</h5>
 
               <div
                 class="alert alert-primary bg-primary bg-opacity-10 border-primary border-opacity-25 d-flex align-items-start gap-3 mb-4">
@@ -255,46 +272,46 @@
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                 </svg>
                 <div>
-                  <h6 class="fw-bold text-dark mb-1">Secure Payouts</h6>
-                  <p class="small text-muted mb-0">Earnings from online bookings are transferred to this account.</p>
+                  <h6 class="fw-bold text-dark mb-1" data-i18n="profile_secure_payouts">Secure Payouts</h6>
+                  <p class="small text-muted mb-0" data-i18n="profile_secure_payouts_desc">Earnings from online bookings are transferred to this account.</p>
                 </div>
               </div>
 
               <div class="row g-3">
                 <div class="col-12">
-                  <label class="form-label small fw-medium text-muted mb-1" for="upiInput">UPI ID</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="upiInput" data-i18n="profile_label_upi">UPI ID</label>
                   <input type="text" class="form-control" id="upiInput" placeholder="9876543210@ybl">
                 </div>
                 <div class="col-12 my-2">
                   <div class="d-flex align-items-center gap-3">
                     <hr class="flex-grow-1">
-                    <span class="text-muted small">OR BANK TRANSFER</span>
+                    <span class="text-muted small" data-i18n="profile_or_bank_transfer">OR BANK TRANSFER</span>
                     <hr class="flex-grow-1">
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="accountHolderInput">Account Holder
+                  <label class="form-label small fw-medium text-muted mb-1" for="accountHolderInput" data-i18n="profile_label_account_holder">Account Holder
                     Name</label>
                   <input type="text" class="form-control" id="accountHolderInput" placeholder="Name as per bank">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="bankNameInput">Bank Name</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="bankNameInput" data-i18n="profile_label_bank_name">Bank Name</label>
                   <input type="text" class="form-control" id="bankNameInput" placeholder="Bank name">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="accountNumberInput">Account
+                  <label class="form-label small fw-medium text-muted mb-1" for="accountNumberInput" data-i18n="profile_label_account_number">Account
                     Number</label>
                   <input type="password" class="form-control" id="accountNumberInput" placeholder="Account number">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="ifscInput">IFSC Code</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="ifscInput" data-i18n="profile_label_ifsc">IFSC Code</label>
                   <input type="text" class="form-control text-uppercase" id="ifscInput" placeholder="HDFC0001234">
                 </div>
               </div>
             </div>
 
             <div class="bg-white rounded-4 border shadow-sm p-4 profile-section d-none" id="myDocuments">
-              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);">My Documents</h5>
+              <h5 class="fw-bold mb-4" style="font-family: var(--font-head);" data-i18n="profile_tab_documents">My Documents</h5>
 
               <div
                 class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 d-flex align-items-start gap-3 mb-4">
@@ -303,20 +320,20 @@
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                 </svg>
                 <div>
-                  <h6 class="fw-bold text-dark mb-1" style="color: #92400E !important;">Managed by Admin</h6>
-                  <p class="small text-muted mb-0">These verification documents were uploaded during onboarding.</p>
+                  <h6 class="fw-bold text-dark mb-1" style="color: #92400E !important;" data-i18n="profile_managed_by_admin">Managed by Admin</h6>
+                  <p class="small text-muted mb-0" data-i18n="profile_managed_by_admin_desc">These verification documents were uploaded during onboarding.</p>
                 </div>
               </div>
 
               <div class="row g-4" id="documentsList">
                 <div class="col-12 text-center py-5 text-muted">
-                  <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading documents...
+                  <div class="spinner-border spinner-border-sm me-2" role="status"></div> <span data-i18n="profile_loading_documents">Loading documents...</span>
                 </div>
               </div>
             </div>
 
             <button class="btn w-100 text-white rounded-pill py-2 fw-bold shadow-sm d-sm-none mt-4"
-              id="saveProfileMobileBtn" style="background: var(--color-primary);">
+              id="saveProfileMobileBtn" style="background: var(--color-primary);" data-i18n="profile_save_changes">
               Save Changes
             </button>
           </div>
@@ -340,6 +357,7 @@
       renderWorkingHours([]);
       bindSaveButtons();
       bindGstToggle();
+      initLogoUpload();
       loadGarageProfile();
       fetchMyDocuments();
     });
@@ -382,7 +400,7 @@
 
     function authHeaders(extra = {}) {
       return {
-
+        'ngrok-skip-browser-warning': '69420',
         ...extra,
         'Authorization': `Bearer ${getToken()}`
       };
@@ -408,11 +426,66 @@
 
         currentGarage = await response.json();
         populateProfile(currentGarage);
-        showAlert('Profile loaded from database.', 'success');
+        showAlert(t('profile_loaded_success'), 'success');
       } catch (err) {
         console.error(err);
-        showAlert('Unable to load profile. Please make sure the backend is running.', 'danger');
+        showAlert(t('profile_load_failed'), 'danger');
       }
+    }
+
+    // ─────────────────────────────────────
+    // LOGO UPLOAD (click preview -> upload)
+    // ─────────────────────────────────────
+    function initLogoUpload() {
+      const preview = document.getElementById('profileLogoPreview');
+      const fileInput = document.getElementById('logoFileInput');
+      if (!preview || !fileInput) return;
+
+      preview.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+          showAlert(t('profile_invalid_image'), 'danger');
+          fileInput.value = '';
+          return;
+        }
+
+        // Turant local preview dikhao (upload complete hone se pehle hi)
+        const localUrl = URL.createObjectURL(file);
+        preview.innerHTML = `<img src="${localUrl}" alt="Garage logo">`;
+
+        const formData = new FormData();
+        formData.append('logo', file);
+
+        try {
+          const response = await fetch(`${API}/garage/me/logo`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: formData
+          });
+
+          if (!response.ok) {
+            const message = await readError(response);
+            showAlert(message || t('profile_logo_upload_failed'), 'danger');
+            renderLogo(currentGarage);
+            return;
+          }
+
+          currentGarage = await response.json();
+          renderLogo(currentGarage);
+          updateTopbarProfile(currentGarage);
+          showAlert(t('profile_logo_updated'), 'success');
+        } catch (err) {
+          console.error(err);
+          showAlert(t('profile_logo_upload_error'), 'danger');
+          renderLogo(currentGarage);
+        } finally {
+          fileInput.value = '';
+        }
+      });
     }
 
     function populateProfile(garage) {
@@ -427,7 +500,7 @@
       setValue('visitingChargeInput', garage.visiting_charge);
       setChecked('sosAvailableInput', garage.is_sos_available);
       setChecked('pickDropInput', garage.offers_pick_and_drop);
-      
+
       setChecked('hasGstInput', garage.has_gst);
       setValue('gstNumberInput', garage.gst_number);
       const gstNumber = document.getElementById('gstNumberInput');
@@ -435,7 +508,7 @@
 
       setValue('shopNumberInput', location.shop_number);
       setValue('streetInput', location.street);
-      setValue('cityInput', location.city || 'Ahmedabad');
+      setValue('cityInput', location.city || t('profile_city_default'));
       setValue('pincodeInput', location.pincode);
       setValue('latitudeInput', location.latitude);
       setValue('longitudeInput', location.longitude);
@@ -460,19 +533,19 @@
       if (garage.logo_url) {
         logo.innerHTML = `<img src="${escapeHtml(makeFileUrl(garage.logo_url))}" alt="Garage logo">`;
       } else {
-        const initials = getInitials(garage.name || garage.owner_name || 'Garage');
+        const initials = getInitials(garage.name || garage.owner_name || t('invoice_garage_fallback'));
         logo.innerHTML = `<div class="fw-bold" style="font-size: 32px; color: var(--color-primary);">${escapeHtml(initials)}</div>`;
       }
 
-      if (title) title.textContent = garage.name || 'Garage Logo / Photo';
+      if (title) title.textContent = garage.name || t('profile_logo_title_default');
     }
 
     function updateHeadings(garage) {
-      const city = garage.location?.city || 'Location not set';
-      const type = humanizeGarageType(garage.garage_type || 'Garage');
+      const city = garage.location?.city || t('dashboard_location_not_set');
+      const type = humanizeGarageType(garage.garage_type) || t('invoice_garage_fallback');
 
-      document.getElementById('profileHeading').textContent = garage.name || 'Garage Settings';
-      document.getElementById('profileSubheading').textContent = `${garage.owner_name || 'Owner'} - ${city} - ${type}`;
+      document.getElementById('profileHeading').textContent = garage.name || t('profile_heading_default');
+      document.getElementById('profileSubheading').textContent = `${garage.owner_name || t('profile_owner_fallback')} - ${city} - ${type}`;
     }
 
     function updateTopbarProfile(garage) {
@@ -484,8 +557,8 @@
       const role = profileBlock.querySelector('.d-none.d-md-block .text-muted');
 
       if (avatar) avatar.textContent = getInitials(garage.name || garage.owner_name || 'GN');
-      if (name) name.textContent = garage.name || 'Garage';
-      if (role) role.textContent = garage.is_verified ? 'Verified Partner' : 'Partner';
+      if (name) name.textContent = garage.name || t('invoice_garage_fallback');
+      if (role) role.textContent = garage.is_verified ? t('profile_verified_partner') : t('profile_partner_label');
     }
 
     function renderWorkingHours(hours) {
@@ -511,11 +584,11 @@
           <div class="d-flex align-items-center justify-content-between p-2 rounded border bg-light bg-opacity-50 working-hour-row" data-day="${day}">
             <div class="form-check form-switch mb-0" style="width: 140px;">
               <input class="form-check-input working-open" type="checkbox" role="switch" id="${day}Open" ${isOpen ? 'checked' : ''}>
-              <label class="form-check-label ms-2 fw-medium text-capitalize" for="${day}Open">${day}</label>
+              <label class="form-check-label ms-2 fw-medium text-capitalize" for="${day}Open">${t('profile_day_' + day)}</label>
             </div>
             <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-end">
               <input type="time" class="form-control form-control-sm w-auto working-start" value="${openTime}" ${isOpen ? '' : 'disabled'}>
-              <span class="text-muted small">to</span>
+              <span class="text-muted small">${t('profile_time_to')}</span>
               <input type="time" class="form-control form-control-sm w-auto working-end" value="${closeTime}" ${isOpen ? '' : 'disabled'}>
             </div>
           </div>
@@ -534,7 +607,7 @@
 
     async function saveActiveSection() {
       if (activeSection === 'myDocuments') {
-        showAlert('Documents are managed by admin, so there is nothing to save here.', 'warning');
+        showAlert(t('profile_docs_no_save'), 'warning');
         return;
       }
 
@@ -553,10 +626,10 @@
         if (activeSection === 'bankingInfo') await saveBanking();
 
         await loadGarageProfile();
-        showAlert('Changes saved successfully.', 'success');
+        showAlert(t('profile_changes_saved'), 'success');
       } catch (err) {
         console.error(err);
-        showAlert(err.message || 'Unable to save changes.', 'danger');
+        showAlert(err.message || t('profile_save_failed'), 'danger');
       } finally {
         setSaving(false);
       }
@@ -581,7 +654,7 @@
       const payload = {
         shop_number: getValue('shopNumberInput') || null,
         street: getValue('streetInput') || null,
-        city: getValue('cityInput') || 'Ahmedabad',
+        city: getValue('cityInput') || t('profile_city_default'),
         pincode: getValue('pincodeInput') || null,
         latitude: getNumberOrNull('latitudeInput'),
         longitude: getNumberOrNull('longitudeInput')
@@ -634,7 +707,7 @@
     async function fetchMyDocuments() {
       const docsContainer = document.getElementById('documentsList');
       if (!getToken()) {
-        docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-danger">Not logged in.</div>';
+        docsContainer.innerHTML = `<div class="col-12 text-center py-5 text-danger">${t('profile_not_logged_in')}</div>`;
         return;
       }
 
@@ -648,7 +721,7 @@
         renderDocuments(docs);
       } catch (err) {
         console.error(err);
-        docsContainer.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error fetching documents.</div>';
+        docsContainer.innerHTML = `<div class="col-12 text-center py-5 text-danger">${t('profile_docs_fetch_error')}</div>`;
       }
     }
 
@@ -673,11 +746,11 @@
       </div>
 
       <h6 class="fw-bold mb-2">
-        No documents uploaded yet
+        ${t('profile_no_documents')}
       </h6>
 
       <p class="text-muted small mb-4">
-        Upload your garage verification documents.
+        ${t('profile_upload_docs_desc')}
       </p>
 
       <button
@@ -685,7 +758,7 @@
         data-bs-toggle="modal"
         data-bs-target="#uploadDocumentModal"
       >
-        Upload Document
+        ${t('profile_upload_document_title')}
       </button>
 
     </div>
@@ -696,17 +769,17 @@
       }
 
       const typeLabels = {
-        aadhar: 'Aadhar / PAN Card',
-        shop_license: 'Shop / Trade License'
+        aadhar: t('profile_doc_aadhar'),
+        shop_license: t('profile_doc_shop_license')
       };
 
       docsContainer.innerHTML = docs.map(doc => {
         const fileUrl = makeFileUrl(doc.file_url);
         const date = doc.uploaded_at
           ? new Date(doc.uploaded_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-          : 'Not available';
+          : t('profile_date_not_available');
         const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(doc.file_url || '');
-        const label = typeLabels[doc.document_type] || 'Verification Document';
+        const label = typeLabels[doc.document_type] || t('profile_doc_generic');
 
         const preview = isImage
           ? `<div class="rounded-3 border overflow-hidden mb-3 bg-light" style="height: 140px;">
@@ -714,7 +787,7 @@
              </div>`
           : `<div class="rounded-3 border overflow-hidden mb-3 bg-light d-flex align-items-center justify-content-center flex-column text-muted" style="height: 140px;">
                <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" class="mb-2"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-               <span class="small fw-bold">Document</span>
+               <span class="small fw-bold">${t('profile_document_label')}</span>
              </div>`;
 
         return `
@@ -723,8 +796,8 @@
               <div class="card-body p-3">
                 ${preview}
                 <h6 class="fw-bold mb-1">${escapeHtml(label)}</h6>
-                <p class="small text-muted mb-3">Uploaded: ${escapeHtml(date)}</p>
-                <a href="${escapeHtml(fileUrl)}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-medium">View Full Screen</a>
+                <p class="small text-muted mb-3">${t('profile_uploaded_label')}: ${escapeHtml(date)}</p>
+                <a href="${escapeHtml(fileUrl)}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-medium">${t('profile_view_full_screen')}</a>
               </div>
             </div>
           </div>
@@ -746,7 +819,7 @@
       const buttons = [document.getElementById('saveProfileBtn'), document.getElementById('saveProfileMobileBtn')];
       buttons.forEach(button => {
         button.disabled = isSaving;
-        button.textContent = isSaving ? 'Saving...' : 'Save Changes';
+        button.textContent = isSaving ? t('editsvc_saving') : t('profile_save_changes');
       });
     }
 
@@ -784,10 +857,10 @@
 
     function humanizeGarageType(value) {
       const labels = {
-        four_wheeler: 'Four Wheeler Specialist',
-        two_wheeler: 'Two Wheeler Specialist',
-        both: 'Cars & Bikes',
-        mobile_mechanic: 'Mobile Mechanic'
+        four_wheeler: t('profile_opt_four_wheeler'),
+        two_wheeler: t('profile_opt_two_wheeler'),
+        both: t('profile_type_cars_bikes'),
+        mobile_mechanic: t('profile_opt_mobile_mechanic')
       };
       return labels[value] || value;
     }
@@ -804,8 +877,19 @@
     function makeFileUrl(path) {
       if (!path) return '';
       if (/^https?:\/\//i.test(path)) return path;
-      return `${API}${path}`;
+      const baseUrl = API.replace(/\/api\/?$/, '');
+      const safePath = path.startsWith('/') ? path : `/${path}`;
+      return `${baseUrl}${safePath}`;
     }
+
+    document.addEventListener('i18n:ready', () => {
+      if (currentGarage) {
+        updateHeadings(currentGarage);
+        renderLogo(currentGarage);
+        renderWorkingHours(currentGarage.working_hours || []);
+      }
+      fetchMyDocuments();
+    });
 
     async function readError(response) {
       try {
@@ -834,7 +918,7 @@
 
         <div class="modal-header border-0 pb-0">
 
-          <h5 class="fw-bold">
+          <h5 class="fw-bold" data-i18n="profile_upload_document_title">
             Upload Document
           </h5>
 
@@ -848,20 +932,20 @@
 
             <div class="mb-3">
 
-              <label class="form-label fw-medium">
+              <label class="form-label fw-medium" data-i18n="profile_label_document_type">
                 Document Type
               </label>
 
               <select class="form-select" id="documentType" required>
-                <option value="">
+                <option value="" data-i18n="profile_opt_select_document">
                   Select Document
                 </option>
 
-                <option value="aadhar">
+                <option value="aadhar" data-i18n="profile_doc_aadhar">
                   Aadhar / PAN Card
                 </option>
 
-                <option value="shop_license">
+                <option value="shop_license" data-i18n="profile_doc_shop_license">
                   Shop / Trade License
                 </option>
 
@@ -871,7 +955,7 @@
 
             <div class="mb-4">
 
-              <label class="form-label fw-medium">
+              <label class="form-label fw-medium" data-i18n="profile_label_upload_file">
                 Upload File
               </label>
 
@@ -879,7 +963,7 @@
 
             </div>
 
-            <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold">
+            <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold" data-i18n="profile_upload_document_title">
               Upload Document
             </button>
 
@@ -934,7 +1018,7 @@
             if (!fileInput.files.length) {
 
               alert(
-                'Please select a file'
+                t('profile_select_file')
               );
 
               return;
@@ -1006,7 +1090,7 @@
               }
 
               alert(
-                'Document uploaded successfully'
+                t('profile_doc_upload_success')
               );
 
             } catch (err) {
@@ -1014,7 +1098,7 @@
               console.error(err);
 
               alert(
-                'Failed to upload document'
+                t('profile_doc_upload_failed')
               );
 
             }
@@ -1029,4 +1113,3 @@
 </body>
 
 </html>
-

@@ -161,11 +161,11 @@
                         <div class="mb-3">
                             <label style="display:block; font-size:13px; font-weight:500; color:var(--color-text); font-family:var(--font-head); margin-bottom:8px;">Enter OTP</label>
                             <div id="otpWrap" style="display:flex; align-items:center; border:1.5px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; transition:border-color 0.22s ease;">
-                                <input type="tel" id="otpInput" maxlength="6" inputmode="numeric"
+                                <input type="tel" id="otpInput" maxlength="4" inputmode="numeric"
                                     oninput="this.value=this.value.replace(/\D/g,'')"
                                     onfocus="document.getElementById('otpWrap').style.borderColor='var(--color-accent)'"
                                     onblur="document.getElementById('otpWrap').style.borderColor='var(--color-border)'"
-                                    placeholder="6-digit OTP"
+                                    placeholder="4-digit OTP"
                                     style="flex:1; border:none; outline:none; padding:12px 14px; font-size:18px; font-family:var(--font-body); color:var(--color-text); background:transparent; letter-spacing:6px; text-align:center;" />
                             </div>
                         </div>
@@ -226,6 +226,7 @@
     <script src="/js/script.js"></script>
 
     <script>
+        let currentVerificationId = null;
         let resendTimerInterval = null;
 
         function showError(wrapId, message) {
@@ -290,6 +291,8 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
 
+                currentVerificationId = data.verification_id;
+
                 btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
                 btn.style.opacity = '1';
                 btn.disabled = false;
@@ -320,7 +323,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ phone: '+91' + phone })
                 });
-                if (response.ok) startResendTimer();
+                if (response.ok) {
+                    const data = await response.json();
+                    currentVerificationId = data.verification_id;
+                    startResendTimer();
+                }
             } catch (err) {
                 console.warn('Resend failed:', err);
             }
@@ -330,8 +337,8 @@
             const phone = document.getElementById('phoneInput').value.trim();
             const otp = document.getElementById('otpInput').value.trim();
 
-            if (otp.length !== 6) {
-                showError('otpWrap', 'Please enter the 6-digit OTP.');
+            if (otp.length !== 4) {
+                showError('otpWrap', 'Please enter the 4-digit OTP.');
                 return;
             }
 
@@ -344,7 +351,7 @@
                 const response = await fetch(`${getApiBase()}/auth/verify-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: '+91' + phone, otp: otp })
+                    body: JSON.stringify({ phone: '+91' + phone, otp: otp, verification_id: currentVerificationId })
                 });
 
                 const data = await response.json();
