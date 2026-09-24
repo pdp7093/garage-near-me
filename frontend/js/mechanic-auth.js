@@ -49,9 +49,9 @@ const MECHANIC_AUTH = {
 
     try {
       const response = await fetch(getApiBase() + '/garage-auth/me', {
-        headers: { 
+        headers: {
           'ngrok-skip-browser-warning': '69420',
-          'Authorization': `Bearer ${token}` 
+          'Authorization': `Bearer ${token}`
         }
       });
 
@@ -100,6 +100,7 @@ window.addEventListener('DOMContentLoaded', async function () {
   await requestCapacitorPushPermission();
   await requestBatteryOptimizationExemption();
   connectMechanicWS();
+  checkForAppUpdate();
 });
 
 // ── Capacitor Location Permission Request ──
@@ -349,4 +350,47 @@ function connectMechanicWS() {
     _wsReconnectTimer = setTimeout(connectMechanicWS, 5000);
   };
   _ws.onerror = () => { _ws.close(); };
+}
+
+// ── App Version Check (sideload distribution ke liye — Play Store nahi hai) ──
+async function checkForAppUpdate() {
+  if (typeof window.Capacitor === 'undefined' || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) {
+    return;
+  }
+  try {
+    const { App } = window.Capacitor.Plugins;
+    if (!App) return;
+
+    const info = await App.getInfo();
+    const currentVersion = info.version;
+
+    const res = await fetch(getApiBase() + '/app-version/mechanic-latest', {
+      headers: { 'ngrok-skip-browser-warning': '69420' }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (data.latest_version && data.latest_version !== currentVersion) {
+      showUpdateBanner(data.download_url, data.latest_version);
+    }
+  } catch (err) {
+    console.warn('[Update Check] Failed:', err);
+  }
+}
+
+function showUpdateBanner(downloadUrl, latestVersion) {
+  if (document.getElementById('gnm-update-banner')) return; // already shown
+
+  const banner = document.createElement('div');
+  banner.id = 'gnm-update-banner';
+  banner.style.cssText = 'position:fixed; bottom:0; left:0; width:100%; background:#0B1220; color:white; z-index:999999; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; box-shadow:0 -4px 12px rgba(0,0,0,0.2); font-family:sans-serif;';
+  banner.innerHTML = `
+    <span style="font-size:14px;">🔔 Naya update (v${latestVersion}) available hai!</span>
+    <button id="gnm-update-btn" style="background:#FF6B35; color:white; border:none; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:13px;">Update Karo</button>
+  `;
+  document.body.appendChild(banner);
+
+  document.getElementById('gnm-update-btn').addEventListener('click', () => {
+    window.open(downloadUrl, '_system');
+  });
 }

@@ -1,7 +1,7 @@
 function getApiBase() {
     // Capacitor native app check
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-        return "https://impolite-broker-niece.ngrok-free.dev/api";
+        return "https://garagenearme.net/api";
     }
     const host = window.location.hostname;
     if (host === "localhost" || host === "127.0.0.1") return "http://localhost:8000/api";
@@ -14,7 +14,7 @@ function getApiBase() {
 function getWsBase() {
     // Capacitor native app check
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-        return "wss://impolite-broker-niece.ngrok-free.dev";
+        return "wss://garagenearme.net";
     }
     const host = window.location.hostname;
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download App — GarageNearMe</title>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#DC2626">
+</head>
+<body style="background:var(--color-bg); font-family: 'DM Sans', sans-serif;">
+
+  <!-- NAVBAR COMPONENT -->
+  <div id="navbar-container"></div>
+
+  <!-- HERO SECTION -->
+  <section class="py-5 pt-5 mt-3 mt-lg-0 position-relative overflow-hidden">
+    <div class="glow-1" style="position:absolute; width:400px; height:400px; background:rgba(255,107,53,0.05); border-radius:50%; top:-100px; right:-50px; pointer-events:none;"></div>
+    
+    <div class="container py-4 py-lg-5 text-center z-1">
+      <h1 class="display-4 fw-bold mb-3" style="font-family:var(--font-head); color:var(--color-text);">
+        GarageNearMe Apps Download Karo
+      </h1>
+      <p class="text-muted mb-5" style="font-size:18px; max-width:600px; margin:0 auto;">
+        Apna app seedha yahan se download karo — Play Store ki zarurat nahi.
+      </p>
+
+      <div class="row g-4 justify-content-center">
+        <!-- CARD 1: Mechanic App -->
+        <div class="col-md-5">
+          <div class="card h-100 border-0 shadow-sm text-start" style="background:#151F32; color:white; border-radius:16px;">
+            <div class="card-body p-4 d-flex flex-column">
+              <div class="mb-3 d-inline-flex align-items-center justify-content-center" style="width:60px; height:60px; border-radius:12px; background:rgba(255,107,53,0.1);">
+                <!-- Wrench Icon -->
+                <svg viewBox="0 0 24 24" fill="var(--color-primary)" width="32" height="32">
+                  <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+                </svg>
+              </div>
+              <h4 class="fw-bold mb-2" style="font-family:var(--font-head);">GNM Mechanic Partner</h4>
+              <p class="text-muted mb-4 flex-grow-1" style="font-size:15px; color:#9ca3af !important;">
+                Apna garage manage karo, bookings accept karo, SOS jobs handle karo — sab ek app mein.
+              </p>
+              <a href="https://garagenearme.net/downloads/gnm-mechanic-latest.apk" class="btn fw-bold w-100 mb-3" style="background:var(--color-primary); color:white; border-radius:8px; padding:12px;">
+                Download Karo (APK)
+              </a>
+              <p class="mb-0" style="font-size:12px; color:#6b7280; line-height:1.4;">
+                <span class="text-warning fw-bold">Note:</span> Install karne ke baad agar 'Unknown Sources' ka warning aaye, to Settings mein jaake install allow karo — ye normal hai kyunki app Play Store se nahi hai.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: Customer App -->
+        <div class="col-md-5">
+          <div class="card h-100 border-0 shadow-sm text-start" style="background:#151F32; color:white; border-radius:16px;">
+            <div class="card-body p-4 d-flex flex-column">
+              <div class="mb-3 d-inline-flex align-items-center justify-content-center" style="width:60px; height:60px; border-radius:12px; background:rgba(255,255,255,0.05);">
+                <!-- Car/Customer Icon -->
+                <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)" width="32" height="32">
+                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                </svg>
+              </div>
+              <h4 class="fw-bold mb-2" style="font-family:var(--font-head); color:#9ca3af;">GNM Customer App</h4>
+              <p class="text-muted mb-4 flex-grow-1" style="font-size:15px; color:#6b7280 !important;">
+                Nearby garage dhundo, booking karo, emergency SOS bhejo.
+              </p>
+              <button class="btn fw-bold w-100 mb-3" style="background:rgba(255,255,255,0.1); color:#6b7280; border-radius:8px; padding:12px; cursor:not-allowed;" disabled>
+                Jald Aa Raha Hai
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="py-5" style="background:var(--color-bg);">
+    <div class="container pb-5">
+      <h3 class="fw-bold mb-4 text-center" style="font-family:var(--font-head); color:var(--color-text);">APK kaise install karein?</h3>
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="d-flex align-items-start mb-4 p-3 rounded" style="background:rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:40px; height:40px; font-weight:bold; background:var(--color-primary) !important;">1</div>
+            <div>
+              <h5 class="fw-bold mb-1" style="color:var(--color-text);">Download button dabao</h5>
+              <p class="text-muted mb-0 small">Upar diye gaye link se APK file apne phone mein download karo.</p>
+            </div>
+          </div>
+          <div class="d-flex align-items-start mb-4 p-3 rounded" style="background:rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:40px; height:40px; font-weight:bold; background:var(--color-primary) !important;">2</div>
+            <div>
+              <h5 class="fw-bold mb-1" style="color:var(--color-text);">Install permission do (agar zaroorat ho)</h5>
+              <p class="text-muted mb-0 small">Agar warning aaye "Install blocked" ya "Unknown apps", Settings mein jaake apne browser (Chrome/Edge) ko "Install unknown apps" ki permission de do.</p>
+            </div>
+          </div>
+          <div class="d-flex align-items-start p-3 rounded" style="background:rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width:40px; height:40px; font-weight:bold; background:var(--color-primary) !important;">3</div>
+            <div>
+              <h5 class="fw-bold mb-1" style="color:var(--color-text);">Install dabao</h5>
+              <p class="text-muted mb-0 small">APK file open karo aur 'Install' pe click karke app setup pura karo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER COMPONENT -->
+  <div id="footer-container"></div>
+
+  <script src="/js/components.js?v=3"></script>
+  <script src="/js/config.js"></script>
+  <script>
+    Promise.all([
+      loadComponent('navbar-container', 'components/navbar.html', () => {
+        setActiveSidebarLink();
+        if (typeof initCustomerMenu === 'function') initCustomerMenu();
+      }),
+      loadComponent('footer-container', 'components/footer.html')
+    ]);
+  </script>
+  <script src="/js/bootstrap.js"></script>
+</body>
+</html>

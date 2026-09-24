@@ -4,7 +4,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
 from database import engine, Base, ensure_schema_updates, backfill_completed_bookings_and_bills, backfill_slugs
-from routers import auth, garage, booking, vehicles, addresses, garage_requests, garage_auth, sos, admin_auth
+from routers import auth, garage, booking, vehicles, addresses, garage_requests, garage_auth, sos, admin_auth, app_version
 from routers import default_services, commission, payout
 from routers.websocket_manager import ws_manager
 import re, os, json
@@ -231,6 +231,7 @@ app.include_router(commission.router,       prefix="/api/commissions",      tags
 app.include_router(admin_auth.router,       prefix="/api/admin-auth",       tags=["Admin Auth"])
 from routers import analytics
 app.include_router(analytics.router,        prefix="/api/analytics",        tags=["Analytics"])
+app.include_router(app_version.router, prefix="/api/app-version", tags=["App Version"])
 
 # ── WebSocket — Mechanic ───────────────────────────────────────────────────
 @app.websocket("/ws/mechanic/{garage_id}")
