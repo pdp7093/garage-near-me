@@ -202,6 +202,8 @@ app = FastAPI(title="GarageNearMe API", lifespan=lifespan)
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
 
 os.makedirs("uploads", exist_ok=True)
+os.makedirs("static_downloads", exist_ok=True)
+app.mount("/downloads", StaticFiles(directory="static_downloads"), name="downloads")
 app.mount("/uploads", StaticFiles(directory="uploads"),             name="uploads")
 app.mount("/css",     StaticFiles(directory=f"{FRONTEND_DIR}/css"), name="css")
 app.mount("/js",      StaticFiles(directory=f"{FRONTEND_DIR}/js"),  name="js")
