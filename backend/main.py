@@ -8,6 +8,12 @@ from routers import auth, garage, booking, vehicles, addresses, garage_requests,
 from routers import default_services, commission, payout
 from routers.websocket_manager import ws_manager
 import re, os, json
+import mimetypes
+
+# .apk files ko sahi Android package type se register karo, warna browser
+# unhe generic ZIP samajh ke download kar deta hai (kyunki APK internally
+# ek ZIP-based format hai)
+mimetypes.add_type("application/vnd.android.package-archive", ".apk")
 
 from contextlib import asynccontextmanager
 import asyncio
