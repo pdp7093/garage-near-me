@@ -51,6 +51,7 @@ def send_notification(token: str, title: str, body: str, data: Optional[dict] = 
             "title": title,
             "body": body,
             "icon": "@mipmap/ic_launcher",
+            "sound": "notification",
             "tag": str(uuid.uuid4()) # Forcing a unique tag so it rings every time and doesn't silently group
         }
         if is_sos:
