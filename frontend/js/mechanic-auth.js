@@ -151,10 +151,13 @@ function navigateFromNotificationData(data) {
     window.location.href = '/mechanic/dashboard.html';
     return;
   }
-  if ((data.type === 'sos_alert' || data.type === 'call-request') && data.sos_id) {
-    const targetUrl = `/mechanic/sos-detail.html?id=${data.sos_id}`;
+  if ((data.type === 'sos_alert' || data.type === 'call-request' || data.type === 'booking_call_request') && (data.sos_id || data.booking_id)) {
+    const isBooking = data.type === 'booking_call_request' || data.booking_id;
+    const entityId = data.booking_id || data.sos_id;
+    const targetUrl = isBooking ? `/mechanic/job-detail.html?id=${entityId}` : `/mechanic/sos-detail.html?id=${entityId}`;
+    
     // Agar same page pe hain, to reload mat karo taaki ringing call UI gayab na ho
-    if (window.location.pathname.includes('sos-detail') && window.location.search.includes(`id=${data.sos_id}`)) {
+    if (window.location.pathname.includes(isBooking ? 'job-detail' : 'sos-detail') && window.location.search.includes(`id=${entityId}`)) {
       return;
     }
     window.location.href = targetUrl;

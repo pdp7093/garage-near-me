@@ -7,18 +7,30 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+import json
+
 try:
     import firebase_admin
     from firebase_admin import credentials, messaging
 
     _SA = os.path.join(os.path.dirname(__file__), "firebase-service-account.json")
+    
     if not firebase_admin._apps:
-        cred = credentials.Certificate(_SA)
+        if os.path.exists(_SA):
+            cred = credentials.Certificate(_SA)
+            print("[FCM] Using local service account file")
+        else:
+            sa_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+            if not sa_json:
+                raise Exception("No Firebase credentials found (file or env var)")
+            sa_dict = json.loads(sa_json)
+            cred = credentials.Certificate(sa_dict)
+            print("[FCM] Using service account from environment variable")
         firebase_admin.initialize_app(cred)
-        logger.info("Firebase Admin SDK initialized ✅")
+        print("[FCM] Firebase Admin SDK initialized ✅")
     FCM_AVAILABLE = True
 except Exception as e:
-    logger.warning(f"Firebase init failed: {e}")
+    print(f"[FCM] ⚠️ Firebase init FAILED: {e}")
     FCM_AVAILABLE = False
 
 
@@ -39,12 +51,11 @@ def send_notification(token: str, title: str, body: str, data: Optional[dict] = 
             "title": title,
             "body": body,
             "icon": "@mipmap/ic_launcher",
-            "sound": "notification",
             "tag": str(uuid.uuid4()) # Forcing a unique tag so it rings every time and doesn't silently group
         }
         if is_sos:
             android_notification_kwargs["channel_id"] = "sos_alerts_loud"
-        elif (data or {}).get("type") in ("new_booking", "booking_accepted", "estimate_ready", "mechanic_on_way", "repair_complete", "booking_cancelled"):
+        elif (data or {}).get("type") in ("new_booking", "booking_accepted", "estimate_ready", "mechanic_on_way", "repair_complete", "booking_cancelled", "booking_call_request", "call-request"):
             android_notification_kwargs["channel_id"] = "booking_alerts"
 
         if is_call:
