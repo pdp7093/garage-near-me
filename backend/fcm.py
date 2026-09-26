@@ -55,7 +55,7 @@ def send_notification(token: str, title: str, body: str, data: Optional[dict] = 
             "tag": str(uuid.uuid4()) # Forcing a unique tag so it rings every time and doesn't silently group
         }
         if is_sos:
-            android_notification_kwargs["channel_id"] = "sos_alerts_loud"
+            android_notification_kwargs["channel_id"] = "sos_alerts_loud_v2"
         elif (data or {}).get("type") in ("new_booking", "booking_accepted", "estimate_ready", "mechanic_on_way", "repair_complete", "booking_cancelled", "booking_call_request", "call-request"):
             android_notification_kwargs["channel_id"] = "booking_alerts"
 

@@ -191,7 +191,7 @@ async function requestCapacitorPushPermission() {
     // SOS wala channel — ISKO TOUCH NAHI KARNA, already tested aur working hai
     try {
       await PushNotifications.createChannel({
-        id: 'sos_alerts_loud',
+        id: 'sos_alerts_loud_v2',
         name: 'SOS Emergency Alerts LOUD',
         description: 'High priority emergency breakdown alerts',
         importance: 5,       // IMPORTANCE_HIGH (heads-up + sound)
@@ -200,7 +200,7 @@ async function requestCapacitorPushPermission() {
         vibration: true,
         lights: true
       });
-      console.log('[Push] Notification channel "sos_alerts" created ✅');
+      console.log('[Push] Notification channel "sos_alerts_loud_v2" created ✅');
     } catch (chErr) {
       console.warn('[Push] Channel creation failed:', chErr);
     }
@@ -231,16 +231,16 @@ async function requestCapacitorPushPermission() {
           localPerm = await LocalNotifications.requestPermissions();
         }
         await LocalNotifications.createChannel({
-          id: 'sos_alerts_local',
+          id: 'sos_alerts_local_v2',
           name: 'SOS Emergency Alerts (Foreground)',
           description: 'High priority emergency breakdown alerts',
           importance: 5,
           visibility: 1,
-          sound: 'default',
+          sound: 'notification.mp3',
           vibration: true,
           lights: true
         });
-        console.log('[LocalNotif] Channel "sos_alerts_local" created ✅');
+        console.log('[LocalNotif] Channel "sos_alerts_local_v2" created ✅');
       } catch (lnErr) {
         console.warn('[LocalNotif] Setup failed:', lnErr);
       }
@@ -282,7 +282,7 @@ async function requestCapacitorPushPermission() {
                 id: Math.floor(Math.random() * 100000),
                 title: notification.title || 'GarageNearMe',
                 body: notification.body || '',
-                channelId: 'sos_alerts_local',
+                channelId: 'sos_alerts_local_v2',
                 extra: notification.data || {}
               }
             ]
