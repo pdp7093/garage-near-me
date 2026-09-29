@@ -1,3 +1,16 @@
+const OTP_PROVIDER = "firebase"; // or "messagecentral"
+
+const FIREBASE_WEB_CONFIG = {
+    // The user will paste the real values here
+    apiKey: "AIzaSyAf_TRBMQ1213PahyEsP5GiJlPMFyV_YrU",
+    authDomain: "nice-limiter-308209.firebaseapp.com",
+    projectId: "nice-limiter-308209",
+    storageBucket: "nice-limiter-308209.firebasestorage.app",
+    messagingSenderId: "154328863578",
+    appId: "1:154328863578:web:16dd06513aee5398f79963",
+    measurementId: "G-QLFVHQWZXT"
+};
+
 function getApiBase() {
     // Capacitor native app check
     if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {

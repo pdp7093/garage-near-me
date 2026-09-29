@@ -115,7 +115,7 @@
             </div>
             <div class="form-floating mb-3">
               <input type="text" class="form-control text-center fw-bold" id="otpInput" placeholder="4-digit OTP" maxlength="4" inputmode="numeric" style="font-size: 1.8rem; letter-spacing: 0.4em; font-family: monospace;">
-              <label for="otpInput">4-digit OTP</label>
+              <label id="otpInputLabel" for="otpInput">4-digit OTP</label>
             </div>
             <div id="verifyAlert" class="alert d-none small mb-3" role="alert"></div>
             <div class="text-center mb-3">
@@ -279,6 +279,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/bootstrap.js"></script>
   <script src="/js/config.js"></script>
+  <script src="/js/phone-auth.js"></script>
   <script>
 
     let currentVerificationId = null;
@@ -344,6 +345,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      if (typeof OTP_PROVIDER !== 'undefined' && OTP_PROVIDER === 'firebase') {
+        const otpInput = document.getElementById('otpInput');
+        const otpInputLabel = document.getElementById('otpInputLabel');
+        otpInput.setAttribute('maxlength', '6');
+        otpInput.setAttribute('placeholder', '6-digit OTP');
+        otpInputLabel.textContent = '6-digit OTP';
+      }
+
       const tabs  = document.querySelectorAll('.auth-tab');
       const forms = document.querySelectorAll('.auth-form-container');
 
@@ -357,6 +366,7 @@
           document.getElementById('loginAlert').classList.add('d-none');
           document.getElementById('uploadDocsForm').classList.add('d-none');
           if (resendTimerInterval) clearInterval(resendTimerInterval);
+          if (typeof GNM_PHONE_AUTH !== 'undefined') GNM_PHONE_AUTH.reset();
 
           tab.classList.add('active');
           const targetId = tab.getAttribute('data-target');
@@ -374,6 +384,22 @@
         if (e.key === 'Enter') handleSendOTP();
       });
     });
+
+    function handleFirebaseError(error, alertBox) {
+      console.error(error);
+      let msg = 'Kuch galat ho gaya. Kripaya wapas try karein.';
+      const errCode = error.code || error.message || '';
+      
+      if (errCode.includes('invalid-phone-number')) msg = 'Phone number sahi nahi hai.';
+      else if (errCode.includes('too-many-requests')) msg = 'Bahut zyada attempts! Thodi der baad try karein.';
+      else if (errCode.includes('invalid-verification-code')) msg = 'OTP galat hai. Sahi OTP dalein.';
+      else if (errCode.includes('code-expired')) msg = 'OTP expire ho gaya hai. Naya OTP request karein.';
+      else if (errCode.includes('network-request-failed')) msg = 'Internet connection check karein.';
+      
+      alertBox.textContent = msg;
+      alertBox.className = 'alert alert-danger small mb-3';
+      alertBox.classList.remove('d-none');
+    }
 
     async function handleSendOTP() {
       const phone    = document.getElementById('loginMobile').value.trim();
@@ -393,37 +419,79 @@
       btn.disabled = true;
 
       try {
-        const res  = await fetch(`${getApiBase()}/garage-auth/send-otp`, {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ phone })
-        });
-        const data = await res.json();
+        if (typeof OTP_PROVIDER !== 'undefined' && OTP_PROVIDER === 'firebase') {
+          // 1. Check phone active/pending status from backend
+          const checkRes = await fetch(`${getApiBase()}/garage-auth/check-phone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone })
+          });
+          const checkData = await checkRes.json();
+          
+          if (!checkRes.ok) {
+            sp.classList.add('d-none');
+            btn.disabled = false;
+            const msg = checkData.detail || '';
+            if (msg.includes('pending') || msg.includes('not registered') || msg.includes('No active garage')) {
+              checkApplicationStatus(phone);
+            } else {
+              alertBox.textContent = msg || 'Phone number not registered. Contact admin.';
+              alertBox.className   = 'alert alert-danger small mb-3';
+              alertBox.classList.remove('d-none');
+            }
+            return;
+          }
 
-        if (res.ok) {
-          currentVerificationId = data.verification_id;
-          sp.classList.add('d-none');
-          btn.disabled = false;
-          document.getElementById('otpSentTo').textContent = `OTP sent to +91 ${phone} via SMS`;
-          document.getElementById('otpInput').value = '';
-          document.getElementById('step-phone').classList.add('d-none');
-          document.getElementById('step-otp').classList.remove('d-none');
-          document.getElementById('verifyAlert').classList.add('d-none');
-          startResendTimer();
-          document.getElementById('otpInput').focus();
+          // 2. Send OTP via Firebase
+          try {
+            await GNM_PHONE_AUTH.sendOtp(phone);
+            sp.classList.add('d-none');
+            btn.disabled = false;
+            document.getElementById('otpSentTo').textContent = `OTP sent to +91 ${phone} via SMS`;
+            document.getElementById('otpInput').value = '';
+            document.getElementById('step-phone').classList.add('d-none');
+            document.getElementById('step-otp').classList.remove('d-none');
+            document.getElementById('verifyAlert').classList.add('d-none');
+            startResendTimer();
+            document.getElementById('otpInput').focus();
+          } catch (error) {
+            sp.classList.add('d-none');
+            btn.disabled = false;
+            handleFirebaseError(error, alertBox);
+          }
+          
         } else {
-          sp.classList.add('d-none');
-          btn.disabled = false;
+          // Message Central Flow
+          const res  = await fetch(`${getApiBase()}/garage-auth/send-otp`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ phone })
+          });
+          const data = await res.json();
 
-          // ✅ Pending application check — login tab se bhi
-          const msg = data.detail || '';
-          if (msg.includes('pending') || msg.includes('not registered') || msg.includes('No active garage')) {
-            // Backend se check karo application status
-            checkApplicationStatus(phone);
+          if (res.ok) {
+            currentVerificationId = data.verification_id;
+            sp.classList.add('d-none');
+            btn.disabled = false;
+            document.getElementById('otpSentTo').textContent = `OTP sent to +91 ${phone} via SMS`;
+            document.getElementById('otpInput').value = '';
+            document.getElementById('step-phone').classList.add('d-none');
+            document.getElementById('step-otp').classList.remove('d-none');
+            document.getElementById('verifyAlert').classList.add('d-none');
+            startResendTimer();
+            document.getElementById('otpInput').focus();
           } else {
-            alertBox.textContent = msg || 'Phone number not registered. Contact admin.';
-            alertBox.className   = 'alert alert-danger small mb-3';
-            alertBox.classList.remove('d-none');
+            sp.classList.add('d-none');
+            btn.disabled = false;
+
+            const msg = data.detail || '';
+            if (msg.includes('pending') || msg.includes('not registered') || msg.includes('No active garage')) {
+              checkApplicationStatus(phone);
+            } else {
+              alertBox.textContent = msg || 'Phone number not registered. Contact admin.';
+              alertBox.className   = 'alert alert-danger small mb-3';
+              alertBox.classList.remove('d-none');
+            }
           }
         }
       } catch {
@@ -442,8 +510,12 @@
       const sp       = document.getElementById('verifySp');
       const btn      = document.getElementById('verifyOtpBtn');
 
-      if (otp.length !== 4 || !/^\d{4}$/.test(otp)) {
-        alertBox.textContent = 'Please enter the 4-digit OTP.';
+      const isFirebase = (typeof OTP_PROVIDER !== 'undefined' && OTP_PROVIDER === 'firebase');
+      const expectedLength = isFirebase ? 6 : 4;
+      const otpRegex = isFirebase ? /^\d{6}$/ : /^\d{4}$/;
+
+      if (otp.length !== expectedLength || !otpRegex.test(otp)) {
+        alertBox.textContent = `Please enter the ${expectedLength}-digit OTP.`;
         alertBox.className   = 'alert alert-danger small mb-3';
         alertBox.classList.remove('d-none');
         return;
@@ -454,28 +526,62 @@
       btn.disabled = true;
 
       try {
-        const res  = await fetch(`${getApiBase()}/garage-auth/verify-otp`, {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ phone, otp, verification_id: currentVerificationId })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          localStorage.setItem('garage_token', data.access_token);
-          window.location.href = '/mechanic/dashboard.html';
+        if (isFirebase) {
+          try {
+            const idToken = await GNM_PHONE_AUTH.verifyOtp(otp);
+            const res = await fetch(`${getApiBase()}/garage-auth/firebase-login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id_token: idToken })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+              localStorage.setItem('garage_token', data.access_token);
+              window.location.href = '/mechanic/dashboard.html';
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Verification Failed',
+                text: data.detail || 'Invalid or expired session. Try again.',
+                confirmButtonColor: 'var(--color-primary)'
+              });
+              alertBox.textContent = data.detail || 'Invalid or expired session. Try again.';
+              alertBox.className   = 'alert alert-danger small mb-3';
+              alertBox.classList.remove('d-none');
+              sp.classList.add('d-none');
+              btn.disabled = false;
+            }
+          } catch (error) {
+            sp.classList.add('d-none');
+            btn.disabled = false;
+            handleFirebaseError(error, alertBox);
+          }
         } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Verification Failed',
-            text: data.detail || 'Invalid or expired OTP. Try again.',
-            confirmButtonColor: 'var(--color-primary)'
+          // Message Central flow
+          const res  = await fetch(`${getApiBase()}/garage-auth/verify-otp`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ phone, otp, verification_id: currentVerificationId })
           });
-          alertBox.textContent = data.detail || 'Invalid or expired OTP. Try again.';
-          alertBox.className   = 'alert alert-danger small mb-3';
-          alertBox.classList.remove('d-none');
-          sp.classList.add('d-none');
-          btn.disabled = false;
+          const data = await res.json();
+
+          if (res.ok) {
+            localStorage.setItem('garage_token', data.access_token);
+            window.location.href = '/mechanic/dashboard.html';
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Verification Failed',
+              text: data.detail || 'Invalid or expired OTP. Try again.',
+              confirmButtonColor: 'var(--color-primary)'
+            });
+            alertBox.textContent = data.detail || 'Invalid or expired OTP. Try again.';
+            alertBox.className   = 'alert alert-danger small mb-3';
+            alertBox.classList.remove('d-none');
+            sp.classList.add('d-none');
+            btn.disabled = false;
+          }
         }
       } catch {
         alertBox.textContent = 'Network error. Please try again.';
@@ -492,6 +598,7 @@
       document.getElementById('otpInput').value = '';
       document.getElementById('verifyAlert').classList.add('d-none');
       if (resendTimerInterval) clearInterval(resendTimerInterval);
+      if (typeof GNM_PHONE_AUTH !== 'undefined') GNM_PHONE_AUTH.reset();
       document.getElementById('resendTimer').textContent = '';
       document.getElementById('resendLink').style.display = 'none';
       const btn = document.getElementById('sendOtpBtn');

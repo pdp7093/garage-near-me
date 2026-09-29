@@ -118,18 +118,9 @@ def get_current_garage(
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
-# ──────────────────────────────────────────
-# 1. SEND OTP
-# POST /api/garage-auth/send-otp
-# ──────────────────────────────────────────
-
-@router.post("/send-otp", response_model=schemas.OTPSendResponse)
-async def send_otp(
-    request: schemas.OTPSendRequest,
-    db: Session = Depends(get_db)
-):
+def check_active_garage(phone: str, db: Session) -> models.Garage:
     garage = db.query(models.Garage).filter(
-        models.Garage.phone   == request.phone,
+        models.Garage.phone == phone,
         models.Garage.is_active == True
     ).first()
 
@@ -138,6 +129,79 @@ async def send_otp(
             status_code=404,
             detail="No active garage found with this phone number. Please contact admin."
         )
+    return garage
+
+
+# ──────────────────────────────────────────
+# 1A. CHECK PHONE
+# POST /api/garage-auth/check-phone
+# ──────────────────────────────────────────
+
+@router.post("/check-phone")
+async def check_phone(
+    request: schemas.OTPSendRequest,
+    db: Session = Depends(get_db)
+):
+    check_active_garage(request.phone, db)
+    return {"ok": True}
+
+
+# ──────────────────────────────────────────
+# 1B. FIREBASE LOGIN
+# POST /api/garage-auth/firebase-login
+# ──────────────────────────────────────────
+
+class FirebaseLoginRequest(schemas.BaseModel):
+    id_token: str
+
+@router.post("/firebase-login", response_model=schemas.Token)
+async def firebase_login(
+    request: FirebaseLoginRequest,
+    db: Session = Depends(get_db)
+):
+    try:
+        from firebase_admin import auth as firebase_auth
+        decoded = firebase_auth.verify_id_token(request.id_token)
+        phone_number = decoded.get("phone_number", "")
+        
+        # Normalize +919876543210 -> 9876543210
+        if phone_number.startswith("+91") and len(phone_number) > 12:
+            phone_number = phone_number[3:]
+        elif phone_number.startswith("+") and len(phone_number) > 10:
+            # Fallback for other countries if needed, assuming 10-digit
+            phone_number = phone_number[-10:]
+
+        garage = check_active_garage(phone_number, db)
+
+        token = create_access_token(
+            data={
+                "sub":     garage.phone,
+                "user_id": garage.id,
+                "role":    "garage"
+            },
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+
+        return {"access_token": token, "token_type": "bearer"}
+    except Exception as e:
+        print(f"[OTP] Firebase verify error: {e}")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired OTP. Please try again."
+        )
+
+
+# ──────────────────────────────────────────
+# 1C. SEND OTP (Message Central)
+# POST /api/garage-auth/send-otp
+# ──────────────────────────────────────────
+
+@router.post("/send-otp", response_model=schemas.OTPSendResponse)
+async def send_otp(
+    request: schemas.OTPSendRequest,
+    db: Session = Depends(get_db)
+):
+    check_active_garage(request.phone, db)
 
     verification_id = await send_otp_via_messagecentral(request.phone)
     if not verification_id:
