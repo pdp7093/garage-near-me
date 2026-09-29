@@ -151,8 +151,8 @@ function navigateFromNotificationData(data) {
     window.location.href = '/mechanic/dashboard.html';
     return;
   }
-  if ((data.type === 'sos_alert' || data.type === 'call-request' || data.type === 'booking_call_request') && (data.sos_id || data.booking_id)) {
-    const isBooking = data.type === 'booking_call_request' || data.booking_id;
+  if ((data.type === 'sos_alert' || data.type === 'new_booking' || data.type === 'call-request' || data.type === 'booking_call_request') && (data.sos_id || data.booking_id)) {
+    const isBooking = data.type === 'booking_call_request' || data.type === 'new_booking' || !!data.booking_id;
     const entityId = data.booking_id || data.sos_id;
     const targetUrl = isBooking ? `/mechanic/job-detail.html?id=${entityId}` : `/mechanic/sos-detail.html?id=${entityId}`;
     
