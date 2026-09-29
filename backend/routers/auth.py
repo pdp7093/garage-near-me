@@ -323,6 +323,136 @@ async def register_verify(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+# ──────────────────────────────────────────
+# FIREBASE PHONE AUTH ENDPOINTS
+# ──────────────────────────────────────────
+from pydantic import BaseModel
+from routers.garage_auth import _ensure_firebase_app, _normalize_indian_phone
+
+class FirebaseLoginRequest(BaseModel):
+    id_token: str
+
+class FirebaseRegisterRequest(BaseModel):
+    id_token: str
+    name: str
+    email: str
+
+@router.post("/check-phone")
+async def check_phone(
+    request: schemas.OTPSendRequest,
+    db: Session = Depends(get_db)
+):
+    customer = db.query(models.Customer).filter(
+        models.Customer.phone == request.phone
+    ).first()
+    if not customer:
+        raise HTTPException(
+            status_code=404,
+            detail="No account found with this phone number. Please register first."
+        )
+    return {"ok": True}
+
+@router.post("/check-phone-register")
+async def check_phone_register(
+    request: schemas.OTPSendRequest,
+    db: Session = Depends(get_db)
+):
+    existing = db.query(models.Customer).filter(
+        models.Customer.phone == request.phone
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Phone number already registered. Please login instead."
+        )
+    return {"ok": True}
+
+@router.post("/firebase-login", response_model=schemas.Token)
+async def firebase_login(
+    request: FirebaseLoginRequest,
+    db: Session = Depends(get_db)
+):
+    try:
+        firebase_auth = _ensure_firebase_app()
+        decoded = firebase_auth.verify_id_token(request.id_token)
+        phone_number = decoded.get("phone_number", "")
+    except Exception as e:
+        print(f"[OTP] Firebase verify error: {e}")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired OTP. Please try again."
+        )
+    
+    normalized_phone = _normalize_indian_phone(phone_number)
+    customer_phone = f"+91{normalized_phone}"
+
+    customer = db.query(models.Customer).filter(
+        models.Customer.phone == customer_phone
+    ).first()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": customer.phone, "user_id": customer.id, "role": "customer"},
+        expires_delta=access_token_expires
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/firebase-register", response_model=schemas.Token)
+async def firebase_register(
+    request: FirebaseRegisterRequest,
+    db: Session = Depends(get_db)
+):
+    try:
+        firebase_auth = _ensure_firebase_app()
+        decoded = firebase_auth.verify_id_token(request.id_token)
+        phone_number = decoded.get("phone_number", "")
+    except Exception as e:
+        print(f"[OTP] Firebase verify error: {e}")
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired OTP. Please try again."
+        )
+
+    normalized_phone = _normalize_indian_phone(phone_number)
+    customer_phone = f"+91{normalized_phone}"
+
+    existing = db.query(models.Customer).filter(
+        models.Customer.phone == customer_phone
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Phone number already registered.")
+
+    existing_email = db.query(models.Customer).filter(
+        models.Customer.email == request.email
+    ).first()
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already registered.")
+
+    import secrets
+    random_password = secrets.token_hex(16)
+    hashed_password = get_password_hash(random_password)
+
+    new_customer = models.Customer(
+        name=request.name,
+        phone=customer_phone,
+        email=request.email,
+        hashed_password=hashed_password
+    )
+    db.add(new_customer)
+    db.commit()
+    db.refresh(new_customer)
+
+    access_token = create_access_token(
+        data={"sub": new_customer.phone, "user_id": new_customer.id, "role": "customer"},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @router.post("/register", response_model=schemas.CustomerResponse, status_code=status.HTTP_201_CREATED)
 def register_customer(customer: schemas.CustomerCreate, db: Session = Depends(get_db)):
     # Check if phone exists

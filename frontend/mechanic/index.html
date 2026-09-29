@@ -101,6 +101,7 @@
               <span class="spinner-border spinner-border-sm me-2 d-none" id="otpSp"></span>
               Send OTP
             </button>
+            <div id="recaptcha-container"></div>
           </div>
 
           <div id="step-otp" class="d-none">
@@ -378,14 +379,21 @@
       if (token) window.location.href = '/mechanic/dashboard.html';
 
       document.getElementById('otpInput').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleVerifyOTP();
+        if (e.key === 'Enter') handleVerifyOTP(false);
       });
       document.getElementById('loginMobile').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleSendOTP();
       });
+
+      window.addEventListener('gnm_otp_autoverified', e => {
+        const c = e.detail && e.detail.code;
+        if (c) document.getElementById('otpInput').value = c;
+        handleVerifyOTP(true);
+      });
     });
 
     function handleFirebaseError(error, alertBox) {
+      if (error && error.code === 'cancelled') return;
       console.error(error);
       let msg = 'Kuch galat ho gaya. Kripaya wapas try karein.';
       const errCode = error.code || error.message || '';
@@ -503,7 +511,7 @@
       }
     }
 
-    async function handleVerifyOTP() {
+    async function handleVerifyOTP(autoVerified = false) {
       const phone    = document.getElementById('loginMobile').value.trim();
       const otp      = document.getElementById('otpInput').value.trim();
       const alertBox = document.getElementById('verifyAlert');
@@ -514,7 +522,7 @@
       const expectedLength = isFirebase ? 6 : 4;
       const otpRegex = isFirebase ? /^\d{6}$/ : /^\d{4}$/;
 
-      if (otp.length !== expectedLength || !otpRegex.test(otp)) {
+      if (!autoVerified && (otp.length !== expectedLength || !otpRegex.test(otp))) {
         alertBox.textContent = `Please enter the ${expectedLength}-digit OTP.`;
         alertBox.className   = 'alert alert-danger small mb-3';
         alertBox.classList.remove('d-none');

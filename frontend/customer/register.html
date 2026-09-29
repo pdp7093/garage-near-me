@@ -208,6 +208,7 @@
                                 <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
                             </svg>
                         </button>
+                        <div id="recaptcha-container"></div>
                     </div>
 
                     <!-- Step 2: OTP Verification -->
@@ -266,12 +267,32 @@
 
     <script src="/js/bootstrap.js"></script>
     <script src="/js/config.js"></script>
+    <script src="/js/phone-auth.js"></script>
     <script src="/js/script.js"></script>
 
     <script>
         // ── Register OTP flow ──
         let currentVerificationId = null;
         let resendTimerInterval = null;
+        let USE_FIREBASE = false;
+        let OTP_LEN = 4;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof CUSTOMER_OTP_PROVIDER !== 'undefined' && CUSTOMER_OTP_PROVIDER === 'firebase') {
+                USE_FIREBASE = true;
+                OTP_LEN = 6;
+                const otpInput = document.getElementById('otpInput');
+                otpInput.setAttribute('maxlength', '6');
+                otpInput.setAttribute('placeholder', '6-digit OTP');
+            }
+        });
+
+        window.addEventListener('gnm_otp_autoverified', (e) => {
+            if (e.detail && e.detail.code) {
+                document.getElementById('otpInput').value = e.detail.code;
+            }
+            regVerifyOtp(true);
+        });
 
         function showRegError(wrapId, message) {
             const wrap = document.getElementById(wrapId);
@@ -311,6 +332,9 @@
             document.getElementById('regTitle').textContent = 'Create an account';
             document.getElementById('regSubtitle').textContent = 'Sign up as a customer to book vehicle services';
             if (resendTimerInterval) clearInterval(resendTimerInterval);
+            if (USE_FIREBASE && typeof GNM_PHONE_AUTH !== 'undefined') {
+                GNM_PHONE_AUTH.reset();
+            }
         }
 
         async function regSendOtp() {
@@ -330,28 +354,47 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(`${getApiBase()}/auth/send-otp-register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: '+91' + phone })
-                });
+                if (USE_FIREBASE) {
+                    const checkRes = await fetch(`${getApiBase()}/auth/check-phone-register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: '+91' + phone })
+                    });
+                    if (!checkRes.ok) {
+                        const data = await checkRes.json();
+                        throw new Error(data.detail || 'Phone number check failed.');
+                    }
+                    try {
+                        await GNM_PHONE_AUTH.sendOtp(phone);
+                    } catch (err) {
+                        if (err.code === 'auth/cancelled-popup-request' || err.code === 'cancelled') {
+                            btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
+                            btn.style.opacity = '1';
+                            btn.disabled = false;
+                            return; // silently reset
+                        }
+                        throw new Error(GNM_PHONE_AUTH.friendlyError(err));
+                    }
+                } else {
+                    const response = await fetch(`${getApiBase()}/auth/send-otp-register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: '+91' + phone })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
+                    currentVerificationId = data.verification_id;
+                }
 
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
-
-                currentVerificationId = data.verification_id;
-
-                // ✅ Button reset karo
                 btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
                 btn.style.opacity = '1';
                 btn.disabled = false;
 
-                // OTP step dikhao
                 document.getElementById('stepDetails').style.display = 'none';
                 document.getElementById('stepOtp').style.display = 'block';
                 document.getElementById('otpPhoneDisplay').textContent = '+91 ' + phone;
                 document.getElementById('regTitle').textContent = 'Verify Phone';
-                document.getElementById('regSubtitle').textContent = 'We sent a 4-digit OTP via SMS';
+                document.getElementById('regSubtitle').textContent = `We sent a ${OTP_LEN}-digit OTP via SMS`;
                 document.getElementById('otpInput').value = '';
                 document.getElementById('otpInput').focus();
                 startResendTimer();
@@ -368,28 +411,33 @@
             document.getElementById('resendLink').style.display = 'none';
             const phone = document.getElementById('regPhone').value.trim();
             try {
-                const response = await fetch(`${getApiBase()}/auth/send-otp-register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: '+91' + phone })
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    currentVerificationId = data.verification_id;
+                if (USE_FIREBASE) {
+                    await GNM_PHONE_AUTH.sendOtp(phone);
                     startResendTimer();
+                } else {
+                    const response = await fetch(`${getApiBase()}/auth/send-otp-register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: '+91' + phone })
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentVerificationId = data.verification_id;
+                        startResendTimer();
+                    }
                 }
             } catch (err) {
                 console.warn('Resend failed:', err);
             }
         }
 
-        async function regVerifyOtp() {
+        async function regVerifyOtp(autoVerified = false) {
             const name = document.getElementById('regName').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
             const email = document.getElementById('regEmail').value.trim();
             const otp = document.getElementById('otpInput').value.trim();
 
-            if (otp.length !== 4) { showRegError('otpWrap', 'Please enter the 4-digit OTP.'); return; }
+            if (!autoVerified && otp.length !== OTP_LEN) { showRegError('otpWrap', `Please enter the ${OTP_LEN}-digit OTP.`); return; }
 
             const btn = document.getElementById('regVerifyBtn');
             btn.innerHTML = 'Creating Account... <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>';
@@ -397,20 +445,40 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(`${getApiBase()}/auth/register-verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: name,
-                        phone: '+91' + phone,
-                        email: email,
-                        otp: otp,
-                        verification_id: currentVerificationId
-                    })
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Verification failed. Please try again.');
+                let response, data;
+                if (USE_FIREBASE) {
+                    let idToken;
+                    try {
+                        idToken = await GNM_PHONE_AUTH.verifyOtp(otp);
+                    } catch (err) {
+                        throw new Error(GNM_PHONE_AUTH.friendlyError(err));
+                    }
+                    response = await fetch(`${getApiBase()}/auth/firebase-register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            id_token: idToken
+                        })
+                    });
+                    data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || 'Registration failed. Please try again.');
+                } else {
+                    response = await fetch(`${getApiBase()}/auth/register-verify`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: name,
+                            phone: '+91' + phone,
+                            email: email,
+                            otp: otp,
+                            verification_id: currentVerificationId
+                        })
+                    });
+                    data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || 'Verification failed. Please try again.');
+                }
 
                 // Token save karo — auto login
                 localStorage.setItem('gnm_token', data.access_token);

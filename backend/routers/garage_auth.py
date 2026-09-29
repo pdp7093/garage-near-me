@@ -151,8 +151,28 @@ async def check_phone(
 # POST /api/garage-auth/firebase-login
 # ──────────────────────────────────────────
 
-class FirebaseLoginRequest(schemas.BaseModel):
+from pydantic import BaseModel
+
+class FirebaseLoginRequest(BaseModel):
     id_token: str
+
+def _ensure_firebase_app():
+    import firebase_admin
+    if not firebase_admin._apps:
+        import fcm
+    if not firebase_admin._apps:
+        raise RuntimeError("Firebase could not be initialized")
+    from firebase_admin import auth as firebase_auth
+    return firebase_auth
+
+def _normalize_indian_phone(phone_number: str) -> str:
+    # Normalize +919876543210 -> 9876543210
+    if phone_number.startswith("+91") and len(phone_number) > 12:
+        return phone_number[3:]
+    elif phone_number.startswith("+") and len(phone_number) > 10:
+        # Fallback for other countries if needed, assuming 10-digit
+        return phone_number[-10:]
+    return phone_number
 
 @router.post("/firebase-login", response_model=schemas.Token)
 async def firebase_login(
@@ -160,35 +180,36 @@ async def firebase_login(
     db: Session = Depends(get_db)
 ):
     try:
-        from firebase_admin import auth as firebase_auth
+        firebase_auth = _ensure_firebase_app()
         decoded = firebase_auth.verify_id_token(request.id_token)
         phone_number = decoded.get("phone_number", "")
-        
-        # Normalize +919876543210 -> 9876543210
-        if phone_number.startswith("+91") and len(phone_number) > 12:
-            phone_number = phone_number[3:]
-        elif phone_number.startswith("+") and len(phone_number) > 10:
-            # Fallback for other countries if needed, assuming 10-digit
-            phone_number = phone_number[-10:]
-
-        garage = check_active_garage(phone_number, db)
-
-        token = create_access_token(
-            data={
-                "sub":     garage.phone,
-                "user_id": garage.id,
-                "role":    "garage"
-            },
-            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        )
-
-        return {"access_token": token, "token_type": "bearer"}
     except Exception as e:
         print(f"[OTP] Firebase verify error: {e}")
         raise HTTPException(
             status_code=401,
             detail="Invalid or expired OTP. Please try again."
         )
+
+    phone_number = _normalize_indian_phone(phone_number)
+    
+    if len(phone_number) != 10 or not phone_number.isdigit():
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid phone number format."
+        )
+
+    garage = check_active_garage(phone_number, db)
+
+    token = create_access_token(
+        data={
+            "sub":     garage.phone,
+            "user_id": garage.id,
+            "role":    "garage"
+        },
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+
+    return {"access_token": token, "token_type": "bearer"}
 
 
 # ──────────────────────────────────────────

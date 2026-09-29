@@ -1,4 +1,5 @@
 const OTP_PROVIDER = "firebase"; // or "messagecentral"
+const CUSTOMER_OTP_PROVIDER = "firebase"; // or "messagecentral"
 
 const FIREBASE_WEB_CONFIG = {
     // The user will paste the real values here

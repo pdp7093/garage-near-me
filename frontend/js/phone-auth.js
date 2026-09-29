@@ -136,6 +136,17 @@ const GNM_PHONE_AUTH = (function () {
                 recaptchaVerifier.clear();
                 recaptchaVerifier = null;
             }
+        },
+
+        friendlyError(error) {
+            const errCode = error.code || error.message || '';
+            if (errCode.includes('invalid-phone-number')) return "Phone number sahi nahi hai.";
+            if (errCode.includes('too-many-requests') || errCode.includes('quota')) return "Bahut zyada attempts! Thodi der baad try karein.";
+            if (errCode.includes('invalid-verification-code')) return "OTP galat hai. Sahi OTP dalein.";
+            if (errCode.includes('code-expired') || errCode.includes('session-expired')) return "OTP expire ho gaya hai. Naya OTP mangwayein.";
+            if (errCode.includes('network')) return "Internet connection check karein.";
+            if (errCode.includes('captcha')) return "Verification fail hua. Page refresh karke dobara try karein.";
+            return "Kuch galat ho gaya. Kripaya dobara try karein.";
         }
     };
 })();

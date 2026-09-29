@@ -147,6 +147,7 @@
                             Send OTP
                             <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
                         </button>
+                        <div id="recaptcha-container"></div>
 
                     </div>
 
@@ -223,11 +224,31 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="/js/bootstrap.js"></script>
     <script src="/js/config.js"></script>
+    <script src="/js/phone-auth.js"></script>
     <script src="/js/script.js"></script>
 
     <script>
         let currentVerificationId = null;
         let resendTimerInterval = null;
+        let USE_FIREBASE = false;
+        let OTP_LEN = 4;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof CUSTOMER_OTP_PROVIDER !== 'undefined' && CUSTOMER_OTP_PROVIDER === 'firebase') {
+                USE_FIREBASE = true;
+                OTP_LEN = 6;
+                const otpInput = document.getElementById('otpInput');
+                otpInput.setAttribute('maxlength', '6');
+                otpInput.setAttribute('placeholder', '6-digit OTP');
+            }
+        });
+
+        window.addEventListener('gnm_otp_autoverified', (e) => {
+            if (e.detail && e.detail.code) {
+                document.getElementById('otpInput').value = e.detail.code;
+            }
+            verifyOtp(true);
+        });
 
         function showError(wrapId, message) {
             const wrap = document.getElementById(wrapId);
@@ -267,6 +288,9 @@
             document.getElementById('loginTitle').textContent = 'Welcome Back';
             document.getElementById('loginSubtitle').textContent = 'Enter your phone number to continue as a customer';
             if (resendTimerInterval) clearInterval(resendTimerInterval);
+            if (USE_FIREBASE && typeof GNM_PHONE_AUTH !== 'undefined') {
+                GNM_PHONE_AUTH.reset();
+            }
         }
 
         async function sendOtp() {
@@ -282,16 +306,37 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(`${getApiBase()}/auth/send-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: '+91' + phone })
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
-
-                currentVerificationId = data.verification_id;
+                if (USE_FIREBASE) {
+                    const checkRes = await fetch(`${getApiBase()}/auth/check-phone`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: '+91' + phone })
+                    });
+                    if (!checkRes.ok) {
+                        const data = await checkRes.json();
+                        throw new Error(data.detail || 'Phone number not registered.');
+                    }
+                    try {
+                        await GNM_PHONE_AUTH.sendOtp(phone);
+                    } catch (err) {
+                        if (err.code === 'auth/cancelled-popup-request' || err.code === 'cancelled') {
+                            btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
+                            btn.style.opacity = '1';
+                            btn.disabled = false;
+                            return; // silently reset
+                        }
+                        throw new Error(GNM_PHONE_AUTH.friendlyError(err));
+                    }
+                } else {
+                    const response = await fetch(`${getApiBase()}/auth/send-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: '+91' + phone })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || 'Failed to send OTP.');
+                    currentVerificationId = data.verification_id;
+                }
 
                 btn.innerHTML = 'Send OTP <svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
                 btn.style.opacity = '1';
@@ -301,7 +346,7 @@
                 document.getElementById('stepOtp').style.display = 'block';
                 document.getElementById('otpPhoneDisplay').textContent = '+91 ' + phone;
                 document.getElementById('loginTitle').textContent = 'Enter OTP';
-                document.getElementById('loginSubtitle').textContent = 'We sent a 4-digit OTP via SMS';
+                document.getElementById('loginSubtitle').textContent = `We sent a ${OTP_LEN}-digit OTP via SMS`;
                 document.getElementById('otpInput').value = '';
                 document.getElementById('otpInput').focus();
                 startResendTimer();
@@ -318,27 +363,32 @@
             document.getElementById('resendLink').style.display = 'none';
             const phone = document.getElementById('phoneInput').value.trim();
             try {
-                const response = await fetch(`${getApiBase()}/auth/send-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: '+91' + phone })
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    currentVerificationId = data.verification_id;
+                if (USE_FIREBASE) {
+                    await GNM_PHONE_AUTH.sendOtp(phone);
                     startResendTimer();
+                } else {
+                    const response = await fetch(`${getApiBase()}/auth/send-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: '+91' + phone })
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        currentVerificationId = data.verification_id;
+                        startResendTimer();
+                    }
                 }
             } catch (err) {
                 console.warn('Resend failed:', err);
             }
         }
 
-        async function verifyOtp() {
+        async function verifyOtp(autoVerified = false) {
             const phone = document.getElementById('phoneInput').value.trim();
             const otp = document.getElementById('otpInput').value.trim();
 
-            if (otp.length !== 4) {
-                showError('otpWrap', 'Please enter the 4-digit OTP.');
+            if (!autoVerified && otp.length !== OTP_LEN) {
+                showError('otpWrap', `Please enter the ${OTP_LEN}-digit OTP.`);
                 return;
             }
 
@@ -348,14 +398,30 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(`${getApiBase()}/auth/verify-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: '+91' + phone, otp: otp, verification_id: currentVerificationId })
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Invalid OTP. Please try again.');
+                let response, data;
+                if (USE_FIREBASE) {
+                    let idToken;
+                    try {
+                        idToken = await GNM_PHONE_AUTH.verifyOtp(otp);
+                    } catch (err) {
+                        throw new Error(GNM_PHONE_AUTH.friendlyError(err));
+                    }
+                    response = await fetch(`${getApiBase()}/auth/firebase-login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_token: idToken })
+                    });
+                    data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || 'Invalid session. Please try again.');
+                } else {
+                    response = await fetch(`${getApiBase()}/auth/verify-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: '+91' + phone, otp: otp, verification_id: currentVerificationId })
+                    });
+                    data = await response.json();
+                    if (!response.ok) throw new Error(data.detail || 'Invalid OTP. Please try again.');
+                }
 
                 localStorage.setItem('gnm_token', data.access_token);
                 localStorage.setItem('gnm_role', 'customer');
