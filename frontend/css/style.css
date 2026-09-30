@@ -41,7 +41,7 @@ body { font-family: var(--font-body); background: var(--color-bg); color: var(--
 }
 .gnm-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
 .gnm-logo-icon {
-  width: 34px; height: 34px; background: var(--color-accent);
+  width: 34px; height: 34px; background: transparent; padding: 0;
   border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
 }
