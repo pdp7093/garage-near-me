@@ -1,152 +1,220 @@
+/**
+ * phone-auth.js
+ * Firebase Phone OTP — native (Capacitor plugin) + web (Firebase JS SDK)
+ * Depends on config.js: FIREBASE_WEB_CONFIG
+ *
+ * Public API (global GNM_PHONE_AUTH):
+ *   await GNM_PHONE_AUTH.sendOtp('9876543210')
+ *   const idToken = await GNM_PHONE_AUTH.verifyOtp('123456')
+ *   GNM_PHONE_AUTH.reset()
+ *
+ * Android auto-read OTP hone par window pe 'gnm_otp_autoverified' event fire hota hai
+ * (detail.code optional) — index.html usko sun ke seedha verify karta hai.
+ */
 const GNM_PHONE_AUTH = (function () {
-    let verificationId = null;
-    let webAuth = null;
-    let recaptchaVerifier = null;
-    let confirmationResult = null;
-    let phoneListenersAdded = false;
+  const FIREBASE_JS_VERSION = '10.13.1';
+  const SEND_TIMEOUT_MS = 60000;
 
-    // Web Firebase initialization (lazy)
-    async function initWebFirebase() {
-        if (webAuth) return webAuth;
-        const [app, auth] = await Promise.all([
-            import('https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js'),
-            import('https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js')
-        ]);
-        
-        const firebaseApp = app.initializeApp(FIREBASE_WEB_CONFIG);
-        webAuth = auth.getAuth(firebaseApp);
-        webAuth.useDeviceLanguage();
-        
-        return { app, auth };
+  // ── Shared state ──
+  let verificationId = null;      // native
+  let autoSignedIn = false;       // native (Android auto-retrieval)
+  let pendingSend = null;         // native: { resolve, reject, timer }
+  let nativeListenersReady = false;
+
+  let fb = null;                  // web: { appMod, authMod, auth }
+  let recaptchaVerifier = null;   // web
+  let confirmationResult = null;  // web
+
+  function isNative() {
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  }
+
+  function nativePlugin() {
+    const p = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.FirebaseAuthentication;
+    if (!p) throw makeError('plugin-missing', 'FirebaseAuthentication plugin not found. Run npx cap sync.');
+    return p;
+  }
+
+  function makeError(code, message) {
+    const err = new Error(message || code);
+    err.code = code;
+    return err;
+  }
+
+  function settlePending(fn, value) {
+    if (!pendingSend) return;
+    clearTimeout(pendingSend.timer);
+    const p = pendingSend;
+    pendingSend = null;
+    p[fn](value);
+  }
+
+  // ══════════════════ NATIVE ══════════════════
+
+  async function ensureNativeListeners() {
+    if (nativeListenersReady) return;
+    const FA = nativePlugin();
+
+    await FA.addListener('phoneCodeSent', (event) => {
+      verificationId = event && event.verificationId;
+      settlePending('resolve');
+    });
+
+    await FA.addListener('phoneVerificationCompleted', (event) => {
+      // Android ne SMS khud padh liya aur sign-in ho gaya
+      autoSignedIn = true;
+      settlePending('resolve');
+      const code = event && event.verificationCode;
+      // UI OTP screen pe aa jaye, uske baad event bhejo
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('gnm_otp_autoverified', { detail: { code: code || null } }));
+      }, 300);
+    });
+
+    await FA.addListener('phoneVerificationFailed', (event) => {
+      const msg = (event && event.message) || 'Phone verification failed';
+      console.error('[PhoneAuth] Verification failed:', msg);
+      const lower = msg.toLowerCase();
+      let code = 'verification-failed';
+      if (lower.includes('unusual activity') || lower.includes('too many') || lower.includes('blocked')) code = 'auth/too-many-requests';
+      else if (lower.includes('invalid') && lower.includes('phone')) code = 'auth/invalid-phone-number';
+      else if (lower.includes('network')) code = 'auth/network-request-failed';
+      settlePending('reject', makeError(code, msg));
+    });
+
+    nativeListenersReady = true;
+  }
+
+  async function sendOtpNative(phoneNumber) {
+    await ensureNativeListeners();
+    verificationId = null;
+    autoSignedIn = false;
+
+    // Pehle waiter set karo, phir request bhejo — taaki event miss na ho
+    const waiter = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        if (pendingSend) {
+          pendingSend = null;
+          reject(makeError('auth/network-request-failed', 'OTP send timed out'));
+        }
+      }, SEND_TIMEOUT_MS);
+      pendingSend = { resolve, reject, timer };
+    });
+
+    try {
+      // Is plugin mein ye kuch return nahi karta — result listeners se aata hai
+      await nativePlugin().signInWithPhoneNumber({ phoneNumber });
+    } catch (err) {
+      settlePending('reject', err);
     }
 
-    // Setup Recaptcha for Web
-    async function setupRecaptcha() {
-        const { auth } = await initWebFirebase();
-        
-        if (recaptchaVerifier) {
-            recaptchaVerifier.clear();
-            recaptchaVerifier = null;
-        }
+    await waiter;
+  }
 
-        recaptchaVerifier = new auth.RecaptchaVerifier(webAuth, 'sendOtpBtn', {
-            'size': 'invisible',
-            'callback': (response) => {
-                // reCAPTCHA solved
-            }
-        });
+  async function verifyOtpNative(code) {
+    const FA = nativePlugin();
+
+    if (!autoSignedIn) {
+      if (!verificationId) throw makeError('auth/code-expired', 'No verificationId — request OTP again');
+      await FA.confirmVerificationCode({ verificationId, verificationCode: code });
     }
 
-    async function sendOtpNative(phoneNumber) {
-        const FirebaseAuthentication = window.Capacitor.Plugins.FirebaseAuthentication;
+    const result = await FA.getIdToken();
+    const idToken = result && result.token;
+    if (!idToken) throw makeError('no-id-token', 'Firebase ID token not received');
 
-        if (!phoneListenersAdded) {
-            await FirebaseAuthentication.removeAllListeners();
-            
-            await FirebaseAuthentication.addListener('phoneCodeSent', (event) => {
-                verificationId = event.verificationId;
-            });
-            
-            await FirebaseAuthentication.addListener('phoneVerificationCompleted', async (event) => {
-                // Android auto-retrieval
-                // event has credential. In @capacitor-firebase/authentication, phoneVerificationCompleted triggers when auto-retrieved.
-                // We should store the credential to use it directly in verifyOtp if possible, but the simplest is just 
-                // returning it if it's available, however the plugin might sign in automatically.
-                // The prompt says: "resolve directly without code". We will handle auto-retrieval in verifyOtp if needed, or
-                // user can just click verify with empty code if we store the event.
-                // For simplicity, we just rely on standard flow: signin -> get token.
-            });
-            
-            await FirebaseAuthentication.addListener('phoneVerificationFailed', (event) => {
-                console.error('Phone verification failed:', event);
-            });
-            
-            phoneListenersAdded = true;
-        }
+    // Humara apna JWT session hai — Firebase session ki zaroorat nahi
+    try { await FA.signOut(); } catch (e) { console.warn('[PhoneAuth] signOut failed', e); }
 
-        const result = await FirebaseAuthentication.signInWithPhoneNumber({
-            phoneNumber: phoneNumber
-        });
-        
-        verificationId = result.verificationId;
+    verificationId = null;
+    autoSignedIn = false;
+    return idToken;
+  }
+
+  // ══════════════════ WEB ══════════════════
+
+  async function loadWebFirebase() {
+    if (fb) return fb;
+    const base = `https://www.gstatic.com/firebasejs/${FIREBASE_JS_VERSION}`;
+    const [appMod, authMod] = await Promise.all([
+      import(`${base}/firebase-app.js`),
+      import(`${base}/firebase-auth.js`)
+    ]);
+    const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(FIREBASE_WEB_CONFIG);
+    const auth = authMod.getAuth(app);
+    auth.useDeviceLanguage();
+    fb = { appMod, authMod, auth };
+    return fb;
+  }
+
+  function clearRecaptcha() {
+    if (recaptchaVerifier) {
+      try { recaptchaVerifier.clear(); } catch (e) { /* ignore */ }
+      recaptchaVerifier = null;
     }
+  }
 
-    async function sendOtpWeb(phoneNumber) {
-        const { auth } = await initWebFirebase();
-        await setupRecaptcha();
-        
-        try {
-            confirmationResult = await auth.signInWithPhoneNumber(webAuth, phoneNumber, recaptchaVerifier);
-        } catch (error) {
-            if (recaptchaVerifier) {
-                recaptchaVerifier.clear();
-                recaptchaVerifier = null;
-            }
-            throw error;
-        }
+  async function sendOtpWeb(phoneNumber) {
+    const { authMod, auth } = await loadWebFirebase();
+    clearRecaptcha();
+    confirmationResult = null;
+
+    recaptchaVerifier = new authMod.RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+
+    try {
+      confirmationResult = await authMod.signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+    } catch (err) {
+      clearRecaptcha();
+      throw err;
     }
+  }
 
-    return {
-        async sendOtp(phone10) {
-            const fullPhone = `+91${phone10}`;
-            
-            if (window.Capacitor?.isNativePlatform()) {
-                await sendOtpNative(fullPhone);
-            } else {
-                await sendOtpWeb(fullPhone);
-            }
-        },
+  async function verifyOtpWeb(code) {
+    const { authMod, auth } = await loadWebFirebase();
+    if (!confirmationResult) throw makeError('auth/code-expired', 'No confirmation result — request OTP again');
 
-        async verifyOtp(code) {
-            let idToken = null;
+    const result = await confirmationResult.confirm(code);
+    const idToken = await result.user.getIdToken();
 
-            if (window.Capacitor?.isNativePlatform()) {
-                const FirebaseAuthentication = window.Capacitor.Plugins.FirebaseAuthentication;
-                
-                // If auto verification completed, we might already be signed in or we might have verificationId + smsCode
-                await FirebaseAuthentication.confirmVerificationCode({
-                    verificationId: verificationId,
-                    verificationCode: code
-                });
+    try { await authMod.signOut(auth); } catch (e) { console.warn('[PhoneAuth] signOut failed', e); }
 
-                const result = await FirebaseAuthentication.getIdToken();
-                idToken = result.token;
-                
-                await FirebaseAuthentication.signOut();
-            } else {
-                const { auth } = await initWebFirebase();
-                
-                if (!confirmationResult) {
-                    throw new Error("No confirmation result available. Please request OTP again.");
-                }
-                
-                const result = await confirmationResult.confirm(code);
-                idToken = await result.user.getIdToken();
-                
-                await auth.signOut(webAuth);
-            }
-            
-            return idToken;
-        },
+    confirmationResult = null;
+    clearRecaptcha();
+    return idToken;
+  }
 
-        reset() {
-            verificationId = null;
-            confirmationResult = null;
-            if (recaptchaVerifier) {
-                recaptchaVerifier.clear();
-                recaptchaVerifier = null;
-            }
-        },
+  // ══════════════════ PUBLIC ══════════════════
 
-        friendlyError(error) {
-            const errCode = error.code || error.message || '';
-            if (errCode.includes('invalid-phone-number')) return "Phone number sahi nahi hai.";
-            if (errCode.includes('too-many-requests') || errCode.includes('quota')) return "Bahut zyada attempts! Thodi der baad try karein.";
-            if (errCode.includes('invalid-verification-code')) return "OTP galat hai. Sahi OTP dalein.";
-            if (errCode.includes('code-expired') || errCode.includes('session-expired')) return "OTP expire ho gaya hai. Naya OTP mangwayein.";
-            if (errCode.includes('network')) return "Internet connection check karein.";
-            if (errCode.includes('captcha')) return "Verification fail hua. Page refresh karke dobara try karein.";
-            return "Kuch galat ho gaya. Kripaya dobara try karein.";
-        }
-    };
+  return {
+    async sendOtp(phone10) {
+      const phoneNumber = `+91${phone10}`;
+      if (isNative()) return sendOtpNative(phoneNumber);
+      return sendOtpWeb(phoneNumber);
+    },
+
+    async verifyOtp(code) {
+      if (isNative()) return verifyOtpNative(code);
+      return verifyOtpWeb(code);
+    },
+
+    // Firebase error → user-friendly Hinglish message (customer pages use karte hain)
+    friendlyError(error) {
+      const c = String((error && (error.code || error.message)) || '').toLowerCase();
+      if (c.includes('invalid-phone-number')) return 'Phone number sahi nahi hai.';
+      if (c.includes('too-many-requests') || c.includes('quota')) return 'Bahut zyada attempts! Thodi der baad try karein.';
+      if (c.includes('invalid-verification-code')) return 'OTP galat hai. Sahi OTP dalein.';
+      if (c.includes('code-expired') || c.includes('session-expired')) return 'OTP expire ho gaya hai. Naya OTP mangwayein.';
+      if (c.includes('network')) return 'Internet connection check karein.';
+      if (c.includes('captcha')) return 'Verification fail hua. Page refresh karke dobara try karein.';
+      return 'Kuch galat ho gaya. Kripaya dobara try karein.';
+    },
+
+    reset() {
+      verificationId = null;
+      autoSignedIn = false;
+      confirmationResult = null;
+      settlePending('reject', makeError('cancelled', 'Cancelled'));
+      clearRecaptcha();
+    }
+  };
 })();
