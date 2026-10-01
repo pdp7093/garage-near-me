@@ -429,6 +429,9 @@
         }
 
         currentGarage = await response.json();
+        if (localStorage.getItem('mechanic_info')) {
+          localStorage.setItem('mechanic_info', JSON.stringify(currentGarage));
+        }
         populateProfile(currentGarage);
         showAlert(t('profile_loaded_success'), 'success');
       } catch (err) {

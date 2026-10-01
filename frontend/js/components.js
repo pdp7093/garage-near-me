@@ -205,7 +205,7 @@ function bindMechanicSidebarToggle() {
 }
 
 async function initMechanicChrome(pageTitle, callback = null, activeHref = null) {
-  const v = '2506b';
+  const v = '2510a';
 
   await Promise.all([
     loadComponent('sidebar-container', '/mechanic/components/sidebar.html?v=' + v, () => {
@@ -223,9 +223,9 @@ async function initMechanicChrome(pageTitle, callback = null, activeHref = null)
       const langLabel = document.getElementById('langSwitcherLabel');
       if (langLabel && typeof window.getMechanicLanguage === 'function') {
         const currentLang = window.getMechanicLanguage();
-        if (currentLang === 'hindi') langLabel.textContent = 'हिंदी';
-        else if (currentLang === 'gujarati') langLabel.textContent = 'ગુજરાતી';
-        else langLabel.textContent = 'Hinglish';
+        if (currentLang === 'hindi') langLabel.textContent = 'HI';
+        else if (currentLang === 'gujarati') langLabel.textContent = 'GU';
+        else langLabel.textContent = 'HG';
       }
 
       // Attach click listeners to language options
@@ -242,9 +242,9 @@ async function initMechanicChrome(pageTitle, callback = null, activeHref = null)
             }
 
             if (langLabel) {
-              if (selectedLang === 'hindi') langLabel.textContent = 'हिंदी';
-              else if (selectedLang === 'gujarati') langLabel.textContent = 'ગુજરાતી';
-              else langLabel.textContent = 'Hinglish';
+              if (selectedLang === 'hindi') langLabel.textContent = 'HI';
+              else if (selectedLang === 'gujarati') langLabel.textContent = 'GU';
+              else langLabel.textContent = 'HG';
             }
           });
         });
@@ -288,7 +288,14 @@ async function updateMechanicChrome() {
       const nameEl   = document.getElementById('topbar-name');
       const avatarEl = document.getElementById('topbar-avatar');
       if (nameEl)   nameEl.textContent   = name;
-      if (avatarEl) avatarEl.textContent = initials;
+      if (avatarEl) {
+        if (garage.logo_url) {
+          const imgUrl = (typeof makeFileUrl === 'function') ? makeFileUrl(garage.logo_url) : (garage.logo_url.startsWith('http') ? garage.logo_url : `${API_BASE}${garage.logo_url.startsWith('/') ? '' : '/'}${garage.logo_url}`);
+          avatarEl.innerHTML = `<img src="${imgUrl}" alt="Profile" style="width: 36px; height: 36px; object-fit: cover;" onerror="this.style.display='none'; this.parentElement.textContent='${initials}';">`;
+        } else {
+          avatarEl.textContent = initials;
+        }
+      }
 
       // Credit Lock Enforcement Overlay
       if (garage.is_credit_locked && !window.location.pathname.includes('payout-history.html')) {
@@ -346,9 +353,9 @@ async function updateMechanicChrome() {
       );
       const count = activeSOS.length;
 
-      // Topbar bell dot
-      const dot = document.getElementById('topbar-sos-dot');
-      if (dot) dot.classList.toggle('d-none', count === 0);
+      // TODO: re-enable when mechanic notifications page exists
+      // const dot = document.getElementById('topbar-sos-dot');
+      // if (dot) dot.classList.toggle('d-none', count === 0);
 
       // Sidebar SOS badge
       const sosBadge = document.getElementById('sidebar-sos-badge');

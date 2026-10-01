@@ -3,15 +3,21 @@
     <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
   </button>
 
-  <div class="d-none d-lg-block">
+  <a href="/mechanic/dashboard.html" class="d-flex align-items-center text-decoration-none ms-2 ms-lg-0 me-3 d-lg-none">
+    <img src="/assets/gnm-icon-mechanic.png" alt="GarageNearMe" width="32" height="32" style="border-radius:8px">
+    <span class="d-none d-md-block ms-2 fw-bold text-dark" style="font-family: var(--font-head); font-size: 1.1rem;">GarageNearMe</span>
+  </a>
+
+  <div class="d-none d-lg-block border-start ps-3 ms-1">
     <h5 class="mb-0 fw-bold" id="topbar-title" style="font-family: var(--font-head);">Overview</h5>
   </div>
 
   <div class="d-flex align-items-center gap-3 ms-auto">
     <!-- Language Switcher -->
     <div class="dropdown">
-      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 dropdown-toggle" type="button" id="langSwitcherBtn" data-bs-toggle="dropdown" aria-expanded="false">
-        <span id="langSwitcherLabel">Hinglish</span>
+      <button class="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-1" type="button" id="langSwitcherBtn" data-bs-toggle="dropdown" aria-expanded="false" style="height: 32px; padding: 0 10px; font-size: 12px; font-weight: 600;">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.9 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.81 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.07c.96-1.66 2.49-2.93 4.33-3.56C8.8 5.55 8.34 6.75 8.02 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.34.16-2h4.68c.09.66.16 1.32.16 2 0 .68-.07 1.34-.16 2zm1.64 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.66-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>
+        <span id="langSwitcherLabel">HG</span>
       </button>
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langSwitcherBtn">
         <li><a class="dropdown-item lang-option" href="#" data-lang="hinglish">Hinglish</a></li>
@@ -21,21 +27,22 @@
     </div>
 
     <!-- Notification Bell -->
-    <div class="position-relative cursor-pointer" style="cursor: pointer;">
+    <!-- TODO: re-enable when mechanic notifications page exists -->
+    <!-- <div class="position-relative cursor-pointer" style="cursor: pointer;">
       <svg viewBox="0 0 24 24" width="24" height="24" fill="var(--color-text-muted)"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
       <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-    </div>
+    </div> -->
 
     <!-- User Profile -->
-    <div class="d-flex align-items-center gap-2 border-start ps-3 ms-1">
-      <div id="topbar-avatar" class="rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; color: var(--color-primary); font-size: 14px;">
-        SA
+    <a href="/mechanic/profile.html" class="d-flex align-items-center gap-2 border-start ps-3 ms-1 text-decoration-none cursor-pointer" style="cursor: pointer;">
+      <div id="topbar-avatar" class="rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold overflow-hidden" style="width: 36px; height: 36px; color: var(--color-primary); font-size: 14px;">
+        
       </div>
-      <div class="d-none d-md-block">
-        <div id="topbar-name" class="fw-bold text-truncate" style="font-size: 14px; line-height: 1.2; max-width: 150px;">Sharma Auto</div>
-        <div class="text-muted" style="font-size: 12px;">Partner</div>
+      <div class="d-none d-md-block text-dark">
+        <div id="topbar-name" class="fw-bold text-truncate" style="font-size: 14px; line-height: 1.2; max-width: 150px;"></div>
+        <div class="text-muted" style="font-size: 12px;"></div>
       </div>
-    </div>
+    </a>
   </div>
 </header>
 
