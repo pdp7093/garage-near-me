@@ -309,29 +309,37 @@
     // ✅ Phone se application status check karo
     async function checkApplicationStatus(phone) {
       try {
-        const res = await fetch(`${getApiBase()}/garage-requests/`, {
+        const res = await fetch(`${getApiBase()}/garage-requests/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone: phone,
-            owner_name: 'check',
-            garage_name: 'check',
-            garage_type: 'both',
-            address: 'check',
-            city: 'check',
-            pincode: '000000'
-          })
+          body: JSON.stringify({ phone: phone })
         });
-        const data = await res.json();
-        // Agar already pending/registered error aaya → pending screen
-        if (!res.ok && (data.detail?.includes('already pending') || data.detail?.includes('already registered'))) {
-          showApplicationPending();
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'pending') {
+            showApplicationPending();
+          } else if (data.status === 'rejected') {
+            const alertBox = document.getElementById('loginAlert');
+            alertBox.textContent = 'Aapki application approve nahi hui. Details ke liye support@garagenearme.net pe contact karein.';
+            alertBox.className = 'alert alert-danger small mb-3';
+            alertBox.classList.remove('d-none');
+          } else if (data.status === 'inactive') {
+            const alertBox = document.getElementById('loginAlert');
+            alertBox.textContent = 'Aapka account abhi active nahi hai. Support se contact karein: support@garagenearme.net';
+            alertBox.className = 'alert alert-danger small mb-3';
+            alertBox.classList.remove('d-none');
+          } else {
+            const alertBox = document.getElementById('loginAlert');
+            alertBox.textContent = 'Phone number not registered. Please apply as a partner first.';
+            alertBox.className = 'alert alert-danger small mb-3';
+            alertBox.classList.remove('d-none');
+          }
         } else {
-          // Normal error — registered nahi hai
-          const alertBox = document.getElementById('loginAlert');
-          alertBox.textContent = 'Phone number not registered. Please apply as a partner first.';
-          alertBox.className = 'alert alert-danger small mb-3';
-          alertBox.classList.remove('d-none');
+            const alertBox = document.getElementById('loginAlert');
+            alertBox.textContent = 'Phone number not registered. Please apply as a partner first.';
+            alertBox.className = 'alert alert-danger small mb-3';
+            alertBox.classList.remove('d-none');
         }
       } catch {
         const alertBox = document.getElementById('loginAlert');

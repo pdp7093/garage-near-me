@@ -47,7 +47,7 @@
 
           <p class="text-muted mb-4" style="font-size:16px; line-height:1.6; max-width:450px;">
             Instant booking, live mechanic tracking &amp; emergency SOS.<br>
-            Verified garages within 2 km, always.
+            Verified garages near you.
           </p>
 
           <div class="bg-white p-2 rounded-pill shadow border d-flex align-items-center mb-5" style="max-width:480px;">
@@ -61,7 +61,7 @@
             <button id="searchBtn" class="btn text-white rounded-pill px-4 fw-medium" style="background:var(--color-primary);">Search</button>
           </div>
 
-          <div class="d-flex align-items-center gap-4">
+          <div id="statsBlock" class="d-none align-items-center gap-4">
             <div>
               <h4 class="fw-bold mb-0" id="statVerifiedGarages" style="font-family:var(--font-head); color:var(--color-text);">—</h4>
               <span class="text-muted small">Verified Garages</span>
@@ -198,16 +198,23 @@
     }
 
     // ── Load live stats ──
+    const MIN_STATS_TO_SHOW = 20;
     (async () => {
       try {
         const res = await fetch(getApiBase() + '/garage/stats');
         if (res.ok) {
           const d = await res.json();
           const n = d.total_garages || 0;
-          const label = n >= 100 ? n + '+' : n;
-          document.getElementById('statVerifiedGarages').textContent = label;
-          document.getElementById('statSosGarages').textContent = d.sos_garages != null ? d.sos_garages : '—';
-          document.getElementById('statCities').textContent = d.cities != null ? d.cities : '—';
+          if (n >= MIN_STATS_TO_SHOW) {
+            const label = n >= 100 ? n + '+' : n;
+            document.getElementById('statVerifiedGarages').textContent = label;
+            document.getElementById('statSosGarages').textContent = d.sos_garages != null ? d.sos_garages : '—';
+            document.getElementById('statCities').textContent = d.cities != null ? d.cities : '—';
+            
+            const statsBlock = document.getElementById('statsBlock');
+            statsBlock.classList.remove('d-none');
+            statsBlock.classList.add('d-flex');
+          }
         }
       } catch (_) {}
     })();

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File
 from sqlalchemy.orm import Session
 from datetime import datetime
 import os
+from pydantic import BaseModel
 
 import models, schemas
 from database import get_db
@@ -86,6 +87,38 @@ def submit_garage_request(
     db.refresh(new_request)
 
     return new_request
+
+
+# ──────────────────────────────────────────
+# 1.1 CHECK STATUS (Public)
+# POST /api/garage-requests/status
+# ──────────────────────────────────────────
+
+class GarageStatusRequest(BaseModel):
+    phone: str
+
+@router.post("/status")
+def check_garage_status(
+    data: GarageStatusRequest,
+    db: Session = Depends(get_db)
+):
+    garage = db.query(models.Garage).filter(models.Garage.phone == data.phone).first()
+    if garage:
+        return {"status": "approved"} if garage.is_active else {"status": "inactive"}
+
+    req = db.query(models.GarageRequest).filter(
+        models.GarageRequest.phone == data.phone
+    ).order_by(models.GarageRequest.created_at.desc()).first()
+
+    if req:
+        if req.status == models.GarageRequestStatus.rejected:
+            return {"status": "rejected"}
+        elif req.status == models.GarageRequestStatus.approved:
+            return {"status": "approved"}
+        else:
+            return {"status": "pending"}
+
+    return {"status": "none"}
 
 
 # ──────────────────────────────────────────
