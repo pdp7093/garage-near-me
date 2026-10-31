@@ -4,8 +4,11 @@
 */
 
 :root {
+  --mechanic-navy: #062B63;
+  --mechanic-navy-2: #123E78;
+  --color-primary: var(--mechanic-navy);
   --mechanic-sidebar-width: 260px;
-  --mechanic-sidebar-bg: #111827; /* Dark theme for sidebar */
+  --mechanic-sidebar-bg: var(--mechanic-navy);
   --mechanic-sidebar-text: #9CA3AF;
   --mechanic-sidebar-hover: #F9FAFB;
   --mechanic-sidebar-active: #FF6B35;
@@ -20,7 +23,7 @@
 
 .auth-split-left {
   flex: 1;
-  background: linear-gradient(135deg, var(--color-primary) 0%, #E85D26 100%);
+  background: linear-gradient(135deg, var(--mechanic-navy) 0%, var(--mechanic-navy-2) 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -206,11 +209,11 @@
 
 .sidebar-link:hover {
   color: var(--mechanic-sidebar-hover);
-  background: rgba(255,255,255,0.04);
+  background: var(--mechanic-navy-2);
 }
 
 .sidebar-link.active {
-  background: rgba(255,255,255,0.035);
+  background: var(--mechanic-navy-2);
   border-left-color: var(--mechanic-sidebar-active);
   color: #fff;
 }

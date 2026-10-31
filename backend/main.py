@@ -156,7 +156,12 @@ async def automated_sos_retry_task():
                     if not garage or not garage.fcm_token or not sos_request:
                         continue
 
-                    vt_label = {"two_wheeler": "2 Wheeler", "four_wheeler": "4 Wheeler"}.get(sos_request.vehicle_type, sos_request.vehicle_type)
+                    import schemas
+                    if not schemas.garage_supports_vehicle(garage, sos_request.vehicle_type):
+                        attempt.is_excluded = True
+                        continue
+
+                    vt_label = {"two_wheeler": "Bike", "four_wheeler": "Car", "bike": "Bike", "car": "Car"}.get(sos_request.vehicle_type, sos_request.vehicle_type)
                     
                     dist_text = ""
                     if garage.location and garage.location.latitude and sos_request.latitude:
@@ -237,9 +242,14 @@ app.include_router(sos.router,              prefix="/api/sos",              tags
 app.include_router(default_services.router, prefix="/api/default-services", tags=["Default Services"])
 app.include_router(commission.router,       prefix="/api/commissions",      tags=["Commissions"])
 app.include_router(admin_auth.router,       prefix="/api/admin-auth",       tags=["Admin Auth"])
+from routers import admin
+app.include_router(admin.router,            prefix="/api/admin",            tags=["Admin Settings"])
+app.include_router(admin.router,            prefix="/admin",                tags=["Admin Settings"])
 from routers import analytics
 app.include_router(analytics.router,        prefix="/api/analytics",        tags=["Analytics"])
-app.include_router(app_version.router, prefix="/api/app-version", tags=["App Version"])
+app.include_router(app_version.router,      prefix="/api/app-version",      tags=["App Version"])
+app.include_router(app_version.router,      prefix="/api/app",              tags=["App Version"])
+app.include_router(app_version.router,      prefix="/app",                  tags=["App Version"])
 
 # ── WebSocket — Mechanic ───────────────────────────────────────────────────
 @app.websocket("/ws/mechanic/{garage_id}")

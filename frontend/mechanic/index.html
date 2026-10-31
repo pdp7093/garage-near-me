@@ -13,10 +13,10 @@
   <link rel="canonical" href="https://garagenearme.net/mechanic/" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://garagenearme.net/assets/og-image.png" />
-  <meta name="theme-color" content="#1B1F2E">
+  <meta name="theme-color" content="#062B63">
   <link rel="stylesheet" href="/css/bootstrap.css" />
-  <link rel="stylesheet" href="/css/style.css" />
-  <link rel="stylesheet" href="/css/mechanic.css?v=c94eb7f0" />
+  <link rel="stylesheet" href="/css/style.css?v=20261030" />
+  <link rel="stylesheet" href="/css/mechanic.css?v=20261030" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
   <link rel="icon" href="/assets/favicon.ico" sizes="any">
@@ -180,13 +180,15 @@
             </div>
           </div>
           <div class="form-floating mb-3">
-            <select class="form-select" id="regType" aria-label="Garage Type" required>
+            <select class="form-select" id="regType" aria-label="Kaunsi Gaadi Theek Karte Hain" required>
               <option selected disabled value="">Select Type</option>
-              <option value="four_wheeler">Four Wheeler (Car) Specialist</option>
-              <option value="two_wheeler">Two Wheeler (Bike/Scooter) Specialist</option>
-              <option value="both">Both (Cars & Bikes)</option>
+              <option value="bike">Bike (2 Wheeler) Specialist</option>
+              <option value="car">Car (4 Wheeler) Specialist</option>
+              <option value="dono">Dono (Cars &amp; Bikes)</option>
             </select>
-            <label for="regType">Garage Type</label>
+            <label for="regType">Kaunsi Gaadi Theek Karte Hain?</label>
+            <div class="invalid-feedback" id="regTypeError" style="font-size:12px;">Kripya gaadi ka type select karein.</div>
+            <div class="form-text mt-1" style="font-size:11px;color:var(--color-text-muted);">Abhi sirf bike aur car. Baaki gaadiyan jaldi aa rahi hain.</div>
           </div>
           <div id="regAlert" class="alert alert-success d-none small mb-3" role="alert"></div>
           <button type="submit" id="regBtn" class="btn w-100 text-white fw-bold py-2 shadow-sm rounded-pill mb-3" style="background: var(--color-primary);">
@@ -282,6 +284,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/bootstrap.js"></script>
   <script src="/js/config.js"></script>
+  <script src="/js/app-update.js?v=20261031"></script>
   <script src="/js/phone-auth.js"></script>
   <script>
 
@@ -636,17 +639,45 @@
       alertBox.classList.add('d-none');
       alertBox.classList.remove('alert-danger', 'alert-success');
 
-      const ownerName = document.getElementById('regFirstName').value.trim() + ' ' + document.getElementById('regLastName').value.trim();
+      const regTypeEl = document.getElementById('regType');
+      const selectedType = regTypeEl.value;
+
+      if (!selectedType) {
+        regTypeEl.classList.add('is-invalid');
+        regTypeEl.focus();
+        btn.disabled  = false;
+        btn.innerText = 'Request to Join';
+        return;
+      }
+      regTypeEl.classList.remove('is-invalid');
+
+      const garageTypeMap = {
+        bike: 'two_wheeler',
+        car: 'four_wheeler',
+        dono: 'both',
+        two_wheeler: 'two_wheeler',
+        four_wheeler: 'four_wheeler',
+        both: 'both'
+      };
+
+      const mappedGarageType = garageTypeMap[selectedType];
+      if (!mappedGarageType) {
+        regTypeEl.classList.add('is-invalid');
+        regTypeEl.focus();
+        btn.disabled  = false;
+        btn.innerText = 'Request to Join';
+        return;
+      }
 
       const payload = {
-        owner_name:  ownerName,
-        garage_name: document.getElementById('regGarageName').value.trim(),
-        phone:       document.getElementById('regMobile').value.trim(),
-        email:       document.getElementById('regEmail').value.trim() || null,
-        garage_type: document.getElementById('regType').value,
-        address:     document.getElementById('regAddress').value.trim(),
-        city:        document.getElementById('regCity').value.trim(),
-        pincode:     document.getElementById('regPincode').value.trim()
+        owner_name:             ownerName,
+        garage_name:            document.getElementById('regGarageName').value.trim(),
+        phone:                  document.getElementById('regMobile').value.trim(),
+        email:                  document.getElementById('regEmail').value.trim() || null,
+        garage_type:            mappedGarageType,
+        address:                document.getElementById('regAddress').value.trim(),
+        city:                   document.getElementById('regCity').value.trim(),
+        pincode:                document.getElementById('regPincode').value.trim()
       };
 
       try {
@@ -724,6 +755,10 @@
         btn.innerText = 'Upload & Finish';
       }
     }
+
+    document.getElementById('regType')?.addEventListener('change', function() {
+      this.classList.remove('is-invalid');
+    });
   </script>
 </body>
 

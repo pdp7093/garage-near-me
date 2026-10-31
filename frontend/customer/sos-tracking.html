@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SOS Tracking — GarageNearMe</title>
     <link rel="manifest" href="../manifest.json">
-    <meta name="theme-color" content="#DC2626">
+    <meta name="theme-color" content="#1B1F2E">
     <link rel="stylesheet" href="/css/bootstrap.css" />
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/style.css?v=20261030" />
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
     <style>
         body { background:#f8f9fa; min-height:100vh; }
@@ -356,16 +356,35 @@
 </div>
 
 <script src="/js/bootstrap.js"></script>
-<script src="/js/config.js"></script>
+<script src="/js/config.js?v=20261030"></script>
 <script>
     const params   = new URLSearchParams(location.search);
     const _sosPathMatch = window.location.pathname.match(/\/sos-tracking\/([^/?#]+)/);
     let bookingId  = (_sosPathMatch && _sosPathMatch[1]) || params.get('id') || params.get('booking_id') || params.get('sos_id');
     if (bookingId === 'undefined' || bookingId === 'null') bookingId = null;
 
-    let pollTimer  = null;
-    let sosData    = null;
-    let _cancelContext = 'broadcasting'; // track karo kaun sa cancel hai
+    let pollTimer        = null;
+    let rebroadcastTimer = null;
+    let sosData          = null;
+    let _cancelContext   = 'broadcasting'; // track karo kaun sa cancel hai
+
+    function showNoGarageMessage(vt, customMsg) {
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        if (rebroadcastTimer) { clearInterval(rebroadcastTimer); rebroadcastTimer = null; }
+        sessionStorage.removeItem('gnm_active_sos_slug');
+        sessionStorage.removeItem('gnm_active_sos_count');
+        showSection('error');
+        const liveDot = document.getElementById('live-dot');
+        if (liveDot) liveDot.style.display = 'none';
+        const navStatus = document.getElementById('nav-status');
+        if (navStatus) navStatus.textContent = 'No Garage Available';
+        const errTitle = document.querySelector('#error-section h5');
+        if (errTitle) errTitle.textContent = 'Koi garage available nahi';
+        const errMsg = document.getElementById('error-msg');
+        const vtClean = (vt === 'two_wheeler' || vt === 'bike') ? 'bike' : (vt === 'four_wheeler' || vt === 'car') ? 'car' : vt || 'bike';
+        const msg = customMsg || `Aapke paas abhi koi ${vtClean} garage available nahi hai.`;
+        if (errMsg) errMsg.textContent = msg;
+    }
 
     window.addEventListener('DOMContentLoaded', async () => {
         const token = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
@@ -385,6 +404,12 @@
         }
 
         const savedCount = sessionStorage.getItem('gnm_active_sos_count');
+        if (savedCount !== null && parseInt(savedCount) === 0) {
+            const vt = sessionStorage.getItem('gnm_active_sos_vt') || 'bike';
+            showNoGarageMessage(vt);
+            return;
+        }
+
         if (savedCount) {
             const c = parseInt(savedCount) || 0;
             const el = document.getElementById('nearby-count-text');
@@ -401,17 +426,22 @@
         checkStatus();
         pollTimer = setInterval(checkStatus, 5000);
         rebroadcastOnce();
-        setInterval(rebroadcastOnce, 10000);
+        rebroadcastTimer = setInterval(rebroadcastOnce, 10000);
     }
 
     async function rebroadcastOnce() {
         if (!bookingId) return;
         const token = localStorage.getItem("gnm_token") || localStorage.getItem("access_token");
         try {
-            await fetch(`${getApiBase()}/sos/customer/${bookingId}/rebroadcast`, {
+            const res = await fetch(`${getApiBase()}/sos/customer/${bookingId}/rebroadcast`, {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${token}` }
             });
+            const data = await res.json();
+            if (data && data.rebroadcast === false && (data.reason === "No nearby garages" || data.nearby_compatible_count === 0)) {
+                const vt = (sosData?.vehicle_type === 'car' || sosData?.vehicle_type === 'four_wheeler') ? 'car' : (sessionStorage.getItem('gnm_active_sos_vt') || 'bike');
+                showNoGarageMessage(vt, data.message);
+            }
         } catch(e) {}
     }
 
@@ -440,6 +470,11 @@
         const initial    = garageName.charAt(0).toUpperCase();
 
         if (s === 'broadcasting') {
+            if (sosData.nearby_compatible_count === 0) {
+                const vt = (sosData.vehicle_type === 'car' || sosData.vehicle_type === 'four_wheeler') ? 'car' : 'bike';
+                showNoGarageMessage(vt);
+                return;
+            }
             showSection('searching');
 
         } else if (s === 'accepted' && sosData.estimate_status === 'pending') {
@@ -465,7 +500,7 @@
             if (sosData.responded_at) document.getElementById('tl-accepted-time').textContent  = getTimeAgo(sosData.responded_at);
             if (dist > 0)             document.getElementById('tl-arrival-text').textContent   = `~${eta} min mein pahunchega`;
 
-            const vt = sosData.vehicle_type === 'two_wheeler' ? '2 Wheeler' : sosData.vehicle_type === 'four_wheeler' ? '4 Wheeler' : '—';
+            const vt = (sosData.vehicle_type === 'bike' || sosData.vehicle_type === 'two_wheeler') ? 'Bike (2 Wheeler)' : (sosData.vehicle_type === 'car' || sosData.vehicle_type === 'four_wheeler') ? 'Car (4 Wheeler)' : '—';
             document.getElementById('detail-vehicle').textContent = sosData.vehicle_model || vt;
             document.getElementById('detail-reg').textContent     = sosData.vehicle_number || '—';
             document.getElementById('detail-issue').textContent   = sosData.description   || 'Emergency SOS';
@@ -480,7 +515,8 @@
             }
 
         } else if (s === 'completed') {
-            clearInterval(pollTimer);
+            if (pollTimer) clearInterval(pollTimer);
+            if (rebroadcastTimer) clearInterval(rebroadcastTimer);
             sessionStorage.removeItem('gnm_active_sos_slug');
             sessionStorage.removeItem('gnm_active_sos_count');
             showSection('completed');
@@ -493,7 +529,8 @@
             document.getElementById('nav-status').textContent = 'Completed ✓';
 
         } else if (s === 'cancelled') {
-            clearInterval(pollTimer);
+            if (pollTimer) clearInterval(pollTimer);
+            if (rebroadcastTimer) clearInterval(rebroadcastTimer);
             sessionStorage.removeItem('gnm_active_sos_slug');
             sessionStorage.removeItem('gnm_active_sos_count');
             showSection('cancelled');
@@ -506,7 +543,8 @@
             }
 
         } else if (s === 'rejected') {
-            clearInterval(pollTimer);
+            if (pollTimer) clearInterval(pollTimer);
+            if (rebroadcastTimer) clearInterval(rebroadcastTimer);
             showSection('error');
             document.getElementById('error-msg').textContent = 'SOS reject ho gayi.';
         }
@@ -548,7 +586,8 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
-            clearInterval(pollTimer);
+            if (pollTimer) clearInterval(pollTimer);
+            if (rebroadcastTimer) clearInterval(rebroadcastTimer);
             sessionStorage.removeItem('gnm_active_sos_slug');
             sessionStorage.removeItem('gnm_active_sos_count');
 
@@ -588,7 +627,8 @@
             const data = await res.json();
 
             hideRejectEstimateConfirm();
-            clearInterval(pollTimer);
+            if (pollTimer) clearInterval(pollTimer);
+            if (rebroadcastTimer) clearInterval(rebroadcastTimer);
             sessionStorage.removeItem('gnm_active_sos_slug');
             sessionStorage.removeItem('gnm_active_sos_count');
 

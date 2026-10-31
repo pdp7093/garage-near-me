@@ -516,6 +516,7 @@
                                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                                     <h4 class="fw-bold mb-0" id="garageName" style="font-family:var(--font-head);">—
                                     </h4>
+                                    <span id="foundingBadgeDetail" class="d-none"></span>
                                     <span id="heroStatus">—</span>
                                 </div>
                                 <div class="text-white-50 small mb-3" id="garageSubtitle">—</div>
@@ -572,6 +573,11 @@
                                             class="detail-val" id="ownerPhone">—</span></div>
                                     <div class="detail-row"><span class="detail-lbl">Email</span><span
                                             class="detail-val" id="ownerEmail">—</span></div>
+                                    <div class="detail-row"><span class="detail-lbl">Founding Partner</span>
+                                        <div class="form-check form-switch m-0 d-flex justify-content-end" style="padding-left:0;">
+                                            <input class="form-check-input ms-0" type="checkbox" role="switch" id="foundingSwitch" style="cursor:pointer;" onchange="toggleFoundingPartner(this.checked)">
+                                        </div>
+                                    </div>
                                     <div class="detail-row"><span class="detail-lbl">Visiting Charge</span><span
                                             class="detail-val" id="visitingCharge">—</span></div>
                                     <div class="detail-row"><span class="detail-lbl">Pick & Drop</span><span
@@ -838,6 +844,16 @@
             // Hero
             document.getElementById('garageInitials').textContent = initials(g.name);
             document.getElementById('garageName').textContent = g.name;
+            
+            if (g.is_founding_partner) {
+                const fb = document.getElementById('foundingBadgeDetail');
+                fb.className = 'gnm-founding-badge';
+                fb.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';
+            } else {
+                document.getElementById('foundingBadgeDetail').className = 'd-none';
+            }
+            document.getElementById('foundingSwitch').checked = !!g.is_founding_partner;
+            
             document.getElementById('heroStatus').innerHTML = g.is_active
                 ? '<span class="status-live"><span class="pulse"></span>Active</span>'
                 : '<span class="status-inactive"><span class="pulse"></span>Inactive</span>';
@@ -1024,6 +1040,24 @@
                 this.disabled = false; sp.classList.add('d-none');
             }
         });
+
+        async function toggleFoundingPartner(value) {
+            try {
+                const res = await fetch(`${API}/admin/garages/${garageData.id}/founding-partner`, {
+                    method: 'PATCH',
+                    headers: { ...H, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value })
+                });
+                if (!res.ok) throw new Error('Failed to update status');
+                const g = await res.json();
+                garageData.is_founding_partner = value;
+                renderPage(garageData);
+                showToast(`Founding Partner status ${value ? 'enabled' : 'disabled'}.`);
+            } catch (err) {
+                document.getElementById('foundingSwitch').checked = !value;
+                showToast(err.message, 'danger');
+            }
+        }
 
         /* ══════════════════════════════════════
            INIT

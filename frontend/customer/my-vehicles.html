@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Vehicles — GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#DC2626">
+    <meta name="theme-color" content="#1B1F2E">
     <link rel="stylesheet" href="/css/bootstrap.css" />
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/style.css?v=20261008b" />
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
@@ -146,11 +146,12 @@
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-semibold">Vehicle Type</label>
                         <div class="d-flex gap-2">
-                            <input type="radio" class="btn-check" name="new_v_type" id="new_v1" value="four_wheeler" checked>
-                            <label class="btn btn-outline-secondary px-3 py-2" for="new_v1">4 Wheeler</label>
-                            <input type="radio" class="btn-check" name="new_v_type" id="new_v2" value="two_wheeler">
-                            <label class="btn btn-outline-secondary px-3 py-2" for="new_v2">2 Wheeler</label>
+                            <input type="radio" class="btn-check" name="new_v_type" id="new_v1" value="bike" checked>
+                            <label class="btn btn-outline-secondary px-3 py-2" for="new_v1">🏍️ Bike (2 Wheeler)</label>
+                            <input type="radio" class="btn-check" name="new_v_type" id="new_v2" value="car">
+                            <label class="btn btn-outline-secondary px-3 py-2" for="new_v2">🚗 Car (4 Wheeler)</label>
                         </div>
+                        <div class="form-text" style="font-size:11px;color:var(--color-text-muted);">Abhi sirf bike aur car. Baaki gaadiyan jaldi aa rahi hain.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-semibold">Registration Number</label>
@@ -275,11 +276,16 @@
             }
 
             const icons = {
+                car:          `<path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>`,
                 four_wheeler: `<path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>`,
+                bike:         `<path d="M19.44 9.03L15.41 5H11v2h3.59l2.28 2.28-1.51 1.51-1.49-1.49H11.5c-.32 0-.63.09-.9.25L8.12 7.08C7.59 6.4 6.74 6 5.82 6H3v2h2.82c.51 0 .98.22 1.28.6l2.48 2.48C9.22 11.4 9 11.83 9 12.33 9 13.99 10.34 15.33 12 15.33s3-1.34 3-3c0-.1-.01-.19-.02-.28l1.45-1.45 2.15 2.15-1.42 1.42.01.01 1.41 1.41 2.86-2.86-1.99-3.7z"/>`,
                 two_wheeler:  `<path d="M19.44 9.03L15.41 5H11v2h3.59l2.28 2.28-1.51 1.51-1.49-1.49H11.5c-.32 0-.63.09-.9.25L8.12 7.08C7.59 6.4 6.74 6 5.82 6H3v2h2.82c.51 0 .98.22 1.28.6l2.48 2.48C9.22 11.4 9 11.83 9 12.33 9 13.99 10.34 15.33 12 15.33s3-1.34 3-3c0-.1-.01-.19-.02-.28l1.45-1.45 2.15 2.15-1.42 1.42.01.01 1.41 1.41 2.86-2.86-1.99-3.7z"/>`
             };
 
-            grid.innerHTML = vehicles.map(v => `
+            grid.innerHTML = vehicles.map(v => {
+                const isBike = (v.vehicle_type === 'bike' || v.vehicle_type === 'two_wheeler');
+                const typeLabel = isBike ? 'Bike (2 Wheeler)' : 'Car (4 Wheeler)';
+                return `
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm rounded-4 h-100">
                         <div class="card-body p-4">
@@ -287,7 +293,7 @@
                                 <div class="bg-light rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0"
                                     style="width:52px; height:52px; color:var(--color-primary);">
                                     <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26">
-                                        ${icons[v.vehicle_type] || icons.four_wheeler}
+                                        ${icons[v.vehicle_type] || (isBike ? icons.bike : icons.car)}
                                     </svg>
                                 </div>
                                 <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
@@ -300,12 +306,13 @@
                                 ${v.vehicle_number}
                             </div>
                             <div class="d-flex justify-content-between text-muted small">
-                                <span>Type: <strong class="text-dark">${v.vehicle_type === "four_wheeler" ? "4 Wheeler" : "2 Wheeler"}</strong></span>
+                                <span>Type: <strong class="text-dark">${typeLabel}</strong></span>
                                 <span>Added: <strong class="text-dark">${new Date(v.created_at).toLocaleDateString("en-IN", {day:"2-digit", month:"short", year:"numeric"})}</strong></span>
                             </div>
                         </div>
                     </div>
-                </div>`).join("");
+                </div>`;
+            }).join("");
         }
 
         document.getElementById("saveVehicleBtn").addEventListener("click", async () => {

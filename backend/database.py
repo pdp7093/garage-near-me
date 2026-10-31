@@ -107,6 +107,45 @@ def ensure_schema_updates():
                 "ADD COLUMN is_sos_available BOOLEAN NOT NULL DEFAULT TRUE"
             )
 
+        if "is_founding_partner" not in garage_columns:
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN is_founding_partner BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+            updates.append(
+                "ALTER TABLE garages "
+                "ADD COLUMN founding_partner_since TIMESTAMP NULL"
+            )
+            updates.append(
+                "UPDATE garages SET is_founding_partner = TRUE, founding_partner_since = NOW() WHERE is_active = TRUE"
+            )
+
+
+    if "platform_settings" not in table_names:
+        updates.append("""
+            CREATE TABLE IF NOT EXISTS platform_settings (
+                key VARCHAR(255) PRIMARY KEY,
+                value VARCHAR(255),
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('founding_program_open', 'true', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('mechanic_latest_version_code', '1', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('mechanic_min_version_code', '1', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('mechanic_apk_url', '', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('mechanic_update_message', 'Naya update aaya hai, kripya app update karein.', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
+
     if "garage_requests" in table_names:
         request_columns = {
             column["name"] for column in inspector.get_columns("garage_requests")
@@ -159,6 +198,7 @@ def ensure_schema_updates():
                 "ALTER TABLE garage_requests "
                 "ADD COLUMN gst_number VARCHAR(50) NULL"
             )
+
 
     if "garage_documents" in table_names:
         doc_columns = {

@@ -122,8 +122,8 @@ class GarageRequest(Base):
     phone        = Column(String(15), nullable=False, index=True)
     email        = Column(String(255), nullable=True)
 
-    # Garage Type
-    garage_type  = Column(String(50), nullable=True)   # four_wheeler | two_wheeler | both
+    # Garage Type & Servicing Capability
+    garage_type            = Column(String(50), nullable=True)   # four_wheeler | two_wheeler | both
 
     # Location
     address      = Column(Text, nullable=True)
@@ -191,6 +191,10 @@ class Garage(Base):
     is_credit_locked      = Column(Boolean, default=False)
     grace_period_ends_at  = Column(DateTime(timezone=True), nullable=True)
     has_completed_trial   = Column(Boolean, default=False)
+
+    # Founding Partner Program
+    is_founding_partner    = Column(Boolean, default=False, nullable=False)
+    founding_partner_since = Column(DateTime(timezone=True), nullable=True)
 
     created_at           = Column(DateTime(timezone=True), server_default=func.now())
     updated_at           = Column(DateTime(timezone=True), onupdate=func.now())
@@ -577,3 +581,15 @@ class Admin(Base):
     email           = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     created_at      = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ──────────────────────────────────────────
+# PLATFORM SETTINGS
+# ──────────────────────────────────────────
+
+class PlatformSetting(Base):
+    __tablename__ = "platform_settings"
+
+    key        = Column(String, primary_key=True, index=True)
+    value      = Column(String, nullable=True)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())

@@ -1,7 +1,49 @@
 from pydantic import BaseModel, EmailStr, field_validator
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime, time
 from enum import Enum
+
+
+# ──────────────────────────────────────────
+# VEHICLE RESTRICTIONS & CONSTANTS
+# ──────────────────────────────────────────
+
+ALLOWED_VEHICLE_TYPES = ["bike", "car"]
+ALLOWED_GARAGE_SERVICE_TYPES = ["two_wheeler", "four_wheeler", "both"]
+
+def validate_allowed_vehicle_type(v: Any) -> str:
+    if not v:
+        raise ValueError("Abhi GarageNearMe sirf bike aur car ke liye available hai.")
+    val = str(v).strip().lower()
+    if val in ("two_wheeler", "2_wheeler", "bike"):
+        return "bike"
+    if val in ("four_wheeler", "4_wheeler", "car"):
+        return "car"
+    raise ValueError("Abhi GarageNearMe sirf bike aur car ke liye available hai.")
+
+def garage_supports_vehicle(garage: Any, vehicle_type: str) -> bool:
+    if not vehicle_type or not garage:
+        return False
+    v_type = str(vehicle_type).strip().lower()
+    if v_type in ("two_wheeler", "2_wheeler", "bike"):
+        v_type = "bike"
+    elif v_type in ("four_wheeler", "4_wheeler", "car"):
+        v_type = "car"
+    else:
+        return False
+
+    gt = getattr(garage, "garage_type", None)
+    if gt:
+        gt = str(gt).strip().lower()
+        if gt in ("two_wheeler", "2_wheeler", "bike"):
+            return v_type == "bike"
+        if gt in ("four_wheeler", "4_wheeler", "car"):
+            return v_type == "car"
+        if gt in ("both", "dono"):
+            return True
+        return True
+
+    return True
 
 
 # ──────────────────────────────────────────
@@ -119,12 +161,22 @@ class GarageRequestCreate(BaseModel):
     garage_name: str
     phone:       str
     email:       Optional[EmailStr] = None
-    garage_type: Optional[str] = None   # four_wheeler | two_wheeler | both
+    garage_type: str   # two_wheeler | four_wheeler | both
     address:     Optional[str] = None
     city:        str = "Ahmedabad"
     pincode:     Optional[str] = None
     has_gst:     bool = False
     gst_number:  Optional[str] = None
+
+    @field_validator("garage_type")
+    @classmethod
+    def validate_garage_type(cls, v: str) -> str:
+        if not v or not str(v).strip():
+            raise ValueError("garage_type is required")
+        val = str(v).strip().lower()
+        if val not in ("two_wheeler", "four_wheeler", "both"):
+            raise ValueError("garage_type must be one of: two_wheeler, four_wheeler, both")
+        return val
 
 class GarageRequestResponse(BaseModel):
     id:                    int
@@ -313,6 +365,8 @@ class GarageResponse(BaseModel):
     has_completed_trial:  bool
     is_credit_locked:     bool
     grace_period_ends_at:  Optional[datetime] = None
+    is_founding_partner:  bool = False
+    founding_partner_since: Optional[datetime] = None
     created_at:           datetime
     location:             Optional[GarageLocationResponse] = None
     working_hours:        List[WorkingHourResponse] = []
@@ -335,6 +389,8 @@ class GaragePublicResponse(BaseModel):
     visiting_charge:      Optional[float] = None
     has_gst:              bool
     gst_number:           Optional[str] = None
+    is_founding_partner:  bool = False
+    founding_partner_since: Optional[datetime] = None
     location:             Optional[GarageLocationResponse] = None
     services:             List[GarageServiceResponse] = []
 
@@ -357,7 +413,7 @@ class GarageRequestReviewUpdate(BaseModel):
 class BookingCreate(BaseModel):
     garage_id:              int
     booking_type:           BookingType = BookingType.normal
-    vehicle_type:           Optional[str] = None
+    vehicle_type:           str
     vehicle_model:          Optional[str] = None
     vehicle_number:         Optional[str] = None
     service_type:           Optional[str] = None
@@ -369,16 +425,26 @@ class BookingCreate(BaseModel):
     requires_pick_and_drop: bool = False
     pickup_address:         Optional[str] = None
 
+    @field_validator("vehicle_type", mode="before")
+    @classmethod
+    def check_vehicle_type(cls, v):
+        return validate_allowed_vehicle_type(v)
+
 class SOSBookingCreate(BookingCreate):
     booking_type:     BookingType = BookingType.sos
     garage_id:        Optional[int] = None
-    vehicle_type:     Optional[str] = None
+    vehicle_type:     str
     vehicle_model:    Optional[str] = None
     vehicle_number:   Optional[str] = None
     description:      Optional[str] = None
     customer_lat:     float
     customer_lng:     float
     customer_address: Optional[str] = None
+
+    @field_validator("vehicle_type", mode="before")
+    @classmethod
+    def check_vehicle_type(cls, v):
+        return validate_allowed_vehicle_type(v)
 
 class BookingStatusUpdate(BaseModel):
     status:      BookingStatus
@@ -465,12 +531,17 @@ class SOSCreate(BaseModel):
     lat:               Optional[float] = None  # Old format from frontend
     lng:               Optional[float] = None  # Old format from frontend
     address:           Optional[str] = None
-    vehicle_type:      str  # two_wheeler | four_wheeler
+    vehicle_type:      str  # bike | car (legacy two_wheeler | four_wheeler normalized)
     vehicle_number:    Optional[str] = None
     vehicle_model:     Optional[str] = None
     description:       Optional[str] = None
     broadcast_radius_km: Optional[float] = 2.0
     radius_km:         Optional[float] = None  # Old format from frontend
+
+    @field_validator("vehicle_type", mode="before")
+    @classmethod
+    def check_vehicle_type(cls, v):
+        return validate_allowed_vehicle_type(v)
 
 class SOSUpdate(BaseModel):
     description:       Optional[str] = None

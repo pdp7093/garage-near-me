@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Download App — GarageNearMe</title>
   <link rel="stylesheet" href="/css/bootstrap.css">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=20261008b">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-  <meta name="theme-color" content="#DC2626">
+  <meta name="theme-color" content="#1B1F2E">
   <link rel="icon" href="/assets/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
@@ -33,7 +33,7 @@
       <div class="row g-4 justify-content-center">
         <!-- CARD 1: Mechanic App -->
         <div class="col-md-5">
-          <div class="card h-100 border-0 shadow-sm text-start" style="background:#151F32; color:white; border-radius:16px;">
+          <div class="card h-100 border-0 shadow-sm text-start" style="background:var(--customer-dark); color:white; border-radius:16px;">
             <div class="card-body p-4 d-flex flex-column">
               <div class="mb-3 d-inline-flex align-items-center justify-content-center" style="width:60px; height:60px; border-radius:12px; background:rgba(255,107,53,0.1);">
                 <!-- Wrench Icon -->
@@ -45,7 +45,7 @@
               <p class="text-muted mb-4 flex-grow-1" style="font-size:15px; color:#9ca3af !important;">
                 Apna garage manage karo, bookings accept karo, SOS jobs handle karo — sab ek app mein.
               </p>
-              <a href="https://garagenearme.net/downloads/gnm-mechanic-latest.apk" class="btn fw-bold w-100 mb-3" style="background:var(--color-primary); color:white; border-radius:8px; padding:12px;">
+              <a id="mechanicDownloadBtn" href="https://garagenearme.net/downloads/gnm-mechanic-latest.apk" class="btn fw-bold w-100 mb-3" style="background:var(--color-primary); color:white; border-radius:8px; padding:12px;">
                 Download Karo (APK)
               </a>
               <p class="mb-0" style="font-size:12px; color:#6b7280; line-height:1.4;">
@@ -57,7 +57,7 @@
 
         <!-- CARD 2: Customer App -->
         <div class="col-md-5">
-          <div class="card h-100 border-0 shadow-sm text-start" style="background:#151F32; color:white; border-radius:16px;">
+          <div class="card h-100 border-0 shadow-sm text-start" style="background:var(--customer-dark); color:white; border-radius:16px;">
             <div class="card-body p-4 d-flex flex-column">
               <div class="mb-3 d-inline-flex align-items-center justify-content-center" style="width:60px; height:60px; border-radius:12px; background:rgba(255,255,255,0.05);">
                 <!-- Car/Customer Icon -->
@@ -124,6 +124,24 @@
       }),
       loadComponent('footer-container', 'components/footer.html')
     ]);
+
+    async function loadMechanicDownloadUrl() {
+      try {
+        const res = await fetch(getApiBase() + '/app/version?app=mechanic', {
+          headers: { 'ngrok-skip-browser-warning': '69420' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.apk_url && data.apk_url.trim()) {
+            const btn = document.getElementById('mechanicDownloadBtn');
+            if (btn) btn.href = data.apk_url.trim();
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch dynamic APK URL, using fallback:', err);
+      }
+    }
+    loadMechanicDownloadUrl();
   </script>
   <script src="/js/bootstrap.js"></script>
 </body>

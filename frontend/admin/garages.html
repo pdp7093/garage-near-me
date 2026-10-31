@@ -1160,7 +1160,10 @@
         tbody.innerHTML = garages.map(g => `
       <tr>
         <td>
-          <div class="fw-bold text-dark">${g.name}</div>
+          <div class="fw-bold text-dark d-flex align-items-center gap-2 flex-wrap">
+            ${g.name}
+            ${g.is_founding_partner ? `<span class="gnm-founding-badge gnm-founding-badge--sm"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></span>` : ''}
+          </div>
           <div class="text-muted small">ID: #${g.id}</div>
         </td>
         <td>

@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Book Service — GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#DC2626">
+    <meta name="theme-color" content="#1B1F2E">
     <link rel="stylesheet" href="/css/bootstrap.css" />
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/style.css?v=20261008b" />
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
@@ -148,9 +148,10 @@
                                     <select id="manual-type" class="form-select border-2 shadow-none bg-light"
                                         style="font-size:14px;" onchange="clearVehicleSelection()">
                                         <option value="">Select type</option>
-                                        <option value="four_wheeler">4 Wheeler (Car)</option>
-                                        <option value="two_wheeler">2 Wheeler (Bike)</option>
+                                        <option value="bike">Bike (2 Wheeler)</option>
+                                        <option value="car">Car (4 Wheeler)</option>
                                     </select>
+                                    <div class="form-text" style="font-size:11px;color:var(--color-text-muted);">Abhi sirf bike aur car. Baaki gaadiyan jaldi aa rahi hain.</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label text-muted small fw-semibold">Reg. Number</label>
@@ -364,9 +365,10 @@
                     <label class="form-label text-muted small fw-semibold">Vehicle Type <span class="text-danger">*</span></label>
                     <select id="new-vehicle-type" class="form-select border-2 shadow-none bg-light" required>
                         <option value="">Select type</option>
-                        <option value="four_wheeler">4 Wheeler (Car)</option>
-                        <option value="two_wheeler">2 Wheeler (Bike)</option>
+                        <option value="bike">Bike (2 Wheeler)</option>
+                        <option value="car">Car (4 Wheeler)</option>
                     </select>
+                    <div class="form-text" style="font-size:11px;color:var(--color-text-muted);">Abhi sirf bike aur car. Baaki gaadiyan jaldi aa rahi hain.</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-semibold">Reg. Number <span class="text-danger">*</span></label>
@@ -507,20 +509,25 @@
 
                 container.innerHTML = `
                     <div class="row g-3" id="vehicle-cards">
-                        ${vehicles.map(v => `
+                        ${vehicles.map(v => {
+                            const isBike = (v.vehicle_type === 'bike' || v.vehicle_type === 'two_wheeler');
+                            const typeLabel = isBike ? 'Bike (2 Wheeler)' : 'Car (4 Wheeler)';
+                            const typeIcon = isBike ? '🏍️' : '🚗';
+                            return `
                         <div class="col-md-6">
                             <div class="vehicle-card card rounded-3 p-3" id="vc-${v.id}"
                                  onclick="selectVehicle(${v.id}, '${escJs(v.vehicle_type)}', '${escJs(v.vehicle_number || '')}', '${escJs(v.description || '')}')">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div style="font-size:28px;">${v.vehicle_type === 'two_wheeler' ? '🏍️' : '🚗'}</div>
+                                    <div style="font-size:28px;">${typeIcon}</div>
                                     <div>
-                                        <div class="fw-bold" style="font-size:14px;color:var(--color-text);">${v.description || (v.vehicle_type === 'two_wheeler' ? '2 Wheeler' : '4 Wheeler')}</div>
+                                        <div class="fw-bold" style="font-size:14px;color:var(--color-text);">${v.description || typeLabel}</div>
                                         <div class="text-muted" style="font-size:12px;">${v.vehicle_number || 'No reg. number'}</div>
-                                        <div style="font-size:11px;color:var(--color-text-muted);">${v.vehicle_type === 'two_wheeler' ? '2 Wheeler' : '4 Wheeler'}</div>
+                                        <div style="font-size:11px;color:var(--color-text-muted);">${typeLabel}</div>
                                     </div>
                                 </div>
                             </div>
-                        </div>`).join('')}
+                        </div>`;
+                        }).join('')}
                     </div>
                     <div class="mt-3" id="selected-vehicle-info" style="display:none;">
                         <div class="alert alert-success py-2 mb-0 rounded-3" style="font-size:13px;" id="selected-vehicle-text"></div>

@@ -332,10 +332,11 @@ def search_garages(
     )
 
     if vehicle_type:
-        query = query.filter(
-            (models.Garage.garage_type == vehicle_type) | 
-            (models.Garage.garage_type == "both")
-        )
+        vt_lower = str(vehicle_type).strip().lower()
+        if vt_lower in ("two_wheeler", "2_wheeler", "bike"):
+            query = query.filter(models.Garage.garage_type.in_(["two_wheeler", "both"]))
+        elif vt_lower in ("four_wheeler", "4_wheeler", "car"):
+            query = query.filter(models.Garage.garage_type.in_(["four_wheeler", "both"]))
 
     if is_sos:
         query = query.filter(models.Garage.is_sos_available == True)
@@ -437,7 +438,14 @@ def toggle_garage_status(
     g = db.query(models.Garage).filter(models.Garage.id == garage_id).first()
     if not g:
         raise HTTPException(status_code=404, detail="Garage not found")
+    
+    was_active = g.is_active
     g.is_active = data.is_active
+    
+    if g.is_active and not was_active:
+        from routers import apply_founding_partner_if_open
+        apply_founding_partner_if_open(g, db)
+        
     db.commit()
     db.refresh(g)
     return g

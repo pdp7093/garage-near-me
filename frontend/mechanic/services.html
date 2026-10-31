@@ -7,10 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Service Catalog - GarageNearMe</title>
   <link rel="manifest" href="/mechanic/manifest.json">
-  <meta name="theme-color" content="#DC2626">
+  <meta name="theme-color" content="#062B63">
   <link rel="stylesheet" href="/css/bootstrap.css" />
-  <link rel="stylesheet" href="/css/style.css" />
-  <link rel="stylesheet" href="/css/mechanic.css?v=241d7e8f" />
+  <link rel="stylesheet" href="/css/style.css?v=20261008b" />
+  <link rel="stylesheet" href="/css/mechanic.css?v=20261008b" />
   <script>
     const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
     const DEFAULT_LANGUAGE = 'hinglish';
@@ -110,7 +110,7 @@
 
     /* ── Suggested Services Section ── */
     .suggested-section {
-      background: linear-gradient(135deg, #1B1F2E 0%, #2d3348 100%);
+      background: linear-gradient(135deg, var(--mechanic-navy) 0%, var(--mechanic-navy-2) 100%);
       border-radius: 16px;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
@@ -211,7 +211,7 @@
       position: fixed;
       bottom: 1.5rem;
       right: 1.5rem;
-      background: #1B1F2E;
+      background: var(--mechanic-navy);
       color: #fff;
       padding: 12px 20px;
       border-radius: 12px;
@@ -360,7 +360,8 @@
 
   <script src="/js/bootstrap.js"></script>
   <script src="/js/config.js"></script>
-  <script src="/js/mechanic-auth.js"></script>
+  <script src="/js/mechanic-auth.js?v=20261027"></script>
+  <script src="/js/app-update.js?v=20261031"></script>
   <script src="/js/components.js"></script>
 
   <script>

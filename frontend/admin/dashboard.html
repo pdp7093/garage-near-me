@@ -88,6 +88,72 @@
         </div>
       </div>
 
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="bg-white rounded-4 border shadow-sm p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              <h5 class="fw-bold mb-1" style="font-family: var(--font-head);">Founding Partner Program</h5>
+              <p class="text-muted small mb-0">ON: har naya approve hone wala garage Founding Partner banega. <span id="fpCount" class="fw-bold text-dark">Founding partners: 0</span></p>
+            </div>
+            <div class="form-check form-switch" style="transform: scale(1.2);">
+              <input class="form-check-input" type="checkbox" role="switch" id="foundingProgramSwitch" style="cursor:pointer;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mechanic App Update Card -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="bg-white rounded-4 border shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <div>
+                <h5 class="fw-bold mb-1" style="font-family: var(--font-head);">Mechanic App Update</h5>
+                <p class="text-muted small mb-0">Manage update prompts and force updates for installed mechanic Android APKs.</p>
+              </div>
+              <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold" id="appVersionStatusBadge">Android Release</span>
+            </div>
+
+            <!-- Inline Alert Message (No alert/confirm/prompt) -->
+            <div id="appVersionAlert" class="alert d-none py-2 px-3 mb-3 small rounded-3" role="alert"></div>
+
+            <form id="appVersionForm" onsubmit="event.preventDefault(); saveAppVersionSettings();">
+              <div class="row g-3">
+                <div class="col-12 col-md-3">
+                  <label class="form-label small fw-semibold text-muted mb-1" for="mechanicLatestVersionCode">Latest Version Code</label>
+                  <input type="number" min="1" step="1" class="form-control form-control-sm" id="mechanicLatestVersionCode" required placeholder="e.g. 2">
+                  <div class="form-text" style="font-size:0.75rem;">Soft update dikhega agar app isse kam ho</div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                  <label class="form-label small fw-semibold text-muted mb-1" for="mechanicMinVersionCode">Minimum Version Code</label>
+                  <input type="number" min="1" step="1" class="form-control form-control-sm" id="mechanicMinVersionCode" required placeholder="e.g. 1">
+                  <div class="form-text" style="font-size:0.75rem;">Force update (block) agar app isse kam ho</div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label class="form-label small fw-semibold text-muted mb-1" for="mechanicApkUrl">APK Download URL</label>
+                  <input type="url" class="form-control form-control-sm" id="mechanicApkUrl" placeholder="https://garagenearme.net/downloads/gnm-mechanic-latest.apk">
+                  <div class="form-text" style="font-size:0.75rem;">Khaali ya https:// se shuru ho (khaali hone pe update nahi dikhega)</div>
+                </div>
+
+                <div class="col-12 col-md-9">
+                  <label class="form-label small fw-semibold text-muted mb-1" for="mechanicUpdateMessage">Update Message</label>
+                  <input type="text" class="form-control form-control-sm" id="mechanicUpdateMessage" placeholder="Naya update aaya hai, kripya app update karein.">
+                  <div class="form-text" style="font-size:0.75rem;">Mechanic ko update dialog/banner me dikhne wala message</div>
+                </div>
+
+                <div class="col-12 col-md-3 d-flex align-items-end">
+                  <button type="submit" id="saveAppVersionBtn" class="btn btn-sm btn-primary w-100 fw-bold py-2 rounded-3" style="background:var(--admin-primary); border:none;">
+                    Save Settings
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
       <!-- Main Tables Row -->
       <div class="row g-4">
 
@@ -127,6 +193,25 @@
       </div>
 
     </main>
+  </div>
+
+  <!-- Founding Partner Confirm Modal -->
+  <div class="modal fade" id="fpConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 rounded-4 shadow">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="fw-bold mb-0">Program band karna hai?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-0">Iske baad approve hone wale garages ko badge nahi milega. Purane partners ka badge rahega.</p>
+        </div>
+        <div class="modal-footer border-0">
+          <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal" id="fpCancelBtn">Cancel</button>
+          <button class="btn btn-danger rounded-pill px-4 fw-bold" id="fpConfirmBtn">Band karo</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="/js/components.js"></script>
@@ -233,7 +318,143 @@
     }
   }
 
+  async function loadFoundingProgram() {
+    try {
+      const adminKey = localStorage.getItem('gnm_admin_key');
+      const res = await fetch(getApiBase() + '/admin/settings/founding-program', { headers: { 'X-Admin-Key': adminKey } });
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('foundingProgramSwitch').checked = data.open;
+        document.getElementById('fpCount').textContent = `Founding partners: ${data.count}`;
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  let pendingFPToggle = false;
+  const fpSwitch = document.getElementById('foundingProgramSwitch');
+  const fpModal = new bootstrap.Modal(document.getElementById('fpConfirmModal'));
+
+  fpSwitch.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      updateFoundingProgram(true);
+    } else {
+      e.target.checked = true; // Revert visually until confirmed
+      fpModal.show();
+    }
+  });
+
+  document.getElementById('fpConfirmBtn').addEventListener('click', () => {
+    fpModal.hide();
+    updateFoundingProgram(false);
+  });
+
+  async function updateFoundingProgram(isOpen) {
+    try {
+      const adminKey = localStorage.getItem('gnm_admin_key');
+      const res = await fetch(getApiBase() + '/admin/settings/founding-program', {
+        method: 'PATCH',
+        headers: { 'X-Admin-Key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ open: isOpen })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        fpSwitch.checked = data.open;
+        document.getElementById('fpCount').textContent = `Founding partners: ${data.count}`;
+      } else {
+        console.error('Failed to update setting');
+        fpSwitch.checked = !isOpen;
+      }
+    } catch(e) {
+      console.error('Error updating setting', e);
+      fpSwitch.checked = !isOpen;
+    }
+  }
+
+  function showAppVersionAlert(msg, type = 'success') {
+    const el = document.getElementById('appVersionAlert');
+    if (!el) return;
+    el.className = `alert alert-${type} py-2 px-3 mb-3 small rounded-3`;
+    el.textContent = msg;
+    el.classList.remove('d-none');
+    setTimeout(() => {
+      el.classList.add('d-none');
+    }, 4500);
+  }
+
+  async function loadAppVersionSettings() {
+    try {
+      const adminKey = localStorage.getItem('gnm_admin_key');
+      const res = await fetch(getApiBase() + '/admin/app-version', {
+        headers: { 'X-Admin-Key': adminKey }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('mechanicLatestVersionCode').value = data.latest_version_code || 1;
+        document.getElementById('mechanicMinVersionCode').value = data.min_version_code || 1;
+        document.getElementById('mechanicApkUrl').value = data.apk_url || '';
+        document.getElementById('mechanicUpdateMessage').value = data.message || '';
+      }
+    } catch (e) {
+      console.warn('Could not load app version settings:', e);
+    }
+  }
+
+  async function saveAppVersionSettings() {
+    const btn = document.getElementById('saveAppVersionBtn');
+    const latest = parseInt(document.getElementById('mechanicLatestVersionCode').value, 10);
+    const min = parseInt(document.getElementById('mechanicMinVersionCode').value, 10);
+    const apkUrl = (document.getElementById('mechanicApkUrl').value || '').trim();
+    const msg = (document.getElementById('mechanicUpdateMessage').value || '').trim();
+
+    if (isNaN(latest) || isNaN(min)) {
+      showAppVersionAlert('Version codes must be valid integers.', 'danger');
+      return;
+    }
+    if (min > latest) {
+      showAppVersionAlert('Minimum version code cannot be greater than Latest version code.', 'danger');
+      return;
+    }
+    if (apkUrl && !apkUrl.startsWith('https://')) {
+      showAppVersionAlert('APK URL must be empty or start with https://', 'danger');
+      return;
+    }
+
+    try {
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      const adminKey = localStorage.getItem('gnm_admin_key');
+      const res = await fetch(getApiBase() + '/admin/app-version', {
+        method: 'POST',
+        headers: {
+          'X-Admin-Key': adminKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          latest_version_code: latest,
+          min_version_code: min,
+          apk_url: apkUrl,
+          message: msg || 'Naya update aaya hai, kripya app update karein.'
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showAppVersionAlert('App update settings saved successfully!', 'success');
+      } else {
+        showAppVersionAlert(data.detail || 'Failed to save settings.', 'danger');
+      }
+    } catch (err) {
+      console.error(err);
+      showAppVersionAlert('Error saving settings. Please try again.', 'danger');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Settings';
+    }
+  }
+
   loadDashboardStats();
+  loadFoundingProgram();
+  loadAppVersionSettings();
 </script>
 </body>
 

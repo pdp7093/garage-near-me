@@ -176,6 +176,15 @@ def create_booking(
     if garage.is_credit_locked:
         raise HTTPException(status_code=403, detail="Garage credit limit exceeded. Bookings are temporarily blocked.")
 
+    if not schemas.garage_supports_vehicle(garage, booking_data.vehicle_type):
+        gt = getattr(garage, "garage_type", None)
+        gt_map = {"two_wheeler": "bike", "four_wheeler": "car", "both": "dono"}
+        service_label = gt_map.get(gt, gt or "other vehicles")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ye garage sirf {service_label} repair karta hai. Kripya doosra garage chunein."
+        )
+
     pickup_address = booking_data.pickup_address if booking_data.requires_pick_and_drop else None
     booking_no = generate_unique_booking_number(db)
 
@@ -233,6 +242,15 @@ def create_sos_booking(
         raise HTTPException(status_code=404, detail="No SOS-available garage found")
     if garage.is_credit_locked:
         raise HTTPException(status_code=403, detail="Garage credit limit exceeded. SOS requests are temporarily blocked.")
+
+    if not schemas.garage_supports_vehicle(garage, sos_data.vehicle_type):
+        gt = getattr(garage, "garage_type", None)
+        gt_map = {"two_wheeler": "bike", "four_wheeler": "car", "both": "dono"}
+        service_label = gt_map.get(gt, gt or "other vehicles")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ye garage sirf {service_label} repair karta hai. Kripya doosra garage chunein."
+        )
 
     pickup_address = sos_data.pickup_address if sos_data.requires_pick_and_drop else None
     booking_no = generate_unique_booking_number(db)

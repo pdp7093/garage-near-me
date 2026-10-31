@@ -7,6 +7,7 @@
 :root {
   --color-primary:    #1B1F2E;
   --color-accent:     #FF6B35;
+  --customer-dark:    #1B1F2E;
   --color-bg:         #F5F6FA;
   --color-surface:    #FFFFFF;
   --color-text:       #1B1F2E;
@@ -30,7 +31,7 @@ body { font-family: var(--font-body); background: var(--color-bg); color: var(--
    NAVBAR
 ───────────────────────────────────────── */
 .gnm-nav {
-  background: var(--color-primary);
+  background: var(--customer-dark);
   position: sticky; top: 0; z-index: 1030;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
@@ -83,7 +84,7 @@ body { font-family: var(--font-body); background: var(--color-bg); color: var(--
 /* ─────────────────────────────────────────
    HERO
 ───────────────────────────────────────── */
-.gnm-hero { background: var(--color-primary); padding: 72px 0 64px; }
+.gnm-hero { background: var(--customer-dark); padding: 72px 0 64px; }
 .gnm-hero-container {
   max-width: 1280px; margin: 0 auto; padding: 0 32px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
@@ -138,7 +139,7 @@ body { font-family: var(--font-body); background: var(--color-bg); color: var(--
 /* Hero Visual */
 .gnm-hero-visual { position: relative; }
 .gnm-visual-map {
-  background: #242939; border-radius: var(--radius-lg);
+  background: var(--customer-dark); border-radius: var(--radius-lg);
   height: 240px; position: relative; overflow: hidden;
   border: 1px solid rgba(255,255,255,0.07);
 }
@@ -230,7 +231,7 @@ body { font-family: var(--font-body); background: var(--color-bg); color: var(--
 /* ─────────────────────────────────────────
    HOW IT WORKS
 ───────────────────────────────────────── */
-.gnm-how { background: var(--color-primary); padding: 80px 0; }
+.gnm-how { background: var(--customer-dark); padding: 80px 0; }
 .gnm-how-container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
 .gnm-how-header { text-align: center; margin-bottom: 56px; }
 .gnm-how-title { font-family: var(--font-head); font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: #fff; margin-bottom: 10px; }
@@ -266,7 +267,7 @@ body { font-family: var(--font-body); background: var(--color-bg); color: var(--
 /* ─────────────────────────────────────────
    FOOTER
 ───────────────────────────────────────── */
-.gnm-footer { background: #0F1420; padding-top: 0; }
+.gnm-footer { background: var(--customer-dark); padding-top: 0; }
 .gnm-footer-top {
   max-width: 1280px; margin: 0 auto; padding: 56px 32px 48px;
   display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px;
@@ -332,5 +333,51 @@ body { font-family: var(--font-body); background: var(--color-bg); color: var(--
 /* Small mobile */
 @media (max-width: 420px) {
   .gnm-hero-title { font-size: 24px; }
-  .gnm-footer-top { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════
+   FOUNDING PARTNER BADGE
+═══════════════════════════════════════════════════ */
+.gnm-founding-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FAECE7;
+  color: #712B13;
+  border: 0.5px solid #F0997B;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.gnm-founding-badge svg {
+  color: #D85A30;
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+.gnm-founding-badge::after {
+  content: "Founding Partner";
+}
+
+.gnm-founding-badge--sm {
+  padding: 2px 8px;
+  font-size: 11px;
+}
+.gnm-founding-badge--sm svg {
+  width: 12px;
+  height: 12px;
+}
+.gnm-founding-badge--sm::after {
+  content: "Founding";
+}
+
+.gnm-founding-badge--dark {
+  background: #4A1B0C;
+  color: #F5C4B3;
+  border-color: #993C1D;
+}
+.gnm-founding-badge--dark svg {
+  color: #F0997B;
 }

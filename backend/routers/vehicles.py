@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime
 import os
 
 import models
 from database import get_db
+from schemas import validate_allowed_vehicle_type
 
 router = APIRouter()
 
@@ -22,9 +23,14 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 # ──────────────────────────────────────────
 
 class VehicleCreate(BaseModel):
-    vehicle_type:   str             # four_wheeler | two_wheeler
+    vehicle_type:   str             # bike | car (legacy two_wheeler | four_wheeler normalized)
     vehicle_number: str             # "GJ01AB1234"
     description:    Optional[str] = None   # "Red Swift Dzire"
+
+    @field_validator("vehicle_type", mode="before")
+    @classmethod
+    def check_vehicle_type(cls, v):
+        return validate_allowed_vehicle_type(v)
 
 class VehicleResponse(BaseModel):
     id:             int

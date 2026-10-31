@@ -7,10 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Garage Profile - GarageNearMe</title>
   <link rel="manifest" href="/mechanic/manifest.json">
-  <meta name="theme-color" content="#DC2626">
+  <meta name="theme-color" content="#062B63">
   <link rel="stylesheet" href="/css/bootstrap.css" />
-  <link rel="stylesheet" href="/css/style.css" />
-  <link rel="stylesheet" href="/css/mechanic.css?v=7baa3eb6" />
+  <link rel="stylesheet" href="/css/style.css?v=20261030" />
+  <link rel="stylesheet" href="/css/mechanic.css?v=20261030" />
   <script>
     const SUPPORTED_LANGUAGES = ['hinglish', 'hindi', 'gujarati'];
     const DEFAULT_LANGUAGE = 'hinglish';
@@ -107,7 +107,10 @@
 
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
           <div>
-            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="profileHeading" data-i18n="profile_heading_default">Garage Settings</h4>
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+              <h4 class="fw-bold mb-0" style="font-family: var(--font-head);" id="profileHeading" data-i18n="profile_heading_default">Garage Settings</h4>
+              <span id="foundingBadgeProfile" class="d-none"></span>
+            </div>
             <p class="text-muted mb-0 small" id="profileSubheading" data-i18n="profile_loading_subheading">Loading your garage profile...</p>
           </div>
           <button class="btn text-white rounded-pill px-4 fw-bold shadow-sm align-self-start" id="saveProfileBtn"
@@ -174,14 +177,13 @@
                   <div class="form-text" style="font-size: 11px;" data-i18n="profile_hint_email">Email update is not enabled in the current API.</div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-medium text-muted mb-1" for="garageTypeInput" data-i18n="profile_label_garage_type">Garage Type</label>
+                  <label class="form-label small fw-medium text-muted mb-1" for="garageTypeInput" data-i18n="profile_label_garage_type">Kaunsi Gaadi Theek Karte Hain?</label>
                   <select class="form-select" id="garageTypeInput">
-                    <option value="" data-i18n="profile_opt_select_type">Select garage type</option>
-                    <option value="four_wheeler" data-i18n="profile_opt_four_wheeler">Four Wheeler Specialist</option>
-                    <option value="two_wheeler" data-i18n="profile_opt_two_wheeler">Two Wheeler Specialist</option>
-                    <option value="both" data-i18n="profile_opt_both">Both Cars & Bikes</option>
-                    <option value="mobile_mechanic" data-i18n="profile_opt_mobile_mechanic">Mobile Mechanic</option>
+                    <option value="two_wheeler">Bike (2 Wheeler) Specialist</option>
+                    <option value="four_wheeler">Car (4 Wheeler) Specialist</option>
+                    <option value="both">Dono (Cars &amp; Bikes)</option>
                   </select>
+                  <div class="form-text" style="font-size: 11px;">Abhi sirf bike aur car. Baaki gaadiyan jaldi aa rahi hain.</div>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label small fw-medium text-muted mb-1" for="visitingChargeInput" data-i18n="profile_label_visiting_charge">Visiting
@@ -346,8 +348,9 @@
     </main>
   </div>
 
-  <script src="/js/config.js"></script>
-  <script src="/js/mechanic-auth.js"></script>
+  <script src="/js/config.js?v=20261030"></script>
+  <script src="/js/mechanic-auth.js?v=20261030"></script>
+  <script src="/js/app-update.js?v=20261031"></script>
   <script src="/js/components.js"></script>
   <script src="/js/bootstrap.js"></script>
   <script>
@@ -503,7 +506,7 @@
       setValue('ownerNameInput', garage.owner_name);
       setValue('phoneInput', formatPhone(garage.phone));
       setValue('emailInput', garage.email);
-      setValue('garageTypeInput', garage.garage_type);
+      setValue('garageTypeInput', garage.garage_type || 'both');
       setValue('visitingChargeInput', garage.visiting_charge);
       setChecked('sosAvailableInput', garage.is_sos_available);
       setChecked('pickDropInput', garage.offers_pick_and_drop);
@@ -553,6 +556,14 @@
 
       document.getElementById('profileHeading').textContent = garage.name || t('profile_heading_default');
       document.getElementById('profileSubheading').textContent = `${garage.owner_name || t('profile_owner_fallback')} - ${city} - ${type}`;
+      
+      if (garage.is_founding_partner) {
+        const fbp = document.getElementById('foundingBadgeProfile');
+        if (fbp) {
+          fbp.className = 'gnm-founding-badge gnm-founding-badge--sm mt-1';
+          fbp.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';
+        }
+      }
     }
 
     function updateTopbarProfile(garage) {
@@ -646,7 +657,7 @@
       const payload = {
         name: getValue('garageNameInput'),
         owner_name: getValue('ownerNameInput'),
-        garage_type: getValue('garageTypeInput') || null,
+        garage_type: getValue('garageTypeInput') || 'both',
         is_sos_available: getChecked('sosAvailableInput'),
         offers_pick_and_drop: getChecked('pickDropInput'),
         visiting_charge: getNumberOrNull('visitingChargeInput'),
@@ -864,6 +875,9 @@
 
     function humanizeGarageType(value) {
       const labels = {
+        bike: 'Bike Specialist',
+        car: 'Car Specialist',
+        dono: 'Cars & Bikes',
         four_wheeler: t('profile_opt_four_wheeler'),
         two_wheeler: t('profile_opt_two_wheeler'),
         both: t('profile_type_cars_bikes'),

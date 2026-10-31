@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SOS Emergency — GarageNearMe</title>
     <link rel="manifest" href="../manifest.json">
-    <meta name="theme-color" content="#DC2626">
+    <meta name="theme-color" content="#1B1F2E">
     <link rel="stylesheet" href="/css/bootstrap.css" />
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/style.css?v=20261030" />
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
     <style>
         body { background:#FEF2F2; min-height:100vh; }
@@ -66,9 +66,10 @@
                                 <label class="form-label fw-semibold text-muted small">Vehicle Type</label>
                                 <select id="vehicle-type" class="form-select border-2 shadow-none bg-light">
                                     <option value="">Select type</option>
-                                    <option value="four_wheeler">🚗 4 Wheeler (Car)</option>
-                                    <option value="two_wheeler">🏍️ 2 Wheeler (Bike/Scooter)</option>
+                                    <option value="bike">🏍️ Bike (2 Wheeler)</option>
+                                    <option value="car">🚗 Car (4 Wheeler)</option>
                                 </select>
+                                <div class="form-text" style="font-size:11px;color:var(--color-text-muted);">Abhi sirf bike aur car. Baaki gaadiyan jaldi aa rahi hain.</div>
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-semibold text-muted small">Reg. Number</label>
@@ -131,20 +132,26 @@
                 const list = document.getElementById('saved-vehicles-list');
                 sec.style.display = '';
 
-                list.innerHTML = vehicles.map(v => `
+                list.innerHTML = vehicles.map(v => {
+                    const isBike = (v.vehicle_type === 'two_wheeler' || v.vehicle_type === 'bike');
+                    const icon = isBike ? '🏍️' : '🚗';
+                    const label = v.description || (isBike ? 'Bike (2 Wheeler)' : 'Car (4 Wheeler)');
+                    return `
                     <div class="d-flex align-items-center gap-3 p-2 border rounded-3 cursor-pointer"
                          onclick="selectVehicle('${v.vehicle_type}','${v.vehicle_number||''}','${v.description||''}')">
-                        <span style="font-size:22px;">${v.vehicle_type === 'two_wheeler' ? '🏍️' : '🚗'}</span>
+                        <span style="font-size:22px;">${icon}</span>
                         <div>
-                            <div class="fw-semibold" style="font-size:14px;">${v.description || v.vehicle_type}</div>
+                            <div class="fw-semibold" style="font-size:14px;">${label}</div>
                             <div class="text-muted" style="font-size:12px;">${v.vehicle_number || 'No reg.'}</div>
                         </div>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
             } catch {}
         }
 
         function selectVehicle(type, reg, model) {
-            document.getElementById('vehicle-type').value   = type;
+            const mappedType = (type === 'two_wheeler' || type === 'bike') ? 'bike' : ((type === 'four_wheeler' || type === 'car') ? 'car' : type);
+            document.getElementById('vehicle-type').value   = mappedType;
             document.getElementById('vehicle-number').value = reg;
             document.getElementById('vehicle-model').value  = model;
         }
@@ -228,9 +235,10 @@
                 });
 
                 const data = await res.json();
+                const vtNorm = (vehicleType === 'two_wheeler' || vehicleType === 'bike') ? 'bike' : 'car';
 
                 if (!data.success) {
-                    errEl.textContent = data.message || 'Koi mechanic nahi mila aas paas mein.';
+                    errEl.textContent = data.message || `Aapke paas abhi koi ${vtNorm} garage available nahi hai.`;
                     errEl.classList.remove('d-none');
                     btn.disabled    = false;
                     btn.textContent = '🆘 SOS Bhejo — Help Chahiye!';
@@ -241,6 +249,7 @@
                 const sosSlug = data.sos_slug || data.sos_id;
                 sessionStorage.setItem('gnm_active_sos_slug', String(sosSlug));
                 sessionStorage.setItem('gnm_active_sos_count', String(data.nearby_garages?.length || 0));
+                sessionStorage.setItem('gnm_active_sos_vt', vtNorm);
 
                 // Step 4: Tracking page pe redirect
                 window.location.href = `sos-tracking/${sosSlug}`;

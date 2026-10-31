@@ -4,8 +4,8 @@
   "description": "Mechanic Dashboard for GarageNearMe",
   "start_url": "/mechanic/",
   "display": "standalone",
-  "background_color": "#F5F6FA",
-  "theme_color": "#1B1F2E",
+  "background_color": "#062B63",
+  "theme_color": "#062B63",
   "orientation": "portrait",
   "icons": [
     {

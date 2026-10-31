@@ -7,10 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mechanic Dashboard - GarageNearMe</title>
   <link rel="manifest" href="/mechanic/manifest.json">
-  <meta name="theme-color" content="#DC2626">
+  <meta name="theme-color" content="#062B63">
   <link rel="stylesheet" href="/css/bootstrap.css" />
-  <link rel="stylesheet" href="/css/style.css" />
-  <link rel="stylesheet" href="/css/mechanic.css?v=8671a53d" />
+  <link rel="stylesheet" href="/css/style.css?v=20261008b" />
+  <link rel="stylesheet" href="/css/mechanic.css?v=20261008b" />
     <script>
     // GNM MULTI-LANGUAGE SYSTEM (i18n.js)
     // Mechanic side: hinglish (default), hindi, gujarati
@@ -103,10 +103,12 @@
         <!-- Welcome & SOS Toggle -->
         <div class="sos-toggle-wrapper mb-4">
           <div>
-            <h4 class="fw-bold mb-1" style="font-family: var(--font-head);" id="garageName"
-              data-i18n="dashboard_welcome_default">Welcome back</h4>
+            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+              <h4 class="fw-bold mb-0" style="font-family: var(--font-head);" id="garageName"
+                data-i18n="dashboard_welcome_default">Welcome back</h4>
+              <span id="foundingBadge" class="d-none"></span>
+            </div>
             <p class="text-muted mb-0 small" id="garageMetaInfo">You have 2 pending requests today.</p>
-
           </div>
           <div class="d-flex align-items-center gap-3">
             <div class="text-end d-none d-sm-block">
@@ -224,7 +226,8 @@
   </div>
 
   <script src="/js/config.js?v=2"></script>
-  <script src="/js/mechanic-auth.js"></script>
+  <script src="/js/mechanic-auth.js?v=20261027"></script>
+  <script src="/js/app-update.js?v=20261031"></script>
   <script src="/js/components.js?v=2"></script>
   <script>
     initMechanicChrome('Overview', mechanicCheckLocationSet);
@@ -281,6 +284,12 @@
 
         document.getElementById('garageName').innerText =
           `${t('dashboard_welcome_default')}, ${garage.name}`;
+
+        if (garage.is_founding_partner) {
+          const fb = document.getElementById('foundingBadge');
+          fb.className = 'gnm-founding-badge';
+          fb.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';
+        }
 
 
         // ─────────────────────────

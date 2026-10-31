@@ -5,7 +5,7 @@ from datetime import datetime
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 import os, math, random, secrets, string
 from fcm import send_to_multiple
 import models, schemas
@@ -175,11 +175,16 @@ class SOSCreateRequest(BaseModel):
     lat:              float
     lng:              float
     address:          Optional[str] = None
-    vehicle_type:     Optional[str] = None
+    vehicle_type:     str
     vehicle_number:   Optional[str] = None
     vehicle_model:    Optional[str] = None
     description:      Optional[str] = None
     radius_km:        float = 2.0
+
+    @field_validator("vehicle_type", mode="before")
+    @classmethod
+    def check_vehicle_type(cls, v):
+        return schemas.validate_allowed_vehicle_type(v)
 
 class SOSEstimatePayload(BaseModel):
     estimated_amount: float
@@ -211,15 +216,18 @@ async def create_sos(
         .all()
     )
 
+    # Filter garages by vehicle type (bike/car/dono)
+    matching_garages = [g for g in garages if schemas.garage_supports_vehicle(g, data.vehicle_type)]
+
     nearby_garages = []
-    for g in garages:
+    for g in matching_garages:
         loc = g.location
         dist = haversine(data.lat, data.lng, loc.latitude, loc.longitude)
         if dist <= data.radius_km:
             nearby_garages.append({ "id": g.id, "name": g.name, "distance_km": round(dist, 2) })
 
     if not nearby_garages:
-        for g in garages:
+        for g in matching_garages:
             loc = g.location
             dist = haversine(data.lat, data.lng, loc.latitude, loc.longitude)
             if dist <= 10.0:
@@ -228,7 +236,7 @@ async def create_sos(
     sos_request = models.SOS(
         customer_id             = current_customer.id,
         garage_id               = None,
-        vehicle_type            = data.vehicle_type or "unknown",
+        vehicle_type            = data.vehicle_type,
         vehicle_model           = data.vehicle_model,
         vehicle_number          = data.vehicle_number,
         description             = data.description,
@@ -241,9 +249,10 @@ async def create_sos(
     ) if nearby_garages else None
 
     if not sos_request:
+        vt_norm = "bike" if data.vehicle_type in ("two_wheeler", "2_wheeler", "bike") else ("car" if data.vehicle_type in ("four_wheeler", "4_wheeler", "car") else data.vehicle_type)
         return {
             "success": False,
-            "message": "Koi SOS-available garage nahi mila aas paas mein.",
+            "message": f"Aapke paas abhi koi {vt_norm} garage available nahi hai.",
             "nearby_garages": [],
             "sos_id": None
         }
@@ -338,6 +347,8 @@ def get_active_sos(
 
     results = []
     for s in sos_requests:
+        if s.garage_id != current_garage.id and not schemas.garage_supports_vehicle(current_garage, s.vehicle_type):
+            continue
         if s.latitude and s.longitude:
             dist = haversine(loc.latitude, loc.longitude, s.latitude, s.longitude)
         else:
@@ -440,6 +451,15 @@ def accept_sos(
     sos_request = _resolve_sos(sos_id, db)
     if not sos_request or sos_request.status != models.SOSStatus.broadcasting:
         raise HTTPException(status_code=404, detail="SOS not found or already taken")
+
+    if not schemas.garage_supports_vehicle(current_garage, sos_request.vehicle_type):
+        gt = getattr(current_garage, "garage_type", None)
+        gt_map = {"two_wheeler": "bike", "four_wheeler": "car", "both": "dono"}
+        service_label = gt_map.get(gt, gt or "other vehicles")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Aapka garage sirf {service_label} repair karta hai. Yeh SOS {sos_request.vehicle_type} ke liye hai."
+        )
 
     sos_request.garage_id    = current_garage.id
     sos_request.status       = models.SOSStatus.accepted
@@ -780,6 +800,32 @@ def get_sos_status_customer(
     if garage and garage.location and garage.location.latitude and sos_request.latitude:
         dist = haversine(garage.location.latitude, garage.location.longitude, sos_request.latitude, sos_request.longitude)
 
+    nearby_compatible_count = None
+    if sos_request.status == models.SOSStatus.broadcasting and sos_request.latitude and sos_request.longitude:
+        active_garages = (
+            db.query(models.Garage)
+            .join(models.GarageLocation)
+            .filter(
+                models.Garage.is_active        == True,
+                models.Garage.is_verified      == True,
+                models.Garage.is_sos_available == True,
+                models.GarageLocation.latitude  != None,
+                models.GarageLocation.longitude != None,
+            )
+            .all()
+        )
+        matching_garages = [g for g in active_garages if schemas.garage_supports_vehicle(g, sos_request.vehicle_type)]
+        radius = sos_request.broadcast_radius_km or 2.0
+        nearby_compatible_count = sum(
+            1 for g in matching_garages
+            if g.location and g.location.latitude and haversine(sos_request.latitude, sos_request.longitude, g.location.latitude, g.location.longitude) <= radius
+        )
+        if nearby_compatible_count == 0 and radius < 10.0:
+            nearby_compatible_count = sum(
+                1 for g in matching_garages
+                if g.location and g.location.latitude and haversine(sos_request.latitude, sos_request.longitude, g.location.latitude, g.location.longitude) <= 10.0
+            )
+
     return {
         "id":                    sos_request.id,
         "sos_number":            sos_request.sos_number,
@@ -795,6 +841,7 @@ def get_sos_status_customer(
         "vehicle_model":         sos_request.vehicle_model,
         "vehicle_number":        sos_request.vehicle_number,
         "description":           sos_request.description,
+        "nearby_compatible_count": nearby_compatible_count,
         "responded_at":          sos_request.responded_at.isoformat() if sos_request.responded_at else None,
         "started_at":            sos_request.started_at.isoformat() if sos_request.started_at else None,
         "completed_at":          sos_request.completed_at.isoformat() if sos_request.completed_at else None,
@@ -837,9 +884,11 @@ async def rebroadcast_sos(
         .all()
     )
 
+    matching_garages = [g for g in garages if schemas.garage_supports_vehicle(g, sos_request.vehicle_type)]
+
     radius = sos_request.broadcast_radius_km or 2.0
     nearby_ids = []
-    for g in garages:
+    for g in matching_garages:
         loc = g.location
         if not loc: continue
         dist = haversine(sos_request.latitude, sos_request.longitude, loc.latitude, loc.longitude)
@@ -847,7 +896,21 @@ async def rebroadcast_sos(
             nearby_ids.append(g.id)
 
     if not nearby_ids:
-        return {"rebroadcast": False, "reason": "No nearby garages"}
+        if radius < 10.0:
+            for g in matching_garages:
+                loc = g.location
+                if not loc: continue
+                dist = haversine(sos_request.latitude, sos_request.longitude, loc.latitude, loc.longitude)
+                if dist <= 10.0:
+                    nearby_ids.append(g.id)
+        if not nearby_ids:
+            vt_norm = "bike" if sos_request.vehicle_type in ("two_wheeler", "2_wheeler", "bike") else ("car" if sos_request.vehicle_type in ("four_wheeler", "4_wheeler", "car") else sos_request.vehicle_type)
+            return {
+                "rebroadcast": False,
+                "reason": "No nearby garages",
+                "nearby_compatible_count": 0,
+                "message": f"Aapke paas abhi koi {vt_norm} garage available nahi hai."
+            }
 
     return {"rebroadcast": True}
 

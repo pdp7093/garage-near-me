@@ -71,12 +71,22 @@ def submit_garage_request(
             detail="A garage with this phone number is already registered."
         )
 
+    gt = request_data.garage_type
+    if gt:
+        gt_lower = str(gt).strip().lower()
+        if gt_lower in ("two_wheeler", "2_wheeler", "bike"):
+            gt = "two_wheeler"
+        elif gt_lower in ("four_wheeler", "4_wheeler", "car"):
+            gt = "four_wheeler"
+        else:
+            gt = "both"
+
     new_request = models.GarageRequest(
         owner_name=request_data.owner_name,
         garage_name=request_data.garage_name,
         phone=request_data.phone,
         email=request_data.email,
-        garage_type=request_data.garage_type,
+        garage_type=gt,
         address=request_data.address,
         city=request_data.city,
         pincode=request_data.pincode,
@@ -353,10 +363,13 @@ def approve_garage_request(
         phone=req.phone,
         email=req.email,
         hashed_password=None,
-        garage_type=req.garage_type,
+        garage_type=req.garage_type or "both",
         is_verified=True,
         is_active=True,
     )
+
+    from routers import apply_founding_partner_if_open
+    apply_founding_partner_if_open(new_garage, db)
 
     db.add(new_garage)
     db.flush()  # ID milta hai flush se

@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Garage Details — GarageNearMe</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#DC2626">
+    <meta name="theme-color" content="#1B1F2E">
     <link rel="stylesheet" href="/css/bootstrap.css" />
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/style.css?v=20261008b" />
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&display=swap"
         rel="stylesheet" />
@@ -156,8 +156,11 @@
                                 <span id="badge-sos" class="badge text-white rounded-pill px-2 py-1"
                                     style="font-size:12px; background:#EF4444; display:none;">🆘 SOS Available</span>
                             </div>
-                            <h1 id="garage-name" class="text-white fw-bold mb-1"
-                                style="font-family:var(--font-head); font-size:32px;"></h1>
+                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                <h1 id="garage-name" class="text-white fw-bold mb-0"
+                                    style="font-family:var(--font-head); font-size:32px;"></h1>
+                                <span id="foundingBadgeCustomer" class="d-none"></span>
+                            </div>
                             <p id="garage-address" class="text-white-50 mb-0 d-flex align-items-center gap-1"
                                 style="font-size:14px;">
                                 <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
@@ -297,9 +300,10 @@
                                 class="text-danger">*</span></label>
                         <select id="modal-vehicle-type" class="form-select rounded-3" style="font-size:14px;">
                             <option value="">Select vehicle type</option>
-                            <option value="two_wheeler">Two Wheeler</option>
-                            <option value="four_wheeler">Four Wheeler</option>
+                            <option value="bike">Bike (2 Wheeler)</option>
+                            <option value="car">Car (4 Wheeler)</option>
                         </select>
+                        <div class="form-text" style="font-size:11px;color:var(--color-text-muted);">Abhi sirf bike aur car. Baaki gaadiyan jaldi aa rahi hain.</div>
                     </div>
 
                     <div class="mb-3">
@@ -408,6 +412,12 @@
 
             // Name & address
             document.getElementById('garage-name').textContent = g.name;
+            
+            if (g.is_founding_partner) {
+                const fb = document.getElementById('foundingBadgeCustomer');
+                fb.className = 'gnm-founding-badge mt-1';
+                fb.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>';
+            }
             const addr = [g.location?.street, g.location?.city, g.location?.pincode].filter(Boolean).join(', ');
             document.getElementById('address-text').textContent = addr || 'Ahmedabad';
 
