@@ -724,6 +724,29 @@ def update_booking_status(
 
     db.commit()
     db.refresh(booking)
+
+    # ── Customer ko push bhejo jab booking accepted ya mechanic on the way ho ──
+    try:
+        customer = db.query(models.Customer).filter(models.Customer.id == booking.customer_id).first()
+        if customer and customer.fcm_token:
+            from fcm import send_notification
+            if update.status == models.BookingStatus.accepted:
+                send_notification(
+                    token=customer.fcm_token,
+                    title="✅ Booking Accepted!",
+                    body=f"{current_garage.name} ne aapki booking accept kar li hai.",
+                    data={"type": "booking_accepted_customer", "booking_id": str(booking.id), "screen": "booking-detail"}
+                )
+            elif update.status == models.BookingStatus.ongoing:
+                send_notification(
+                    token=customer.fcm_token,
+                    title="🔧 Mechanic On The Way!",
+                    body=f"{current_garage.name} ka mechanic aapki taraf aa raha hai.",
+                    data={"type": "mechanic_on_way_customer", "booking_id": str(booking.id), "screen": "booking-detail"}
+                )
+    except Exception as _push_err:
+        print(f"[Customer Push] Failed: {_push_err}")
+
     return booking
 
 

@@ -72,35 +72,128 @@ if (gpsBtn && locationInput) {
 const sosBtn = document.getElementById('sosBtn');
 if (sosBtn) {
   sosBtn.addEventListener('click', function () {
-    alert('SOS Alert Sent!\n\nNearby mechanics are being notified.\nPlease stay at your location.');
+    window.location.href = '/customer/sos.html';
   });
 }
 
-// ── Application Open Notification (Capacitor) ────────
+// ── Customer Capacitor Setup (sequential permissions + FCM) ─────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check if we are running inside Capacitor (Native Android/iOS)
-  if (window?.Capacitor?.isNativePlatform?.()) {
+  if (!window?.Capacitor?.isNativePlatform?.()) return;
+
+  const { Geolocation, PushNotifications, LocalNotifications } = window.Capacitor.Plugins;
+
+  // ── STEP 1: Location permission (pehle) ──
+  if (Geolocation) {
     try {
-      const { LocalNotifications } = window.Capacitor.Plugins;
-      if (LocalNotifications) {
-        let permStatus = await LocalNotifications.checkPermissions();
-        if (permStatus.display !== 'granted') {
-          permStatus = await LocalNotifications.requestPermissions();
-        }
-        if (permStatus.display === 'granted') {
-          await LocalNotifications.schedule({
-            notifications: [{
-              title: "Garage Near Me",
-              body: "Aapne successfully application open kar li hai!",
-              id: new Date().getTime(),
-              schedule: { at: new Date(Date.now() + 1000) },
-              smallIcon: "ic_stat_icon_config_sample" // Note: configure smallIcon in Capacitor if needed
-            }]
-          });
-        }
+      let locPerm = await Geolocation.checkPermissions();
+      if (locPerm.location === 'prompt' || locPerm.location === 'prompt-with-rationale') {
+        await Geolocation.requestPermissions({ permissions: ['location'] });
       }
     } catch (e) {
-      console.error("Local notification error: ", e);
+      console.warn('[GNM] Geolocation permission error:', e);
     }
   }
+
+  // ── STEP 2: Push Notifications permission (baad me, sequential) ──
+  if (!PushNotifications) return;
+
+  try {
+    let pushPerm = await PushNotifications.checkPermissions();
+    if (pushPerm.receive === 'prompt' || pushPerm.receive === 'prompt-with-rationale') {
+      pushPerm = await PushNotifications.requestPermissions();
+    }
+    if (pushPerm.receive !== 'granted') {
+      console.warn('[GNM] Push permission not granted');
+      return;
+    }
+  } catch (e) {
+    console.warn('[GNM] Push permission error:', e);
+    return;
+  }
+
+  // ── STEP 3: customer_updates notification channel ──
+  try {
+    await PushNotifications.createChannel({
+      id: 'customer_updates',
+      name: 'Customer Updates',
+      description: 'Booking accepted, mechanic on the way, SOS accepted alerts',
+      importance: 4,
+      visibility: 1,
+      sound: 'default',
+      vibration: true,
+      lights: true
+    });
+    console.log('[GNM] Notification channel "customer_updates" created ✅');
+  } catch (chErr) {
+    console.warn('[GNM] Channel creation failed:', chErr);
+  }
+
+  // ── STEP 4: Local Notifications channel ──
+  if (LocalNotifications) {
+    try {
+      let localPerm = await LocalNotifications.checkPermissions();
+      if (localPerm.display === 'prompt' || localPerm.display === 'prompt-with-rationale') {
+        await LocalNotifications.requestPermissions();
+      }
+    } catch (lnErr) {
+      console.warn('[GNM] LocalNotifications setup failed:', lnErr);
+    }
+  }
+
+  // ── STEP 5: Register FCM token ──
+  await PushNotifications.register();
+
+  PushNotifications.addListener('registration', async (token) => {
+    console.log('[GNM] FCM Token received:', token.value);
+    const authToken = localStorage.getItem('gnm_token');
+    if (!authToken) return;
+    try {
+      const apiBase = typeof getApiBase === 'function' ? getApiBase() : 'https://garagenearme.net/api';
+      await fetch(`${apiBase}/auth/fcm-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ fcm_token: token.value })
+      });
+      console.log('[GNM] FCM token saved to backend ✅');
+    } catch (err) {
+      console.warn('[GNM] FCM token save failed:', err);
+    }
+  });
+
+  PushNotifications.addListener('registrationError', (error) => {
+    console.warn('[GNM] FCM registration error:', error);
+  });
+
+  // ── STEP 6: Handle incoming push (foreground) ──
+  PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    console.log('[GNM] Push received in foreground:', notification);
+    // LocalNotification se foreground mein bhi dikhaao
+    if (LocalNotifications) {
+      LocalNotifications.schedule({
+        notifications: [{
+          title: notification.title || 'GarageNearMe',
+          body: notification.body || '',
+          id: Date.now(),
+          schedule: { at: new Date(Date.now() + 300) },
+          channelId: 'customer_updates'
+        }]
+      }).catch(() => {});
+    }
+  });
+
+  // ── STEP 7: Push tap → navigate ──
+  PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+    const data = action?.notification?.data || {};
+    const screen = data.screen;
+    const bookingId = data.booking_id;
+    const sosId = data.sos_id;
+    if (screen === 'booking-detail' && bookingId) {
+      window.location.href = `/customer/booking-detail.html?id=${bookingId}`;
+    } else if (screen === 'sos-tracking' && sosId) {
+      window.location.href = `/customer/sos-tracking.html?id=${sosId}`;
+    }
+  });
 });

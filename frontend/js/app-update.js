@@ -1,6 +1,7 @@
 /**
- * app-update.js — Mechanic App In-App Update System
- * Checks for updates against /app/version?app=mechanic on native Capacitor platforms.
+ * app-update.js — GarageNearMe App In-App Update System
+ * Checks for updates against /app/version?app=<mechanic|customer> on native Capacitor platforms.
+ * Auto-detects app type from Capacitor app ID.
  */
 (function () {
   'use strict';
@@ -9,6 +10,39 @@
   if (typeof window === 'undefined' || !window.Capacitor || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) {
     return;
   }
+
+  // ── Detect app type from package ID ──
+  async function detectAppType() {
+    try {
+      const AppPlugin = window.Capacitor?.Plugins?.App;
+      if (AppPlugin && typeof AppPlugin.getInfo === 'function') {
+        const info = await AppPlugin.getInfo();
+        if (info.id && info.id.includes('customer')) return 'customer';
+      }
+    } catch (e) {}
+    // Fallback: check URL path
+    if (window.location.hostname.includes('customer') ||
+        window.location.pathname.includes('/customer/')) {
+      return 'customer';
+    }
+    return 'mechanic'; // default
+  }
+
+  // ── App type theme config ──
+  const APP_THEMES = {
+    mechanic: {
+      bgColor: '#062B63',
+      icon: '/assets/gnm-icon-mechanic.png',
+      iconAlt: 'GarageNearMe Mechanic',
+      dismissKey: 'gnm_update_dismissed',
+    },
+    customer: {
+      bgColor: '#1B1F2E',
+      icon: '/assets/gnm_app_logo.png',
+      iconAlt: 'GarageNearMe',
+      dismissKey: 'gnm_customer_update_dismissed',
+    }
+  };
 
   async function openApkUrl(url) {
     if (!url) return;
@@ -45,8 +79,9 @@
     return 0;
   }
 
-  function showForceUpdateOverlay(apkUrl, message) {
+  function showForceUpdateOverlay(apkUrl, message, theme) {
     if (document.getElementById('gnm-force-update-overlay')) return;
+    const th = theme || APP_THEMES.mechanic;
 
     // Remove soft banner if open
     const existingSoft = document.getElementById('gnm-soft-update-banner');
@@ -60,7 +95,7 @@
       'left: 0',
       'width: 100vw',
       'height: 100vh',
-      'background-color: #062B63',
+      `background-color: ${th.bgColor}`,
       'z-index: 99999999',
       'display: flex',
       'flex-direction: column',
@@ -76,7 +111,7 @@
     overlay.innerHTML = `
       <div style="max-width: 360px; width: 100%; display: flex; flex-direction: column; align-items: center;">
         <div style="width: 88px; height: 88px; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.4); margin-bottom: 24px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;">
-          <img src="/assets/gnm-icon-mechanic.png" alt="GarageNearMe Mechanic" width="88" height="88" style="display:block; object-fit:cover;" onerror="this.style.display='none';">
+          <img src="${th.icon}" alt="${th.iconAlt}" width="88" height="88" style="display:block; object-fit:cover;" onerror="this.style.display='none';">
         </div>
         <h2 style="font-size: 22px; font-weight: 700; margin: 0 0 12px; color: #ffffff; letter-spacing: -0.3px;">App Update Zaroori Hai</h2>
         <p style="font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.85); margin: 0 0 28px;">${message}</p>
@@ -96,8 +131,9 @@
     }
   }
 
-  function showSoftUpdateBanner(apkUrl, message) {
+  function showSoftUpdateBanner(apkUrl, message, theme) {
     if (document.getElementById('gnm-soft-update-banner') || document.getElementById('gnm-force-update-overlay')) return;
+    const th = theme || APP_THEMES.mechanic;
 
     const banner = document.createElement('div');
     banner.id = 'gnm-soft-update-banner';
@@ -106,7 +142,7 @@
       'top: 0',
       'left: 0',
       'width: 100%',
-      'background: #062B63',
+      `background: ${th.bgColor}`,
       'color: #ffffff',
       'z-index: 9999999',
       'padding: 12px 16px',
@@ -151,7 +187,7 @@
     if (dismissBtn) {
       dismissBtn.addEventListener('click', () => {
         try {
-          sessionStorage.setItem('gnm_update_dismissed', 'true');
+          sessionStorage.setItem(th.dismissKey, 'true');
         } catch (e) {}
         banner.remove();
       });
@@ -160,8 +196,10 @@
 
   async function checkAppUpdate() {
     try {
+      const appType = await detectAppType();
+      const theme = APP_THEMES[appType] || APP_THEMES.mechanic;
       const apiBase = typeof getApiBase === 'function' ? getApiBase() : 'https://garagenearme.net/api';
-      const res = await fetch(`${apiBase}/app/version?app=mechanic`, {
+      const res = await fetch(`${apiBase}/app/version?app=${appType}`, {
         headers: { 'ngrok-skip-browser-warning': '69420' }
       });
       if (!res.ok) {
@@ -183,15 +221,15 @@
       const currentCode = await getCurrentVersionCode();
 
       if (currentCode < minCode) {
-        showForceUpdateOverlay(apkUrl, message);
+        showForceUpdateOverlay(apkUrl, message, theme);
       } else if (currentCode < latestCode) {
         let isDismissed = false;
         try {
-          isDismissed = sessionStorage.getItem('gnm_update_dismissed') === 'true';
+          isDismissed = sessionStorage.getItem(theme.dismissKey) === 'true';
         } catch (e) {}
 
         if (!isDismissed) {
-          showSoftUpdateBanner(apkUrl, message);
+          showSoftUpdateBanner(apkUrl, message, theme);
         }
       }
     } catch (err) {

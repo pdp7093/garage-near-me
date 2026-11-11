@@ -562,3 +562,35 @@ def update_me(
     db.commit()
     db.refresh(customer)
     return customer
+
+
+# ──────────────────────────────────────────
+# CUSTOMER — SAVE FCM TOKEN (Push Notifications)
+# POST /api/auth/fcm-token
+# ──────────────────────────────────────────
+
+@router.post("/fcm-token")
+def customer_save_fcm_token(
+    payload: schemas.FCMTokenRequest,
+    db: Session = Depends(get_db),
+    authorization: str = Header(None)
+):
+    """Customer ka FCM push token save karo."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authorization header missing")
+    token = authorization.split(" ", 1)[1]
+    try:
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if decoded.get("role") != "customer":
+            raise HTTPException(status_code=403, detail="Not a customer token")
+        customer_id = decoded.get("user_id")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    customer = db.query(models.Customer).filter(models.Customer.id == customer_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    customer.fcm_token = payload.fcm_token
+    db.commit()
+    return {"message": "FCM token saved successfully"}

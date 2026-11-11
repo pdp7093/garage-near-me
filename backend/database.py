@@ -145,6 +145,18 @@ def ensure_schema_updates():
     updates.append("""
         INSERT INTO platform_settings (key, value, updated_at) VALUES ('mechanic_update_message', 'Naya update aaya hai, kripya app update karein.', NOW()) ON CONFLICT (key) DO NOTHING
     """)
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('customer_latest_version_code', '1', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('customer_min_version_code', '1', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('customer_apk_url', '', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
+    updates.append("""
+        INSERT INTO platform_settings (key, value, updated_at) VALUES ('customer_update_message', 'Naya update aaya hai, kripya app update karein.', NOW()) ON CONFLICT (key) DO NOTHING
+    """)
 
     if "garage_requests" in table_names:
         request_columns = {

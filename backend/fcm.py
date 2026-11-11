@@ -58,6 +58,8 @@ def send_notification(token: str, title: str, body: str, data: Optional[dict] = 
             android_notification_kwargs["channel_id"] = "sos_alerts_loud_v2"
         elif (data or {}).get("type") in ("new_booking", "booking_accepted", "estimate_ready", "mechanic_on_way", "repair_complete", "booking_cancelled", "booking_call_request", "call-request"):
             android_notification_kwargs["channel_id"] = "booking_alerts"
+        elif (data or {}).get("type") in ("sos_accepted", "booking_accepted_customer", "mechanic_on_way_customer"):
+            android_notification_kwargs["channel_id"] = "customer_updates"
 
         if is_call:
             android_notification_kwargs["sticky"] = True

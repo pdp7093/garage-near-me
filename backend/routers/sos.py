@@ -476,6 +476,21 @@ def accept_sos(
 
     print(f"\n✅ SOS #{sos_request.id} accepted by Garage #{current_garage.id} — {current_garage.name}")
 
+    # ── Customer ko push bhejo — SOS accepted ──
+    try:
+        if sos_request.customer_id:
+            customer = db.query(models.Customer).filter(models.Customer.id == sos_request.customer_id).first()
+            if customer and customer.fcm_token:
+                from fcm import send_notification
+                send_notification(
+                    token=customer.fcm_token,
+                    title="🚗 Mechanic Mil Gaya!",
+                    body=f"{current_garage.name} aapka SOS accept kar raha hai aur aapki taraf aa raha hai.",
+                    data={"type": "sos_accepted", "sos_id": str(sos_request.id), "screen": "sos-tracking"}
+                )
+    except Exception as _push_err:
+        print(f"[Customer SOS Push] Failed: {_push_err}")
+
     return {"message": "SOS accepted!", "sos_id": sos_request.id, "slug": sos_request.slug, "status": "accepted"}
 
 

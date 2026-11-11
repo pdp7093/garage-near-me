@@ -69,17 +69,26 @@ class AppVersionUpdate(BaseModel):
     message: str = "Naya update aaya hai, kripya app update karein."
 
 
+from fastapi import Query as QueryParam
+
+VALID_APPS = {"mechanic", "customer"}
+DEFAULT_UPDATE_MSG = "Naya update aaya hai, kripya app update karein."
+
 @router.get("/app-version")
 def get_admin_app_version(
+    app: str = QueryParam("mechanic"),
     x_admin_key: str = Header(None),
     db: Session = Depends(get_db)
 ):
     check_admin(x_admin_key)
+    if app not in VALID_APPS:
+        raise HTTPException(status_code=400, detail=f"Invalid app. Must be one of: {', '.join(VALID_APPS)}")
+
     keys = [
-        "mechanic_latest_version_code",
-        "mechanic_min_version_code",
-        "mechanic_apk_url",
-        "mechanic_update_message"
+        f"{app}_latest_version_code",
+        f"{app}_min_version_code",
+        f"{app}_apk_url",
+        f"{app}_update_message"
     ]
     rows = db.query(models.PlatformSetting).filter(models.PlatformSetting.key.in_(keys)).all()
     settings = {r.key: (r.value or "") for r in rows}
@@ -91,20 +100,24 @@ def get_admin_app_version(
             return default
 
     return {
-        "latest_version_code": _to_int(settings.get("mechanic_latest_version_code"), 1),
-        "min_version_code": _to_int(settings.get("mechanic_min_version_code"), 1),
-        "apk_url": settings.get("mechanic_apk_url", ""),
-        "message": settings.get("mechanic_update_message", "Naya update aaya hai, kripya app update karein.")
+        "app": app,
+        "latest_version_code": _to_int(settings.get(f"{app}_latest_version_code"), 1),
+        "min_version_code": _to_int(settings.get(f"{app}_min_version_code"), 1),
+        "apk_url": settings.get(f"{app}_apk_url", ""),
+        "message": settings.get(f"{app}_update_message", DEFAULT_UPDATE_MSG)
     }
 
 
 @router.post("/app-version")
 def update_admin_app_version(
     body: AppVersionUpdate,
+    app: str = QueryParam("mechanic"),
     x_admin_key: str = Header(None),
     db: Session = Depends(get_db)
 ):
     check_admin(x_admin_key)
+    if app not in VALID_APPS:
+        raise HTTPException(status_code=400, detail=f"Invalid app. Must be one of: {', '.join(VALID_APPS)}")
 
     if body.min_version_code > body.latest_version_code:
         raise HTTPException(
@@ -120,10 +133,10 @@ def update_admin_app_version(
         )
 
     updates = {
-        "mechanic_latest_version_code": str(body.latest_version_code),
-        "mechanic_min_version_code": str(body.min_version_code),
-        "mechanic_apk_url": apk_url,
-        "mechanic_update_message": (body.message or "Naya update aaya hai, kripya app update karein.").strip()
+        f"{app}_latest_version_code": str(body.latest_version_code),
+        f"{app}_min_version_code": str(body.min_version_code),
+        f"{app}_apk_url": apk_url,
+        f"{app}_update_message": (body.message or DEFAULT_UPDATE_MSG).strip()
     }
 
     for k, v in updates.items():
@@ -136,10 +149,10 @@ def update_admin_app_version(
     db.commit()
 
     return {
+        "app": app,
         "latest_version_code": body.latest_version_code,
         "min_version_code": body.min_version_code,
         "apk_url": apk_url,
-        "message": updates["mechanic_update_message"],
+        "message": updates[f"{app}_update_message"],
         "success": True
     }
-

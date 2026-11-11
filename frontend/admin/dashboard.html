@@ -154,6 +154,58 @@
         </div>
       </div>
 
+      <!-- Customer App Update Card -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="bg-white rounded-4 border shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <div>
+                <h5 class="fw-bold mb-1" style="font-family: var(--font-head);">Customer App Update</h5>
+                <p class="text-muted small mb-0">Manage update prompts and force updates for installed customer Android APKs.</p>
+              </div>
+              <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-semibold" id="customerAppVersionStatusBadge">Android Release</span>
+            </div>
+
+            <!-- Inline Alert Message -->
+            <div id="customerAppVersionAlert" class="alert d-none py-2 px-3 mb-3 small rounded-3" role="alert"></div>
+
+            <form id="customerAppVersionForm" onsubmit="event.preventDefault(); saveCustomerAppVersionSettings();">
+              <div class="row g-3">
+                <div class="col-12 col-md-3">
+                  <label class="form-label small fw-semibold text-muted mb-1" for="customerLatestVersionCode">Latest Version Code</label>
+                  <input type="number" min="1" step="1" class="form-control form-control-sm" id="customerLatestVersionCode" required placeholder="e.g. 2">
+                  <div class="form-text" style="font-size:0.75rem;">Soft update dikhega agar app isse kam ho</div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                  <label class="form-label small fw-semibold text-muted mb-1" for="customerMinVersionCode">Minimum Version Code</label>
+                  <input type="number" min="1" step="1" class="form-control form-control-sm" id="customerMinVersionCode" required placeholder="e.g. 1">
+                  <div class="form-text" style="font-size:0.75rem;">Force update (block) agar app isse kam ho</div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label class="form-label small fw-semibold text-muted mb-1" for="customerApkUrl">APK Download URL</label>
+                  <input type="url" class="form-control form-control-sm" id="customerApkUrl" placeholder="https://garagenearme.net/downloads/gnm-customer-latest.apk">
+                  <div class="form-text" style="font-size:0.75rem;">Khaali ya https:// se shuru ho</div>
+                </div>
+
+                <div class="col-12 col-md-9">
+                  <label class="form-label small fw-semibold text-muted mb-1" for="customerUpdateMessage">Update Message</label>
+                  <input type="text" class="form-control form-control-sm" id="customerUpdateMessage" placeholder="Naya update aaya hai, kripya app update karein.">
+                  <div class="form-text" style="font-size:0.75rem;">Customer ko update dialog/banner me dikhne wala message</div>
+                </div>
+
+                <div class="col-12 col-md-3 d-flex align-items-end">
+                  <button type="submit" id="saveCustomerAppVersionBtn" class="btn btn-sm btn-success w-100 fw-bold py-2 rounded-3">
+                    Save Settings
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
       <!-- Main Tables Row -->
       <div class="row g-4">
 
@@ -455,6 +507,86 @@
   loadDashboardStats();
   loadFoundingProgram();
   loadAppVersionSettings();
+  loadCustomerAppVersionSettings();
+
+  function showCustomerAppVersionAlert(msg, type) {
+    const el = document.getElementById('customerAppVersionAlert');
+    el.className = `alert alert-${type} py-2 px-3 mb-3 small rounded-3`;
+    el.textContent = msg;
+    el.classList.remove('d-none');
+    setTimeout(() => { el.classList.add('d-none'); }, 4500);
+  }
+
+  async function loadCustomerAppVersionSettings() {
+    try {
+      const adminKey = localStorage.getItem('gnm_admin_key');
+      const res = await fetch(getApiBase() + '/admin/app-version?app=customer', {
+        headers: { 'X-Admin-Key': adminKey }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('customerLatestVersionCode').value = data.latest_version_code || 1;
+        document.getElementById('customerMinVersionCode').value = data.min_version_code || 1;
+        document.getElementById('customerApkUrl').value = data.apk_url || '';
+        document.getElementById('customerUpdateMessage').value = data.message || '';
+      }
+    } catch (e) {
+      console.warn('Could not load customer app version settings:', e);
+    }
+  }
+
+  async function saveCustomerAppVersionSettings() {
+    const btn = document.getElementById('saveCustomerAppVersionBtn');
+    const latest = parseInt(document.getElementById('customerLatestVersionCode').value, 10);
+    const min = parseInt(document.getElementById('customerMinVersionCode').value, 10);
+    const apkUrl = (document.getElementById('customerApkUrl').value || '').trim();
+    const msg = (document.getElementById('customerUpdateMessage').value || '').trim();
+
+    if (isNaN(latest) || isNaN(min)) {
+      showCustomerAppVersionAlert('Version codes must be valid integers.', 'danger');
+      return;
+    }
+    if (min > latest) {
+      showCustomerAppVersionAlert('Minimum version code cannot be greater than Latest version code.', 'danger');
+      return;
+    }
+    if (apkUrl && !apkUrl.startsWith('https://')) {
+      showCustomerAppVersionAlert('APK URL must be empty or start with https://', 'danger');
+      return;
+    }
+
+    try {
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      const adminKey = localStorage.getItem('gnm_admin_key');
+      const res = await fetch(getApiBase() + '/admin/app-version?app=customer', {
+        method: 'POST',
+        headers: {
+          'X-Admin-Key': adminKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          latest_version_code: latest,
+          min_version_code: min,
+          apk_url: apkUrl,
+          message: msg || 'Naya update aaya hai, kripya app update karein.'
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showCustomerAppVersionAlert('Customer app update settings saved successfully!', 'success');
+      } else {
+        showCustomerAppVersionAlert(data.detail || 'Failed to save settings.', 'danger');
+      }
+    } catch (err) {
+      console.error(err);
+      showCustomerAppVersionAlert('Error saving settings. Please try again.', 'danger');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Settings';
+    }
+  }
 </script>
 </body>
 
