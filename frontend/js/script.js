@@ -80,7 +80,17 @@ if (sosBtn) {
 document.addEventListener('DOMContentLoaded', async () => {
   if (!window?.Capacitor?.isNativePlatform?.()) return;
 
-  const { Geolocation, PushNotifications, LocalNotifications } = window.Capacitor.Plugins;
+  const { App, Geolocation, PushNotifications, LocalNotifications } = window.Capacitor.Plugins || {};
+
+  // Sirf customer app me chale — website ya mechanic app me bilkul na chale
+  try {
+    if (!App || typeof App.getInfo !== 'function') return;
+    const appInfo = await App.getInfo();
+    if (appInfo?.id !== 'com.garagenearme.customer') return;
+  } catch (e) {
+    console.warn('[GNM] App.getInfo check failed, skipping push setup:', e);
+    return;
+  }
 
   // ── STEP 1: Location permission (pehle) ──
   if (Geolocation) {
@@ -145,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   PushNotifications.addListener('registration', async (token) => {
     console.log('[GNM] FCM Token received:', token.value);
-    const authToken = localStorage.getItem('gnm_token');
+    const authToken = localStorage.getItem('gnm_token') || localStorage.getItem('access_token');
     if (!authToken) return;
     try {
       const apiBase = typeof getApiBase === 'function' ? getApiBase() : 'https://garagenearme.net/api';

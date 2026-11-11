@@ -264,7 +264,7 @@ def ensure_schema_updates():
         if "fcm_token" not in customer_columns:
             updates.append(
                 "ALTER TABLE customers "
-                "ADD COLUMN fcm_token TEXT NULL"
+                "ADD COLUMN IF NOT EXISTS fcm_token TEXT NULL"
             )
 
     if "bookings" in table_names:
